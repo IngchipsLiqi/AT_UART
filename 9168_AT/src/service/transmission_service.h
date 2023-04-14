@@ -16,6 +16,11 @@
 #define SIG_UUID_DESCRIP_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION 0x2902
 #endif
 
+extern uint8_t notify_enable;
+extern uint16_t g_ble_input_handle;
+extern uint16_t g_ble_output_handle;
+extern uint16_t g_ble_output_desc_handle;
+extern uint16_t g_ble_flow_ctrl_handle;
 
 void init_service(void);
 

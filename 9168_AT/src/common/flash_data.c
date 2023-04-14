@@ -1,6 +1,7 @@
 #include "flash_data.h"
 
 #include <string.h>
+#include <stdio.h>
 #include "../service/transmission_service.h"
 #include "../util/utils.h"
 #include "btstack_util.h"

@@ -18,6 +18,9 @@
 #include <stdlib.h>
 #include "btstack_event.h"
 
+#include "at_profile_spss.h"
+#include "at_profile_spsc.h"
+
 
 #ifndef TMR_CLK_FREQ
 #define TMR_CLK_FREQ 112000000
@@ -41,8 +44,66 @@ struct at_env
     uint16_t exit_transparent_mode_timer;     //send "+++" ,then 500ms later, exit transparent mode;
 } gAT_env = {0};
 
-static TimerHandle_t at_transparent_timer = 0;
+TimerHandle_t at_transparent_timer = 0;
 static TimerHandle_t at_exit_transparent_mode_timer = 0;
+
+
+
+/*********************************************************************
+ * @fn      uart_put_data_noint
+ *
+ * @brief   uart send data
+ *			
+ *
+ * @param   pBase 
+ * @param   data 
+ * @param   size 
+ *       	 
+ *
+ * @return  None
+ */
+void uart_put_data_noint(UART_TypeDef* pBase, uint8_t* data, uint32_t size)
+{
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        while (apUART_Check_TXFIFO_FULL(pBase) == 1){}
+        UART_SendData(pBase, data[i]);
+    }
+}
+
+/*********************************************************************
+ * @fn      uart_putc_noint
+ *
+ * @brief   uart send c
+ *			
+ *
+ * @param   pBase 
+ * @param   data 
+ *       	 
+ *
+ * @return  None
+ */
+void uart_putc_noint(UART_TypeDef* pBase, uint8_t data)
+{
+    while (apUART_Check_TXFIFO_FULL(pBase) == 1){}
+    UART_SendData(pBase, data);
+}
+
+/*********************************************************************
+ * @fn      at_clr_uart_buff
+ *
+ * @brief   Reset uart char receive index to zero.
+ *			
+ *
+ * @param   None
+ *       	 
+ *
+ * @return  None
+ */
+void at_clr_uart_buff(void)
+{
+    gAT_env.at_recv_index = 0;
+}
 
 /*********************************************************************
  * @fn      transparent_timer_handler
@@ -58,16 +119,12 @@ static TimerHandle_t at_exit_transparent_mode_timer = 0;
 void transparent_timer_handler(TimerHandle_t xTimer)
 {
     //LOG_INFO("r_Tout\r\n");
-//    if( gAT_env.transparent_data_send_ongoing == 0 )
-//    {
-//        gAT_env.transparent_data_send_ongoing = 1;
-//        os_event_t evt;
-//        evt.event_id = AT_RECV_TRANSPARENT_DATA;
-//        evt.param_len = 0;
-//        evt.param = NULL;
-//        evt.src_task_id = TASK_ID_NONE;
-//        os_msg_post(gAT_env.at_task_id,&evt);
-//    }
+    if( gAT_env.transparent_data_send_ongoing == 0 )
+    {
+        gAT_env.transparent_data_send_ongoing = 1;
+
+        btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
+    }
 }
 
 /*********************************************************************
@@ -131,14 +188,73 @@ void uart_io_send(const uint8_t* buf, uint32_t size)
     }
 }
 
+//void show_heap(void)
+//{
+//    static char buffer[200];
+//    platform_heap_status_t status;
+//    platform_get_heap_status(&status);
+//    sprintf(buffer, "heap status:\n"
+//                    "    free: %d B\n"
+//                    "min free: %d B\n", status.bytes_free, status.bytes_minimum_ever_free);
+//    LOG_MSG(buffer, strlen(buffer) + 1);
+//}
 
+int os_get_free_heap_size()
+{
+    platform_heap_status_t status;
+    platform_get_heap_status(&status);
+    return status.bytes_free;
+}
+
+/*********************************************************************
+ * @fn      recv_transparent_data
+ *
+ * @brief   process transparent data
+ *			
+ *
+ * @param   None
+ *       	 
+ *
+ * @return  None
+ */
+void recv_transparent_data()
+{
+    xTimerStop(at_transparent_timer, portMAX_DELAY);
+    
+    //__disable_irq();
+    if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx))
+    {
+        if( os_get_free_heap_size()>11264 )
+        {
+            //printf("c:%d\r\n",gAT_env.at_recv_index);
+            if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
+                at_spss_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
+            else if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)      //master
+                at_spsc_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
+        }
+        else
+            uart_putc_noint(UART0,'X');
+    }
+    gAT_env.at_recv_index = 0;
+    gAT_env.transparent_data_send_ongoing = 0;
+
+    //__enable_irq();
+    
+    if(gAT_ctrl_env.one_slot_send_start && gAT_ctrl_env.one_slot_send_len == 0)
+    {
+        gAT_ctrl_env.one_slot_send_start = false;
+        gAT_ctrl_env.one_slot_send_len = 0;
+        uint8_t at_rsp[] = "SEND OK";
+        at_send_rsp((char *)at_rsp);
+    }
+}
 
 int at_task_func()
 {
 
 
 
-
+    return 0;
 }
 /*********************************************************************
  * @fn      app_at_recv_c
@@ -174,7 +290,24 @@ static void app_at_recv_c(uint8_t c)
 
     if(gAT_ctrl_env.one_slot_send_start)        // one slot send
     {
+        if(gAT_ctrl_env.one_slot_send_len > 0)
+        {
+            if(gAT_env.at_recv_index == 0)
+            {
+                btstack_push_user_msg(USER_MSG_AT_TRANSPARENT_START_TIMER, NULL, 0);
+            }
+            if( gAT_env.at_recv_index < (AT_RECV_MAX_LEN-2) )
+                gAT_env.at_recv_buffer[gAT_env.at_recv_index++] = c;
+            gAT_ctrl_env.one_slot_send_len--;
 
+            if( ((gAT_env.at_recv_index >AT_TRANSPARENT_DOWN_LEVEL) && (gAT_env.transparent_data_send_ongoing == 0))
+                || (gAT_ctrl_env.one_slot_send_len == 0)
+              )
+            {
+                btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
+            }
+        }
+        goto _exit;
     }
 
     if(gAT_ctrl_env.upgrade_start == true)
@@ -237,14 +370,13 @@ static void app_at_recv_c(uint8_t c)
             gAT_env.at_recv_buffer[gAT_env.at_recv_index] = c;
             if(  (c == '\n') && (gAT_env.at_recv_buffer[gAT_env.at_recv_index-1] == '\r') )
             {
-                
                 struct recv_cmd_t *cmd = (struct recv_cmd_t *)malloc(sizeof(struct recv_cmd_t)+(gAT_env.at_recv_index+1));
                 cmd->recv_length = gAT_env.at_recv_index+1;
                 memcpy(&cmd->recv_data[0], &gAT_env.at_recv_buffer[0], cmd->recv_length);
                 
                 btstack_push_user_msg(USER_MSG_AT_RECV_CMD, cmd, sizeof(struct recv_cmd_t) + cmd->recv_length);
                                
-                free(cmd);
+                //free(cmd);
                 gAT_env.at_recv_state = 0;
                 gAT_env.at_recv_index = 0;
 
@@ -310,13 +442,13 @@ void at_init(void)
     //3.用于透传的控制
     at_transparent_timer = xTimerCreate("t1",
             pdMS_TO_TICKS(50),
-            pdTRUE,
+            pdFALSE,
             NULL,
             transparent_timer_handler);
             
     at_exit_transparent_mode_timer = xTimerCreate("t2",
         pdMS_TO_TICKS(500),
-        pdTRUE,
+        pdFALSE,
         NULL,
         exit_trans_tim_fn);
 }

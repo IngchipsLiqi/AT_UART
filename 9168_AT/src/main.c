@@ -122,7 +122,6 @@ static void watchdog_task(void *pdata)
     {
         vTaskDelay(pdMS_TO_TICKS(8000));
         TMR_WatchDogRestart();
-        uart_io_send(buf,1);
     }
 }
 

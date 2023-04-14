@@ -1,5 +1,6 @@
 #include "at_parser.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "btstack_event.h"

@@ -413,6 +413,16 @@
               <FileType>1</FileType>
               <FilePath>.\src\router.c</FilePath>
             </File>
+            <File>
+              <FileName>at_profile_spss.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\at_profile_spss.c</FilePath>
+            </File>
+            <File>
+              <FileName>at_profile_spsc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\at_profile_spsc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

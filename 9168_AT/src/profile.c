@@ -14,6 +14,7 @@
 #include "att_db.h"
 #include "att_db_util.h"
 #include "ad_parser.h"
+#include "at_recv_cmd.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -30,6 +31,7 @@
 #include "at_recv_cmd.h"
 #include "at_cmd_task.h"
 #include "sm.h"
+
 
 
 
@@ -529,9 +531,15 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
     case USER_MSG_PROCESS_BLE_MASTER_DATA:     
         uart_io_send(data, size);
         break;
-     case USER_MSG_AT_RECV_CMD: //TODO  
+    case USER_MSG_AT_RECV_CMD: //TODO  
         at_recv_cmd_handler(data);
-        break;         
+        break;
+    case USER_MSG_AT_TRANSPARENT_START_TIMER:
+        xTimerStart(at_transparent_timer, portMAX_DELAY);
+        break;
+    case USER_MSG_AT_RECV_TRANSPARENT_DATA:
+        recv_transparent_data();
+        break;
          
     default:
         break;

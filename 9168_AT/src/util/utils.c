@@ -4,6 +4,8 @@
 #include <string.h>
 #include "btstack_util.h"
 
+
+
 uint32_t get_sig_short_uuid(const uint8_t *uuid128)
 {
     return uuid_has_bluetooth_prefix(uuid128) ? big_endian_read_32(uuid128, 0) : 0;
