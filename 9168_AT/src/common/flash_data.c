@@ -27,7 +27,6 @@ static private_flash_data_t *p_power_off_save_data_in_flash = (private_flash_dat
 void sdk_private_data_write_to_flash(void)
 {
     program_flash((uint32_t)p_power_off_save_data_in_flash, (uint8_t *)(&g_power_off_save_data_in_ram), sizeof(g_power_off_save_data_in_ram));
-    write_flash((uint32_t)p_power_off_save_data_in_flash, (uint8_t *)(&g_power_off_save_data_in_ram), sizeof(g_power_off_save_data_in_ram));
     return;
 }
 

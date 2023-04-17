@@ -25,6 +25,9 @@ typedef enum {
 #define BT_AT_CMD_TTM_MODULE_NAME_MAX_LEN 16
 #define BT_AT_CMD_TTM_MAC_ADDRESS_LEN 6
 
+#define MAC_ADDR_LEN 6
+#define UUID_SIZE_2 2
+#define UUID_SIZE_16 16
 
 #define PRINT_PORT      APB_UART0
 
@@ -60,5 +63,8 @@ typedef enum {
 
 #include "ingsoc.h"
 
+#include "bluetooth.h"
+
+typedef bd_addr_t mac_addr_t;
 
 #endif

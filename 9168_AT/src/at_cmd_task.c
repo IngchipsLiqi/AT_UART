@@ -5,6 +5,7 @@
 #include "at_cmd_task.h"
 #include "at_recv_cmd.h"
 #include "common/flash_data.h"
+#include "util/utils.h"
 
 #include "gap.h"
 
@@ -104,7 +105,9 @@ static void at_init_adv_rsp_parameter(void)
 void gap_set_dev_name(uint8_t* name, uint32_t size)
 {
     memcpy(g_power_off_save_data_in_ram.module_name, name, size);
-    sdk_private_data_write_to_flash();
+    
+    g_power_off_save_data_in_ram.module_adv_data.local_name_len = size; // -1 +1
+    memcpy(g_power_off_save_data_in_ram.module_adv_data.local_name, name, size);
 }
 
 /*********************************************************************
@@ -125,6 +128,79 @@ int gap_get_dev_name(uint8_t* local_name)
     strcpy((char*)local_name, g_power_off_save_data_in_ram.module_name);
     
     return len;
+}
+
+/*********************************************************************
+ * @fn      gap_address_get
+ *
+ * @brief   get the address
+ *			
+ *
+ * @param[addr] address, out data 
+ *       	 
+ *
+ * @return  None
+ */
+void gap_address_get(bd_addr_t addr)
+{
+    memcpy(addr, g_power_off_save_data_in_ram.module_mac_address, MAC_ADDR_LEN);
+}
+
+/*********************************************************************
+ * @fn      gap_address_set
+ *
+ * @brief   set the address
+ *			
+ *
+ * @param[addr] address
+ *
+ *
+ * @return  None
+ */
+void gap_address_set(bd_addr_t addr)
+{
+    memcpy(g_power_off_save_data_in_ram.module_mac_address, addr, MAC_ADDR_LEN);
+    
+    const static ext_adv_set_en_t adv_sets_en[] = { {.handle = 0, .duration = 0, .max_events = 0} };
+    gap_set_ext_adv_enable(0, sizeof(adv_sets_en) / sizeof(adv_sets_en[0]), adv_sets_en);
+    gap_set_adv_set_random_addr(0, g_power_off_save_data_in_ram.module_mac_address);
+    gap_set_ext_adv_enable(1, sizeof(adv_sets_en) / sizeof(adv_sets_en[0]), adv_sets_en);
+}
+
+/*********************************************************************
+ * @fn      hex_arr_to_str
+ *
+ * @brief   convert buffer data to hex str
+ *			
+ *
+ * @param[buff]     hex buffer
+ * @param[len]      hex buffer length
+ * @param[out_str]  hex str, out data
+ *       	 
+ *
+ * @return  None
+ */
+void hex_arr_to_str(uint8_t* buff, uint16_t len, uint8_t* out_str)
+{
+    hex2str(buff, len, out_str);
+}
+
+/*********************************************************************
+ * @fn      str_to_hex_arr
+ *
+ * @brief   convert hex str to data
+ *			
+ *
+ * @param[in_str]   hex str
+ * @param[buff]     buffer
+ * @param[len]      buffer length
+ *       	 
+ *
+ * @return  1 if has connection, otherwise 0
+ */
+void str_to_hex_arr(uint8_t* in_str, uint8_t* buff, uint16_t len)
+{
+    str2hex((char*)in_str, len * 2, buff, len);
 }
 
 /*********************************************************************
@@ -251,7 +327,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         goto _exit;
                     }
                     *(buff+idx) = 0;
-                    if(memcmp(local_name,buff,local_name_len)!=0)   //name is different,the set it
+                    if(memcmp(local_name,buff,local_name_len)!=0 
+                        || local_name_len != strlen((const char *)buff))   //name is different,the set it
                     {
                         gap_set_dev_name(buff,strlen((const char *)buff)+1);
                         at_init_adv_rsp_parameter();
@@ -523,15 +600,17 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        */
         case AT_CMD_IDX_MAC:
         {
             uint8_t mac_str[MAC_ADDR_LEN*2+1];
-            mac_addr_t addr;
+            
+            bd_addr_t addr;
             switch(*buff++)
             {
                 case '?':
-                    gap_address_get(&addr);
-                    hex_arr_to_str(addr.addr,MAC_ADDR_LEN,mac_str);
+                    gap_address_get(addr);
+                    hex_arr_to_str(addr,MAC_ADDR_LEN,mac_str);
                     mac_str[MAC_ADDR_LEN*2] = 0;
 
                     sprintf((char *)at_rsp,"+MAC:%s\r\nOK",mac_str);
@@ -539,9 +618,9 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     break;
                 case '=':
                 {
-                    str_to_hex_arr(buff,addr.addr,MAC_ADDR_LEN);
-                    gap_address_set(&addr);
-                    hex_arr_to_str(addr.addr,MAC_ADDR_LEN,mac_str);
+                    str_to_hex_arr(buff,addr,MAC_ADDR_LEN);
+                    gap_address_set(addr);
+                    hex_arr_to_str(addr,MAC_ADDR_LEN,mac_str);
                     mac_str[MAC_ADDR_LEN*2] = 0;
 
                     sprintf((char *)at_rsp,"+MAC:%s\r\nOK",mac_str);
@@ -566,6 +645,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        /*
         case AT_CMD_IDX_UART:
         {
             switch(*buff++)
@@ -726,7 +806,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
-
         case AT_CMD_IDX_UUID:
         {
             uint8_t uuid_str_svc[UUID_SIZE_16*2+1];
@@ -787,6 +866,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        */
         case AT_CMD_IDX_FLASH:            //store param
         {
             at_store_info_to_flash();
@@ -794,7 +874,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             at_send_rsp((char *)at_rsp);
         }
         break;
-        */
         case AT_CMD_IDX_SEND:
         {
             switch(*buff++)

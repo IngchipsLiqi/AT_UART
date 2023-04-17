@@ -21,6 +21,8 @@
 #include "at_profile_spss.h"
 #include "at_profile_spsc.h"
 
+#include "common/flash_data.h"
+
 
 #ifndef TMR_CLK_FREQ
 #define TMR_CLK_FREQ 112000000
@@ -224,9 +226,16 @@ void recv_transparent_data()
     //__disable_irq();
     if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx))
     {
-        if( os_get_free_heap_size()>11264 )
+        if( os_get_free_heap_size()>0) //11264 )
         {
             //printf("c:%d\r\n",gAT_env.at_recv_index);
+            
+            if(g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_SLAVE)
+                at_spss_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
+            else if(g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER)      //master
+                at_spsc_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
+            
+            
             if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
                 at_spss_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
             else if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)      //master
@@ -394,6 +403,22 @@ static void app_at_recv_c(uint8_t c)
     }
 _exit:
     ;
+}
+
+/*********************************************************************
+ * @fn      at_store_info_to_flash
+ *
+ * @brief   Store AT infomations to flash, AT+FLASH cmd will carry out this function
+ *			
+ *
+ * @param   None 
+ *       	 
+ *
+ * @return  None
+ */
+void at_store_info_to_flash(void)
+{
+    sdk_private_data_write_to_flash();
 }
 
 //串口1的中断

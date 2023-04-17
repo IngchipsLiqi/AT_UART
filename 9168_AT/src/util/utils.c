@@ -25,6 +25,32 @@ void reverse(uint8_t* dst, uint8_t* src, uint32_t size)
         dst[i] = src[size - i - 1];
 }
 
+void hex2str(uint8_t* buff, uint32_t size, uint8_t* out_str)
+{
+    uint8_t msb,lsb;
+    uint32_t mi,li,i;
+    
+    for (i = 0; i < size; ++i)
+    {
+        mi = 2 * i;
+        li = mi + 1;
+        
+        msb = (buff[i] & 0xF0) >> 4;
+        lsb = (buff[i] & 0x0F);
+        
+        if (msb >= 0x0A) 
+            out_str[mi] = 'A' + (msb - 0x0A);
+        else 
+            out_str[mi] = '0' + (msb);
+        
+        if (lsb >= 0x0A) 
+            out_str[li] = 'A' + (lsb - 0x0A);
+        else 
+            out_str[li] = '0' + (lsb);
+    }
+    out_str[i * 2] = 0;
+}
+
 void str2hex(char* str, uint32_t str_len, uint8_t* out_buf, uint32_t out_buf_len)
 {
     if (str_len % 2 != 0)

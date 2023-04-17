@@ -42,5 +42,6 @@ void sdk_private_data_write_to_flash(void);
 
 void sdk_load_private_flash_data(void);
 
+extern private_flash_data_t g_power_off_save_data_in_ram;
 
 #endif

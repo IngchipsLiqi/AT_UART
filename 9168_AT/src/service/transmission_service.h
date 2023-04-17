@@ -16,6 +16,10 @@
 #define SIG_UUID_DESCRIP_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION 0x2902
 #endif
 
+extern uint8_t UUID_NORDIC_TPT[];
+extern uint8_t UUID_NORDIC_CHAR_GEN_IN[];
+extern uint8_t UUID_NORDIC_CHAR_GEN_OUT[];
+
 extern uint8_t notify_enable;
 extern uint16_t g_ble_input_handle;
 extern uint16_t g_ble_output_handle;

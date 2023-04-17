@@ -13,6 +13,7 @@
 #define USER_UART_AT_RTS 17
 #define USER_UART_AT_CTS 18
 
+#define AT_MAIN_VER (0)
 
 /*********************************************************************
  * @fn      uart_putc_noint
@@ -82,6 +83,19 @@ void at_init(void);
  */
 void at_clr_uart_buff(void);
 
+
+/*********************************************************************
+ * @fn      at_store_info_to_flash
+ *
+ * @brief   Store AT infomations to flash, AT+FLASH cmd will carry out this function
+ *			
+ *
+ * @param   None 
+ *       	 
+ *
+ * @return  None
+ */
+void at_store_info_to_flash(void);
 
 
 uint32_t uart_isr(void *user_data);

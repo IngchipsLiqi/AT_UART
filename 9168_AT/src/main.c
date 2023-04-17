@@ -154,7 +154,7 @@ int app_main()
     platform_set_evt_callback(PLATFORM_CB_EVT_PROFILE_INIT, setup_profile, NULL);
 
     // Load flash data. Data is not lost after power off
-    ///sdk_load_private_flash_data();
+    sdk_load_private_flash_data();
     
     // init rx buffer
     //init_rx_buffer();
