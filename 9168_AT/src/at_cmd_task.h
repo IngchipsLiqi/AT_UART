@@ -112,5 +112,5 @@ void at_send_rsp(char *str);
  * @return  1 if has connection, otherwise 0
  */
 int gap_get_connect_status(int idx);
-
+ 
 #endif
