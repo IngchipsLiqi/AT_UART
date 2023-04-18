@@ -98,6 +98,18 @@ void at_clr_uart_buff(void);
 void at_store_info_to_flash(void);
 
 
+/*********************************************************************
+ * @fn      uart_finish_transfers
+ *
+ * @brief   wait for tx fifo empty.
+ *
+ * @param   uart_addr   - which uart will be checked, UART0 or UART1.
+ *
+ * @return  None.
+ */
+void uart_finish_transfers(UART_TypeDef* pBase);
+
+
 uint32_t uart_isr(void *user_data);
 
 void uart_io_print(const char* buf);

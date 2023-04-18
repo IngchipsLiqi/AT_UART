@@ -156,12 +156,12 @@ void characteristic_discovery_callback(uint8_t packet_type, uint16_t _, const ui
         {
             const gatt_event_characteristic_query_result_t *result =
                 gatt_event_characteristic_query_result_parse(packet);
-            if (memcmp(UUID_NORDIC_CHAR_GEN_IN, result->characteristic.uuid128, 16) == 0)
+            if (memcmp(g_power_off_save_data_in_ram.characteristic_input_uuid, result->characteristic.uuid128, 16) == 0)
             {
                 slave_input_char = result->characteristic;
                 LOG_MSG("input handle: %d", slave_input_char.value_handle);
             }
-            else if (memcmp(UUID_NORDIC_CHAR_GEN_OUT, result->characteristic.uuid128, 16) == 0)
+            else if (memcmp(g_power_off_save_data_in_ram.characteristic_output_uuid, result->characteristic.uuid128, 16) == 0)
             {
                 slave_output_char = result->characteristic;
                 LOG_MSG("output handle: %d", slave_output_char.value_handle);
@@ -198,7 +198,7 @@ void service_discovery_callback(uint8_t packet_type, uint16_t _, const uint8_t *
             
             LOG_MSG("Service short UUID: %08X", get_sig_short_uuid(result->service.uuid128));
             
-            if (memcmp(result->service.uuid128, UUID_NORDIC_TPT, 16) == 0)
+            if (memcmp(result->service.uuid128, g_power_off_save_data_in_ram.serivce_uuid, 16) == 0)
             {
                 slave_service = result->service;
                 LOG_MSG("service handle: %d %d", slave_service.start_group_handle, slave_service.end_group_handle);
@@ -571,7 +571,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         LOG_MSG("Ble stack init ok\r\n");
         gap_set_random_device_address(g_power_off_save_data_in_ram.module_mac_address);
         
-        config_adv_and_set_interval(50);
+        config_adv_and_set_interval(adv_int_arr[g_power_off_save_data_in_ram.default_info.adv_int]);
         start_adv();
         
 //        config_scan();
@@ -599,6 +599,8 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
                 uart_io_print("Connected\r\n");
                 need_connection_ret = 0;
             }
+            
+            ll_set_conn_tx_power(conn_complete->handle, rf_power_arr[g_power_off_save_data_in_ram.default_info.rf_power]);
             
             hint_ce_len(conn_complete->interval);
             
