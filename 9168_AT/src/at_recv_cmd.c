@@ -311,6 +311,7 @@ static void app_at_recv_c(uint8_t c)
                 || (gAT_ctrl_env.one_slot_send_len == 0)
               )
             {
+                gAT_env.transparent_data_send_ongoing = 1;
                 btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
             }
         }
