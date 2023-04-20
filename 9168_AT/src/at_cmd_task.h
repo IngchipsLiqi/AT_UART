@@ -51,7 +51,7 @@ struct recv_cmd_t
 struct at_adv_report
 {
     uint8_t        evt_type;
-    uint8_t        adv_addr_type;
+    bd_addr_type_t adv_addr_type;
     bd_addr_t      adv_addr;
     uint8_t        data_len;
     uint8_t        data[0x1F];
@@ -112,6 +112,19 @@ void at_send_rsp(char *str);
  * @return  1 if has connection, otherwise 0
  */
 int gap_get_connect_status(int idx);
+
+/*********************************************************************
+ * @fn      gap_get_connect_num
+ *
+ * @brief   get the connection num
+ *			
+ *
+ * @param   None.
+ *       	 
+ *
+ * @return  connect num
+ */
+int gap_get_connect_num();
  
 /*********************************************************************
  * @fn      system_sleep_enable

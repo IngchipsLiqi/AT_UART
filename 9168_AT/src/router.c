@@ -14,8 +14,8 @@
 //==============================================================================================================
 //* GATT
 //==============================================================================================================
-extern hci_con_handle_t master_connect_handle;
-extern hci_con_handle_t slave_connect_handle;
+hci_con_handle_t master_connect_handle;
+hci_con_handle_t slave_connect_handle;
 extern gatt_client_service_t slave_service;
 extern gatt_client_characteristic_t slave_input_char;
 extern gatt_client_characteristic_t slave_output_char;

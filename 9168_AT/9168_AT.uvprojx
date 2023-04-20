@@ -409,11 +409,6 @@
               <FilePath>.\src\at_cmd_task.c</FilePath>
             </File>
             <File>
-              <FileName>router.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\router.c</FilePath>
-            </File>
-            <File>
               <FileName>at_profile_spss.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\at_profile_spss.c</FilePath>
@@ -422,6 +417,11 @@
               <FileName>at_profile_spsc.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\at_profile_spsc.c</FilePath>
+            </File>
+            <File>
+              <FileName>router.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\router.c</FilePath>
             </File>
           </Files>
         </Group>

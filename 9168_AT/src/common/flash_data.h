@@ -16,8 +16,11 @@
 #endif
 
 typedef struct {
+    bd_addr_t addr;
+    bd_addr_type_t addr_type;
     uint8_t encryption;
     uint8_t link_mode;
+    phy_type_t phy;
     conn_para_t conn_param;
 } private_module_conn_peer_param_t;
 
@@ -28,12 +31,17 @@ typedef struct {
     uint8_t local_name[BT_AT_CMD_TTM_MODULE_NAME_MAX_LEN];
 } private_module_adv_data_t;
 
+#define IDLE_ROLE    (0)
+#define SLAVE_ROLE   (1<<0)
+#define MASTER_ROLE  (1<<1)
 typedef struct {
+    uint8_t role;               //0 = idle; 1 = salve; 2 = master;
     bool auto_sleep;
     int wakeup_source;
     int wakeup_level;
     uint16_t rf_power;
     uint32_t adv_int;
+    uint8_t encryption_link;    //0 = idle; 'S' = salve enc; 'M' = master enc, 'B' = master bond;
     //...
     //...
 } private_module_default_info_t;
@@ -64,6 +72,7 @@ typedef struct {
     
     uint8_t peer_mac_address[BT_AT_CMD_TTM_MAC_ADDRESS_LEN];
     
+    private_module_conn_peer_param_t master_peer_param;
     private_module_conn_peer_param_t peer_param[BLE_CONNECTION_MAX];
     
     uint8_t serivce_uuid[UUID_SIZE_16];

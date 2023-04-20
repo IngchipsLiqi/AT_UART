@@ -267,8 +267,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\src\router.c</PathWithFileName>
-      <FilenameWithoutPath>router.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\at_profile_spss.c</PathWithFileName>
+      <FilenameWithoutPath>at_profile_spss.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -279,8 +279,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\src\at_profile_spss.c</PathWithFileName>
-      <FilenameWithoutPath>at_profile_spss.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\at_profile_spsc.c</PathWithFileName>
+      <FilenameWithoutPath>at_profile_spsc.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -291,8 +291,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\src\at_profile_spsc.c</PathWithFileName>
-      <FilenameWithoutPath>at_profile_spsc.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\router.c</PathWithFileName>
+      <FilenameWithoutPath>router.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -352,7 +352,7 @@
 
   <Group>
     <GroupName>FWlib</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -468,7 +468,7 @@
 
   <Group>
     <GroupName>Tools</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

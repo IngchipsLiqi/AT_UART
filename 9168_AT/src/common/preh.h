@@ -31,6 +31,9 @@ typedef enum {
 #define UUID_SIZE_16 16
 #define BLE_CONNECTION_MAX (20)
 
+#define ADV_LED_OFF __NOP()
+#define ADV_LED_ON __NOP()
+
 #define PRINT_PORT      APB_UART0
 
 
