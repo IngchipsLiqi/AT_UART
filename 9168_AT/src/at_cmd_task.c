@@ -591,6 +591,7 @@ void at_start_scan(void)
 /***********SCAN Handle***************/
 
 /***********CONNECTION Handle***************/
+extern initiating_phy_config_t phy_configs[];
 
 /*********************************************************************
  * @fn      at_start_connecting
@@ -609,28 +610,12 @@ void at_start_connecting(void *arg)
     memcpy(addr, g_power_off_save_data_in_ram.master_peer_param.addr, MAC_ADDR_LEN);
     uint8_t addr_type = g_power_off_save_data_in_ram.master_peer_param.addr_type;
     
-
-    initiating_phy_config_t phy_config =
-    {
-        .phy = PHY_1M,
-        .conn_param =
-        {
-            .scan_int = 200,
-            .scan_win = 180,
-            .interval_min = 16,
-            .interval_max = 16,
-            .latency = 0,
-            .supervision_timeout = 400,
-            .min_ce_len = 80,
-            .max_ce_len = 80
-        }
-    };
     gap_ext_create_connection(INITIATING_ADVERTISER_FROM_PARAM, // Initiator_Filter_Policy,
                               BD_ADDR_TYPE_LE_RANDOM,           // Own_Address_Type,
                               addr_type,                        // Peer_Address_Type,
                               addr,                             // Peer_Address,
-                              sizeof(phy_config),
-                              &phy_config);
+                              1,
+                              phy_configs);
     
     gAT_ctrl_env.initialization_ongoing = true;
 }
@@ -859,6 +844,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             if(gap_get_connect_status(i) && gAT_buff_env.peer_param[i].link_mode ==MASTER_ROLE)
                                 break;
                         }
+                        LOG_MSG("i = %d", i);
                         if(i >= BLE_CONNECTION_MAX ) //no master link
                         {
                             gAT_buff_env.default_info.role |= MASTER_ROLE;
@@ -1204,7 +1190,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             at_send_rsp((char *)at_rsp);
         }
         break;
-        /*
         case AT_CMD_IDX_CONN:
         {
             switch(*buff++)
@@ -1215,9 +1200,9 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
 
                     if(gAT_ctrl_env.initialization_ongoing == false) //no master link
                     {
-                        memcpy(gAT_buff_env.master_peer_param.conn_param.peer_addr.addr, gAT_buff_env.adv_rpt[connect_idx].adv_addr.addr, MAC_ADDR_LEN);
-                        gAT_buff_env.master_peer_param.conn_param.addr_type = gAT_buff_env.adv_rpt[connect_idx].adv_addr_type;
-                        gAT_buff_env.default_info.role |= MASTER_ROLE;
+                        memcpy(g_power_off_save_data_in_ram.master_peer_param.addr, gAT_buff_env.adv_rpt[connect_idx].adv_addr, MAC_ADDR_LEN);
+                        g_power_off_save_data_in_ram.master_peer_param.addr_type = gAT_buff_env.adv_rpt[connect_idx].adv_addr_type;
+                        g_power_off_save_data_in_ram.default_info.role |= MASTER_ROLE;
                         at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_start_connecting);
                         gAT_ctrl_env.async_evt_on_going = true;
                         at_start_connecting(NULL);
@@ -1232,7 +1217,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
-        */
         case AT_CMD_IDX_UUID:
         {
             uint8_t uuid_str_svc[UUID_SIZE_16*2+1];

@@ -455,73 +455,11 @@ void at_cb_disconnected(void *arg)
     }
 }
 
-
-
-/**
- * Receive broadcast event callbacks.
- * If the device meets the requirements, send a BLE connection request
- */
-void receive_advertising_report(const le_meta_event_ext_adv_report_t* report_complete)
-{
-    const le_ext_adv_report_t* report = report_complete->reports;
-    
-    
-    uint16_t name_len = 0;
-    const uint8_t* name = ad_data_from_type(report->data_len, (uint8_t*)report->data, 9, &name_len);
-    if (name == NULL || name_len <= 0)
-        return;
-    
-    if (memcmp(name, "ET07_BLE", 8) != 0) {
-        return;
-    }
-    
-    bd_addr_t peer_dev_addr;
-    reverse_bd_addr(report->address, peer_dev_addr);
-    
-    // If the device is not in the device record table, recorded in the table
-    if (!at_contains_device(peer_dev_addr)) {
-        at_processor_add_scan_device(peer_dev_addr);
-        LOG_MSG("dev addr: %02X%02X%02X%02X%02X%02X", peer_dev_addr[0], 
-                                                              peer_dev_addr[1], 
-                                                              peer_dev_addr[2], 
-                                                              peer_dev_addr[3], 
-                                                              peer_dev_addr[4], 
-                                                              peer_dev_addr[5]);
-    }
-}
-
 void handle_can_send_now(void)
 {
     LOG_MSG("Into Scan send now\r\n");
-    if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
-        if (send_to_slave_data_to_be_continued == 1) {
-            send_data_to_ble_slave();
-        }
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_SLAVE) {
-        if (send_to_master_data_to_be_continued == 1) {
-            send_data_to_ble_master();
-        }
-    }
 }
 
-extern circular_queue_t* buffer;
-uint8_t temp_buffer[1000] = { 0 };
-
-void process_rx_port_data()
-{
-    if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_NO_CONNECTION) {
-        
-        // cmd parse
-        uint32_t len = circular_queue_get_elem_num(buffer);
-        circular_queue_dequeue_batch(buffer, temp_buffer, len);
-        at_processor_start(temp_buffer, len);
-        
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
-        send_data_to_ble_slave_start();
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_SLAVE) {
-        send_data_to_ble_master_start();
-    }
-}
 
 void show_heap(void)
 {
@@ -549,8 +487,8 @@ static void timer_task(TimerHandle_t xTimer)
 
 void init_slave_and_master_port_task()
 {
-    TimerHandle_t timer = xTimerCreate("state_print_task", pdMS_TO_TICKS(10000), pdTRUE, NULL, timer_task);
-    xTimerStart(timer, portMAX_DELAY);
+//    TimerHandle_t timer = xTimerCreate("state_print_task", pdMS_TO_TICKS(10000), pdTRUE, NULL, timer_task);
+//    xTimerStart(timer, portMAX_DELAY);
 }
 
 //==============================================================================================================
@@ -573,12 +511,6 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
 {
     switch (msg_id)
     {
-    case USER_MSG_SEND_DATA_TO_BLE_SLAVE:
-        send_data_to_ble_slave();
-        break;
-    case USER_MSG_SEND_DATA_TO_BLE_MASTER:
-        send_data_to_ble_master();
-        break;
     case USER_MSG_PROCESS_BLE_MASTER_DATA:     
         uart_io_send(data, size);
         break;
@@ -799,9 +731,14 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         p_user_msg = hci_event_packet_get_user_msg(packet);
         user_msg_handler(p_user_msg->msg_id, p_user_msg->data, p_user_msg->len);
         break;
+    
+    case HCI_EVENT_COMMAND_COMPLETE:
+        decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
+    
+        break;
 
     default:
-        //LOG_MSG("event:%d\r\n", event);
+        LOG_MSG("event:%d\r\n", event);
         break;
     }
 }

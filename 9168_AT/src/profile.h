@@ -124,6 +124,7 @@ extern gatt_client_characteristic_t slave_input_char;
 extern gatt_client_characteristic_t slave_output_char;
 extern gatt_client_characteristic_descriptor_t slave_output_desc;
 extern gatt_client_notification_t slave_output_notify;
+extern initiating_phy_config_t phy_configs[];
 
 uint32_t setup_profile(void *data, void *user_data);
 

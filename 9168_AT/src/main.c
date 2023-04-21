@@ -158,11 +158,6 @@ static void set_reg_bit(volatile uint32_t *reg, uint8_t v, uint8_t bit_offset)
 
 int app_main()
 {
-    //set_reg_bit((volatile uint32_t*) (AON2_CTRL_BASE + 0x0), 0, 0);     //Disable DCDC
-    //set_reg_bit((volatile uint32_t*) (AON1_CTRL_BASE + 0x8), 1, 31);    //Bypass LDO
-    //set_reg_bits((volatile uint32_t*) (AON1_CTRL_BASE + 0x8), 0, 4, 11);
-    
-    
     platform_32k_rc_auto_tune();
     sem_delay = xSemaphoreCreateBinary();
 
@@ -172,15 +167,12 @@ int app_main()
     // Peripheral initialization
     setup_peripherals();
     
-    
     xTaskCreate(watchdog_task,
            "w",
            configMINIMAL_STACK_SIZE,
            NULL,
            (configMAX_PRIORITIES - 1),
            NULL);
-    
-    
     
     platform_set_evt_callback(PLATFORM_CB_EVT_HARD_FAULT, (f_platform_evt_cb)cb_hard_fault, NULL);
     platform_set_evt_callback(PLATFORM_CB_EVT_ASSERTION, (f_platform_evt_cb)cb_assertion, NULL);
@@ -193,12 +185,6 @@ int app_main()
     // Set the callback for the protocol stack to be prepared
     platform_set_evt_callback(PLATFORM_CB_EVT_PROFILE_INIT, setup_profile, NULL);
     
-    
-    // init rx buffer
-    //init_rx_buffer();
-    
-    //init at processor
-    //init_at_processor();
     
     platform_config(PLATFORM_CFG_RTOS_ENH_TICK, PLATFORM_CFG_ENABLE);
     platform_printf("MAIN_OK\r\n");

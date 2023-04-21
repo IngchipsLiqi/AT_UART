@@ -389,11 +389,6 @@
               <FilePath>.\src\main.c</FilePath>
             </File>
             <File>
-              <FileName>profile.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\profile.h</FilePath>
-            </File>
-            <File>
               <FileName>profile.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\profile.c</FilePath>
@@ -417,11 +412,6 @@
               <FileName>at_profile_spsc.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\at_profile_spsc.c</FilePath>
-            </File>
-            <File>
-              <FileName>router.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\router.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -534,11 +524,6 @@
               <FilePath>.\src\common\preh.h</FilePath>
             </File>
             <File>
-              <FileName>flash_data.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\common\flash_data.h</FilePath>
-            </File>
-            <File>
               <FileName>flash_data.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\common\flash_data.c</FilePath>
@@ -549,19 +534,9 @@
           <GroupName>service</GroupName>
           <Files>
             <File>
-              <FileName>transmission_service.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\service\transmission_service.h</FilePath>
-            </File>
-            <File>
               <FileName>transmission_service.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\service\transmission_service.c</FilePath>
-            </File>
-            <File>
-              <FileName>transmission_callback.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\service\transmission_callback.h</FilePath>
             </File>
             <File>
               <FileName>transmission_callback.c</FileName>
@@ -577,36 +552,6 @@
               <FileName>utils.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\util\utils.c</FilePath>
-            </File>
-            <File>
-              <FileName>utils.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\util\utils.h</FilePath>
-            </File>
-            <File>
-              <FileName>circular_queue.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\util\circular_queue.h</FilePath>
-            </File>
-            <File>
-              <FileName>circular_queue.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\util\circular_queue.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>at</GroupName>
-          <Files>
-            <File>
-              <FileName>at_parser.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\at\at_parser.c</FilePath>
-            </File>
-            <File>
-              <FileName>at_parser.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\at\at_parser.h</FilePath>
             </File>
           </Files>
         </Group>
