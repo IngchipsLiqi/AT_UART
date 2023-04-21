@@ -113,7 +113,25 @@ void setup_peripherals(void)
 
     TMR_WatchDogEnable3(WDT_INTTIME_INTERVAL_16S, 200, 1);
     platform_set_irq_callback(PLATFORM_CB_IRQ_WDT, (f_platform_irq_cb)wdt_isr, NULL);
+}
 
+uint32_t on_deep_sleep_wakeup(const platform_wakeup_call_info_t *info, void *user_data)
+{
+    if (PLATFORM_WAKEUP_REASON_NORMAL == info->reason)
+        setup_peripherals();
+    else
+        GIO_EnableRetentionGroupA(0);
+    return 1;
+}
+
+uint32_t query_deep_sleep_allowed(void *dummy, void *user_data)
+{
+    (void)(dummy);
+    (void)(user_data);
+    if (IS_DEBUGGER_ATTACHED())
+        return 0;
+    GIO_EnableRetentionGroupA(1);
+    return PLATFORM_ALLOW_DEEP_SLEEP;
 }
 
 static void watchdog_task(void *pdata)
@@ -126,45 +144,61 @@ static void watchdog_task(void *pdata)
 }
 
 
+static void set_reg_bits(volatile uint32_t *reg, uint32_t v, uint8_t bit_width, uint8_t bit_offset)
+{
+    uint32_t mask = ((1 << bit_width) - 1) << bit_offset;
+    *reg = (*reg & ~mask) | (v << bit_offset);
+}
+
+static void set_reg_bit(volatile uint32_t *reg, uint8_t v, uint8_t bit_offset)
+{
+    uint32_t mask = 1 << bit_offset;
+    *reg = (*reg & ~mask) | (v << bit_offset);
+}
+
 int app_main()
 {
     platform_32k_rc_auto_tune();
     sem_delay = xSemaphoreCreateBinary();
+
+    // Load flash data. Data is not lost after power off
+    sdk_load_private_flash_data();
     
     // Peripheral initialization
     setup_peripherals();
     
-
     xTaskCreate(watchdog_task,
            "w",
            configMINIMAL_STACK_SIZE,
            NULL,
            (configMAX_PRIORITIES - 1),
            NULL);
-
-   
     
     platform_set_evt_callback(PLATFORM_CB_EVT_HARD_FAULT, (f_platform_evt_cb)cb_hard_fault, NULL);
     platform_set_evt_callback(PLATFORM_CB_EVT_ASSERTION, (f_platform_evt_cb)cb_assertion, NULL);
     platform_set_evt_callback(PLATFORM_CB_EVT_HEAP_OOM, (f_platform_evt_cb)cb_heap_out_of_mem, NULL);
     platform_set_evt_callback(PLATFORM_CB_EVT_LLE_INIT, cb_lle_init, NULL);
     platform_set_evt_callback(PLATFORM_CB_EVT_PUTC, (f_platform_evt_cb)cb_putc, NULL);
+    platform_set_evt_callback(PLATFORM_CB_EVT_ON_DEEP_SLEEP_WAKEUP, (f_platform_evt_cb)on_deep_sleep_wakeup, NULL);
+    platform_set_evt_callback(PLATFORM_CB_EVT_QUERY_DEEP_SLEEP_ALLOWED, (f_platform_evt_cb)query_deep_sleep_allowed, NULL);
     
     // Set the callback for the protocol stack to be prepared
     platform_set_evt_callback(PLATFORM_CB_EVT_PROFILE_INIT, setup_profile, NULL);
-
-    // Load flash data. Data is not lost after power off
-    sdk_load_private_flash_data();
     
-    // init rx buffer
-    //init_rx_buffer();
-    
-    //init at processor
-    //init_at_processor();
     
     platform_config(PLATFORM_CFG_RTOS_ENH_TICK, PLATFORM_CFG_ENABLE);
     platform_printf("MAIN_OK\r\n");
     
+    
+    // Config wakeup source
+    int wakeup_source_pull = 
+        (1 == g_power_off_save_data_in_ram.default_info.wakeup_level) ? PINCTRL_PULL_DOWN : PINCTRL_PULL_UP;
+    GIO_EnableDeepSleepWakeupSource(
+        g_power_off_save_data_in_ram.default_info.wakeup_source, 1, 
+        g_power_off_save_data_in_ram.default_info.wakeup_level, wakeup_source_pull);
+    if (g_power_off_save_data_in_ram.default_info.auto_sleep) {
+        platform_config(PLATFORM_CFG_POWER_SAVING, PLATFORM_CFG_ENABLE);
+    }
     return 0;
 }
 

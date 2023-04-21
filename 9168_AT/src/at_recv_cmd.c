@@ -74,6 +74,20 @@ void uart_put_data_noint(UART_TypeDef* pBase, uint8_t* data, uint32_t size)
 }
 
 /*********************************************************************
+ * @fn      uart_finish_transfers
+ *
+ * @brief   wait for tx fifo empty.
+ *
+ * @param   uart_addr   - which uart will be checked, UART0 or UART1.
+ *
+ * @return  None.
+ */
+void uart_finish_transfers(UART_TypeDef* pBase)
+{
+    while (apUART_Check_TXFIFO_EMPTY(pBase) == 0){}
+}
+
+/*********************************************************************
  * @fn      uart_putc_noint
  *
  * @brief   uart send c
@@ -152,24 +166,8 @@ void exit_trans_tim_fn(TimerHandle_t xTimer)
 }
 void uart_init(uint32_t freq, uint32_t baud)
 {
-    UART_sStateStruct config;
-
-    config.word_length       = UART_WLEN_8_BITS;
-    config.parity            = UART_PARITY_NOT_CHECK;
-    config.fifo_enable       = 1;
-    config.two_stop_bits     = 0;
-    config.receive_en        = 1;
-    config.transmit_en       = 1;
-    config.UART_en           = 1;
-    config.cts_en            = 1;
-    config.rts_en            = 1;
-    config.rxfifo_waterlevel = 1;
-    config.txfifo_waterlevel = 1;
-    config.ClockFrequency    = freq;
-    config.BaudRate          = baud;
-
     //初始化串口1,置串口接收中断标志位
-    apUART_Initialize(APB_UART1, &config, (1 << bsUART_RECEIVE_INTENAB) );//1 << bsUART_RECEIVE_INTENAB);
+    apUART_Initialize(APB_UART1, &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );//1 << bsUART_RECEIVE_INTENAB);
 }
 void uart_io_print(const char* buf) 
 {
@@ -226,15 +224,9 @@ void recv_transparent_data()
     //__disable_irq();
     if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx))
     {
-        if( os_get_free_heap_size()>0) //11264 )
+        if( os_get_free_heap_size()>2000) //11264 )
         {
             //printf("c:%d\r\n",gAT_env.at_recv_index);
-            
-            if(g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_SLAVE)
-                at_spss_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
-            else if(g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER)      //master
-                at_spsc_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
-            
             
             if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
                 at_spss_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
@@ -313,6 +305,7 @@ static void app_at_recv_c(uint8_t c)
                 || (gAT_ctrl_env.one_slot_send_len == 0)
               )
             {
+                gAT_env.transparent_data_send_ongoing = 1;
                 btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
             }
         }
@@ -465,15 +458,17 @@ void at_init(void)
     platform_set_irq_callback(PLATFORM_CB_IRQ_UART1, uart_isr, NULL);
     
     //3.用于透传的控制
-    at_transparent_timer = xTimerCreate("t1",
-            pdMS_TO_TICKS(50),
+    if (at_transparent_timer == 0) 
+        at_transparent_timer = xTimerCreate("t1",
+                pdMS_TO_TICKS(50),
+                pdFALSE,
+                NULL,
+                transparent_timer_handler);
+    
+    if (at_exit_transparent_mode_timer == 0)
+        at_exit_transparent_mode_timer = xTimerCreate("t2",
+            pdMS_TO_TICKS(500),
             pdFALSE,
             NULL,
-            transparent_timer_handler);
-            
-    at_exit_transparent_mode_timer = xTimerCreate("t2",
-        pdMS_TO_TICKS(500),
-        pdFALSE,
-        NULL,
-        exit_trans_tim_fn);
+            exit_trans_tim_fn);
 }

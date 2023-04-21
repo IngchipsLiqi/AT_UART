@@ -1,13 +1,12 @@
 #ifndef _AT_CMD_TASK_H_
 #define _AT_CMD_TASK_H_
 
-
+#include "common/preh.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include "gap.h"
 
 #define ADV_REPORT_NUM  10
-#define BLE_CONNECTION_MAX (20)
 
 struct at_ctrl
 {
@@ -52,7 +51,7 @@ struct recv_cmd_t
 struct at_adv_report
 {
     uint8_t        evt_type;
-    uint8_t        adv_addr_type;
+    bd_addr_type_t adv_addr_type;
     bd_addr_t      adv_addr;
     uint8_t        data_len;
     uint8_t        data[0x1F];
@@ -73,7 +72,8 @@ struct at_buff_env
 
 extern struct at_ctrl gAT_ctrl_env;
 extern struct at_buff_env gAT_buff_env;
-
+extern const int16_t rf_power_arr[];
+extern const uint16_t adv_int_arr[];
 /*********************************************************************
  * @fn      at_recv_cmd_handler
  *
@@ -113,4 +113,38 @@ void at_send_rsp(char *str);
  */
 int gap_get_connect_status(int idx);
 
+/*********************************************************************
+ * @fn      gap_get_connect_num
+ *
+ * @brief   get the connection num
+ *			
+ *
+ * @param   None.
+ *       	 
+ *
+ * @return  connect num
+ */
+int gap_get_connect_num();
+ 
+/*********************************************************************
+ * @fn      system_sleep_enable
+ *
+ * @brief   enable system enter deep sleep mode when all conditions are satisfied.
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+void system_sleep_enable(void);
+
+/*********************************************************************
+ * @fn      system_sleep_disable
+ *
+ * @brief   disable system enter deep sleep mode.
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+void system_sleep_disable(void);
 #endif

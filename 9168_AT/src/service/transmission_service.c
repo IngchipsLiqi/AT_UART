@@ -30,11 +30,11 @@ void init_tansmit_service(void)
     uint16_t att_value_handle;
     uint8_t g_value[GATT_CHARACTERISTIC_MAX_DATA_LEN]={0};
 
-    att_db_util_add_service_uuid128(UUID_NORDIC_TPT);
+    att_db_util_add_service_uuid128(g_power_off_save_data_in_ram.serivce_uuid);
     
     LOG_MSG("ble gatt add transmission service.");
     
-    att_value_handle = att_db_util_add_characteristic_uuid128(UUID_NORDIC_CHAR_GEN_OUT, 
+    att_value_handle = att_db_util_add_characteristic_uuid128(g_power_off_save_data_in_ram.characteristic_output_uuid, 
             ATT_PROPERTY_NOTIFY | ATT_PROPERTY_READ | ATT_PROPERTY_DYNAMIC,
             g_value, sizeof(g_value));
     g_ble_output_handle = att_value_handle;
@@ -43,7 +43,7 @@ void init_tansmit_service(void)
     LOG_MSG("ble gatt add transmission characteristic output.");
 
     
-    att_value_handle = att_db_util_add_characteristic_uuid128(UUID_NORDIC_CHAR_GEN_IN, 
+    att_value_handle = att_db_util_add_characteristic_uuid128(g_power_off_save_data_in_ram.characteristic_input_uuid, 
             ATT_PROPERTY_DYNAMIC | ATT_PROPERTY_WRITE_WITHOUT_RESPONSE, 
             g_value, sizeof(g_value));
     g_ble_input_handle = att_value_handle;

@@ -46,11 +46,11 @@ extern uint8_t UUID_NORDIC_TPT[];
 extern uint8_t UUID_NORDIC_CHAR_GEN_IN[];
 extern uint8_t UUID_NORDIC_CHAR_GEN_OUT[];
 
+extern bool gap_conn_table[];
+
 //==============================================================================================================
 //* Global variable
 //==============================================================================================================
-hci_con_handle_t master_connect_handle = INVALID_HANDLE;
-hci_con_handle_t slave_connect_handle = INVALID_HANDLE;
 
 uint32_t rx_sum = 0;
 uint32_t tx_sum = 0;
@@ -80,6 +80,24 @@ gatt_client_characteristic_descriptor_t slave_output_desc;
 gatt_client_notification_t slave_output_notify;
 
 static uint16_t char_config_notification = GATT_CLIENT_CHARACTERISTICS_CONFIGURATION_NOTIFICATION;
+
+//Variable to store at event callback functions
+static at_cb_func_t at_cb_func[AT_GAP_CB_MAX] = {0};
+
+/*********************************************************************
+ * @fn      at_set_gap_cb_func
+ *
+ * @brief   Fucntion to set at event call back function
+ *
+ * @param   func_idx - at event idx 
+ *       	func 	 - at event call back function 
+ *
+ * @return  None.
+ */
+void at_set_gap_cb_func(enum at_cb_func_idx func_idx,at_cb_func_t func)
+{
+    at_cb_func[func_idx] = func;
+}
 
 //==============================================================================================================
 //* Receive Slave Data
@@ -132,17 +150,22 @@ void descriptor_discovery_callback(uint8_t packet_type, uint16_t _, const uint8_
         }
         break;
     case GATT_EVENT_QUERY_COMPLETE:
-        if (gatt_event_query_complete_parse(packet)->status != 0)
-            break;
-
-        if (slave_output_desc.handle != INVALID_HANDLE)
         {
-            gatt_client_listen_for_characteristic_value_updates(&slave_output_notify, output_notification_handler,
-                                                                slave_connect_handle, slave_output_char.value_handle);
-                
-            gatt_client_write_characteristic_descriptor_using_descriptor_handle(config_notify_callback, slave_connect_handle,
-                slave_output_desc.handle, sizeof(char_config_notification),
-                (uint8_t *)&char_config_notification);
+            const gatt_event_query_complete_t *result =
+                    gatt_event_query_complete_parse(packet);
+            
+            if (result->status != 0)
+                break;
+
+            if (slave_output_desc.handle != INVALID_HANDLE)
+            {
+                gatt_client_listen_for_characteristic_value_updates(&slave_output_notify, output_notification_handler,
+                                                                    result->handle, slave_output_char.value_handle);
+                    
+                gatt_client_write_characteristic_descriptor_using_descriptor_handle(config_notify_callback, result->handle,
+                    slave_output_desc.handle, sizeof(char_config_notification),
+                    (uint8_t *)&char_config_notification);
+            }
         }
         break;
     }
@@ -156,12 +179,12 @@ void characteristic_discovery_callback(uint8_t packet_type, uint16_t _, const ui
         {
             const gatt_event_characteristic_query_result_t *result =
                 gatt_event_characteristic_query_result_parse(packet);
-            if (memcmp(UUID_NORDIC_CHAR_GEN_IN, result->characteristic.uuid128, 16) == 0)
+            if (memcmp(g_power_off_save_data_in_ram.characteristic_input_uuid, result->characteristic.uuid128, 16) == 0)
             {
                 slave_input_char = result->characteristic;
                 LOG_MSG("input handle: %d", slave_input_char.value_handle);
             }
-            else if (memcmp(UUID_NORDIC_CHAR_GEN_OUT, result->characteristic.uuid128, 16) == 0)
+            else if (memcmp(g_power_off_save_data_in_ram.characteristic_output_uuid, result->characteristic.uuid128, 16) == 0)
             {
                 slave_output_char = result->characteristic;
                 LOG_MSG("output handle: %d", slave_output_char.value_handle);
@@ -169,18 +192,23 @@ void characteristic_discovery_callback(uint8_t packet_type, uint16_t _, const ui
         }
         break;
     case GATT_EVENT_QUERY_COMPLETE:
-        if (gatt_event_query_complete_parse(packet)->status != 0)
-            break;
+        {
+            const gatt_event_query_complete_t *result =
+                    gatt_event_query_complete_parse(packet);
+            
+            if (result->status != 0)
+                break;
 
-        if (INVALID_HANDLE == slave_input_char.value_handle ||
-            INVALID_HANDLE == slave_output_char.value_handle)
-        {
-            LOG_MSG("characteristic not found, disc");
-            gap_disconnect(slave_connect_handle);
-        }
-        else
-        {
-            gatt_client_discover_characteristic_descriptors(descriptor_discovery_callback, slave_connect_handle, &slave_output_char);
+            if (INVALID_HANDLE == slave_input_char.value_handle ||
+                INVALID_HANDLE == slave_output_char.value_handle)
+            {
+                LOG_MSG("characteristic not found, disc");
+                gap_disconnect(result->handle);
+            }
+            else
+            {
+                gatt_client_discover_characteristic_descriptors(descriptor_discovery_callback, result->handle, &slave_output_char);
+            }
         }
         break;
     }
@@ -198,7 +226,7 @@ void service_discovery_callback(uint8_t packet_type, uint16_t _, const uint8_t *
             
             LOG_MSG("Service short UUID: %08X", get_sig_short_uuid(result->service.uuid128));
             
-            if (memcmp(result->service.uuid128, UUID_NORDIC_TPT, 16) == 0)
+            if (memcmp(result->service.uuid128, g_power_off_save_data_in_ram.serivce_uuid, 16) == 0)
             {
                 slave_service = result->service;
                 LOG_MSG("service handle: %d %d", slave_service.start_group_handle, slave_service.end_group_handle);
@@ -206,30 +234,35 @@ void service_discovery_callback(uint8_t packet_type, uint16_t _, const uint8_t *
         }
         break;
     case GATT_EVENT_QUERY_COMPLETE:
-        LOG_MSG("query complete\r\n");
-    
-        if (gatt_event_query_complete_parse(packet)->status != 0)
-            break;
-        if (slave_service.start_group_handle != INVALID_HANDLE)
         {
-            gatt_client_discover_characteristics_for_service(characteristic_discovery_callback, slave_connect_handle,
-                                                           slave_service.start_group_handle,
-                                                           slave_service.end_group_handle);
-        }
-        else
-        {
-            LOG_MSG("service not found, disc");
-            gap_disconnect(slave_connect_handle);
+            LOG_MSG("query complete\r\n");
+        
+            const gatt_event_query_complete_t *result =
+                    gatt_event_query_complete_parse(packet);
+        
+            if (result->status != 0)
+                break;
+            if (slave_service.start_group_handle != INVALID_HANDLE)
+            {
+                gatt_client_discover_characteristics_for_service(characteristic_discovery_callback, result->handle,
+                                                               slave_service.start_group_handle,
+                                                               slave_service.end_group_handle);
+            }
+            else
+            {
+                LOG_MSG("service not found, disc");
+                gap_disconnect(result->handle);
+            }
         }
         break;
     }
 }
 
 
-static void discovery_service()
+static void discovery_service(uint16_t conn_handle)
 {
     if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
-        gatt_client_discover_primary_services(service_discovery_callback, slave_connect_handle);
+        gatt_client_discover_primary_services(service_discovery_callback, conn_handle);
     }
 }
 
@@ -251,7 +284,7 @@ const static uint8_t scan_data[] = { 0 };
 
 const static ext_adv_set_en_t adv_sets_en[] = { {.handle = 0, .duration = 0, .max_events = 0} };
 
-static void config_adv_and_set_interval(uint32_t intervel)
+void config_adv_and_set_interval(uint32_t intervel)
 {
     gap_set_adv_set_random_addr(0, g_power_off_save_data_in_ram. module_mac_address);
     gap_set_ext_adv_para(0,
@@ -271,13 +304,13 @@ static void config_adv_and_set_interval(uint32_t intervel)
     gap_set_ext_adv_data(0, sizeof(g_power_off_save_data_in_ram.module_adv_data), (uint8_t*)&g_power_off_save_data_in_ram.module_adv_data);
     gap_set_ext_scan_response_data(0, sizeof(scan_data), (uint8_t*)scan_data);
 }
-static void start_adv(void)
+void start_adv(void)
 {
     gap_set_ext_adv_enable(1, sizeof(adv_sets_en) / sizeof(adv_sets_en[0]), adv_sets_en);
     
     LOG_MSG("Start Adv\r\n");
 }
-static void stop_adv(void)
+void stop_adv(void)
 {
     gap_set_ext_adv_enable(0, sizeof(adv_sets_en) / sizeof(adv_sets_en[0]), adv_sets_en);
     
@@ -313,21 +346,28 @@ static const scan_phy_config_t configs[1] =
     }
 };
 
-static void config_scan(void)
+void config_scan(void)
 {
     gap_set_ext_scan_para(BD_ADDR_TYPE_LE_RANDOM, SCAN_ACCEPT_ALL_EXCEPT_NOT_DIRECTED,
                           sizeof(configs) / sizeof(configs[0]),
                           configs);
 }
 
-static void start_scan(void)
+void start_continuous_scan(uint16_t duration)
+{
+    gap_set_ext_scan_enable(1, 0, duration, 0);   // start continuous scanning
+                          
+    LOG_MSG("Start Scan\r\n");
+}
+
+void start_scan(void)
 {
     gap_set_ext_scan_enable(1, 0, 0, 0);   // start continuous scanning
                           
     LOG_MSG("Start Scan\r\n");
 }
 
-static void stop_scan(void)
+void stop_scan(void)
 {
     gap_set_ext_scan_enable(1, 0, 0, 0);   // stop scanning
                           
@@ -372,102 +412,54 @@ initiating_phy_config_t phy_configs[] =
 
 
 
-
-
-/**
- * Receive broadcast event callbacks.
- * If the device meets the requirements, send a BLE connection request
+/*********************************************************************
+ * @fn      at_slave_encrypted
+ *
+ * @brief   at event call back function, handle after link is lost
+ *
+ * @param   arg - point to buff of gap_evt_disconnect_t struct type
+ *       
+ *
+ * @return  None.
  */
-void receive_advertising_report(const le_meta_event_ext_adv_report_t* report_complete)
+void at_cb_disconnected(void *arg)
 {
-    const le_ext_adv_report_t* report = report_complete->reports;
-    
-    
-    uint16_t name_len = 0;
-    const uint8_t* name = ad_data_from_type(report->data_len, (uint8_t*)report->data, 9, &name_len);
-    if (name == NULL || name_len <= 0)
-        return;
-    
-    if (memcmp(name, "ET07_BLE", 8) != 0) {
-        return;
+    event_disconn_complete_t *param = (event_disconn_complete_t *)arg;
+    platform_printf("at_disconnect[%d]\r\n",param->conn_handle);
+
+    //TODO: auto transparent off
+
+    if( (gAT_ctrl_env.async_evt_on_going)
+        || (gAT_ctrl_env.async_evt_on_going == false && gAT_ctrl_env.transparent_start == false)    //passive disconnect,no transparant, then report to host
+      )
+    {
+        uint8_t at_rsp[30];
+        sprintf((char *)at_rsp,"+DISCONN:%d\r\nOK",param->conn_handle);
+        at_send_rsp((char *)at_rsp);
+        
+        gAT_ctrl_env.async_evt_on_going = false;
     }
-    
-    bd_addr_t peer_dev_addr;
-    reverse_bd_addr(report->address, peer_dev_addr);
-    
-    // If the device is not in the device record table, recorded in the table
-    if (!at_contains_device(peer_dev_addr)) {
-        at_processor_add_scan_device(peer_dev_addr);
-        LOG_MSG("dev addr: %02X%02X%02X%02X%02X%02X", peer_dev_addr[0], 
-                                                              peer_dev_addr[1], 
-                                                              peer_dev_addr[2], 
-                                                              peer_dev_addr[3], 
-                                                              peer_dev_addr[4], 
-                                                              peer_dev_addr[5]);
-    }
-}
 
-void create_connection(bd_addr_t address)
-{
-    gap_set_ext_scan_enable(0, 0, 0, 0);
-    LOG_MSG("connecting ...");
-    
-    phy_configs[0].phy = PHY_1M;
-    gap_ext_create_connection(        INITIATING_ADVERTISER_FROM_PARAM, // Initiator_Filter_Policy,
-                                      BD_ADDR_TYPE_LE_RANDOM,           // Own_Address_Type,
-                                      BD_ADDR_TYPE_LE_RANDOM,           // Peer_Address_Type,
-                                      address,                          // Peer_Address,
-                                      sizeof(phy_configs) / sizeof(phy_configs[0]),
-                                      phy_configs);
-}
-
-
-void update_device_type()
-{
-    if (slave_connect_handle != INVALID_HANDLE) {
-        g_power_off_save_data_in_ram.dev_type = BLE_DEV_TYPE_MASTER;
-        LOG_MSG("Master.\r\n");
-    } else if (master_connect_handle != INVALID_HANDLE) {
-        g_power_off_save_data_in_ram.dev_type = BLE_DEV_TYPE_SLAVE;
-        LOG_MSG("Slave.\r\n");
-    } else {
-        g_power_off_save_data_in_ram.dev_type = BLE_DEV_TYPE_NO_CONNECTION;
-        LOG_MSG("No Connection.\r\n");
+    // one slot send, but link loss
+    if(gAT_ctrl_env.one_slot_send_start && gAT_ctrl_env.one_slot_send_len > 0)
+    {
+        if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx)==false)
+        {
+            at_clr_uart_buff();
+            gAT_ctrl_env.one_slot_send_start = false;
+            gAT_ctrl_env.one_slot_send_len = 0;
+            
+            uint8_t at_rsp[] = "SEND FAIL";
+            at_send_rsp((char *)at_rsp);
+        }
     }
 }
 
 void handle_can_send_now(void)
 {
     LOG_MSG("Into Scan send now\r\n");
-    if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
-        if (send_to_slave_data_to_be_continued == 1) {
-            send_data_to_ble_slave();
-        }
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_SLAVE) {
-        if (send_to_master_data_to_be_continued == 1) {
-            send_data_to_ble_master();
-        }
-    }
 }
 
-extern circular_queue_t* buffer;
-uint8_t temp_buffer[1000] = { 0 };
-
-void process_rx_port_data()
-{
-    if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_NO_CONNECTION) {
-        
-        // cmd parse
-        uint32_t len = circular_queue_get_elem_num(buffer);
-        circular_queue_dequeue_batch(buffer, temp_buffer, len);
-        at_processor_start(temp_buffer, len);
-        
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
-        send_data_to_ble_slave_start();
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_SLAVE) {
-        send_data_to_ble_master_start();
-    }
-}
 
 void show_heap(void)
 {
@@ -495,8 +487,8 @@ static void timer_task(TimerHandle_t xTimer)
 
 void init_slave_and_master_port_task()
 {
-    TimerHandle_t timer = xTimerCreate("state_print_task", pdMS_TO_TICKS(10000), pdTRUE, NULL, timer_task);
-    xTimerStart(timer, portMAX_DELAY);
+//    TimerHandle_t timer = xTimerCreate("state_print_task", pdMS_TO_TICKS(10000), pdTRUE, NULL, timer_task);
+//    xTimerStart(timer, portMAX_DELAY);
 }
 
 //==============================================================================================================
@@ -519,15 +511,6 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
 {
     switch (msg_id)
     {
-    case USER_MSG_SEND_DATA_TO_BLE_SLAVE:
-        send_data_to_ble_slave();
-        break;
-    case USER_MSG_SEND_DATA_TO_BLE_MASTER:
-        send_data_to_ble_master();
-        break;
-    case USER_MSG_CREATE_CONNECTION:
-        create_connection(data);
-        break;
     case USER_MSG_PROCESS_BLE_MASTER_DATA:     
         uart_io_send(data, size);
         break;
@@ -555,7 +538,8 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
 static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uint8_t *packet, uint16_t size)
 {
     const le_meta_event_ext_adv_report_t *report_complete;
-    const le_meta_event_enh_create_conn_complete_t *conn_complete;
+    const le_meta_event_create_conn_complete_t *conn_complete;
+    const le_meta_event_enh_create_conn_complete_t *enh_conn_complete;
     const event_disconn_complete_t *disconn_event;
     
     uint8_t event = hci_event_packet_get_type(packet);
@@ -571,51 +555,130 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         LOG_MSG("Ble stack init ok\r\n");
         gap_set_random_device_address(g_power_off_save_data_in_ram.module_mac_address);
         
-        config_adv_and_set_interval(50);
-        start_adv();
+        config_adv_and_set_interval(adv_int_arr[g_power_off_save_data_in_ram.default_info.adv_int]);
+        config_scan();
         
-//        config_scan();
-//        start_scan();
- //       uart_io_print("Start Adv and Scan\r\n");
+        if (g_power_off_save_data_in_ram.default_info.role & SLAVE_ROLE)
+            start_adv();
+        if (g_power_off_save_data_in_ram.default_info.role & MASTER_ROLE)
+            start_scan();
+        
+        //TODO: auto transparent mode
+        
         break;
 
     case HCI_EVENT_LE_META:
         switch (hci_event_le_meta_get_subevent_code(packet))
         {
+        case HCI_SUBEVENT_LE_SCAN_TIMEOUT:
+            LOG_MSG("scan terminated\r\n");
+            gAT_ctrl_env.scan_ongoing = false;
+        
+            if (at_cb_func[AT_GAP_CB_SCAN_END]!=NULL)
+                at_cb_func[AT_GAP_CB_SCAN_END](NULL);
+            break;
         case HCI_SUBEVENT_LE_ADVERTISING_SET_TERMINATED:
-            platform_printf("advertising set terminated");
+            LOG_MSG("advertising set terminated\r\n");
+            gAT_ctrl_env.adv_ongoing = false;
+        
+            if (at_cb_func[AT_GAP_CB_ADV_END]!=NULL)
+                at_cb_func[AT_GAP_CB_ADV_END](NULL);
             
             break;
             
         case HCI_SUBEVENT_LE_EXTENDED_ADVERTISING_REPORT:
             report_complete = decode_hci_le_meta_event(packet, le_meta_event_ext_adv_report_t);
-            receive_advertising_report(report_complete);
-            break;
         
+            if (at_cb_func[AT_GAP_CB_ADV_RPT] != NULL)
+                at_cb_func[AT_GAP_CB_ADV_RPT]((void*)report_complete);
+        
+            //receive_advertising_report(report_complete);
+            break;
+        case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
+            
+            conn_complete = decode_hci_le_meta_event(packet, le_meta_event_create_conn_complete_t);
+            
+            LOG_MSG("conn_end,reason:0x%02x\r\n", conn_complete->status);
+            gAT_ctrl_env.initialization_ongoing = false;
+
+            if (at_cb_func[AT_GAP_CB_CONN_END]!=NULL)
+                at_cb_func[AT_GAP_CB_CONN_END]((void*)conn_complete);
+        
+            break;
         case HCI_SUBEVENT_LE_ENHANCED_CONNECTION_COMPLETE:
-            conn_complete = decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
             LOG_MSG("Connected!\r\n");
-            if (need_connection_ret) {
-                uart_io_print("Connected\r\n");
-                need_connection_ret = 0;
-            }
+        
+            enh_conn_complete = decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
             
-            hint_ce_len(conn_complete->interval);
+            ll_set_conn_tx_power(enh_conn_complete->handle, rf_power_arr[g_power_off_save_data_in_ram.default_info.rf_power]);
             
-            att_set_db(conn_complete->handle, att_db_util_get_address());
+            hint_ce_len(enh_conn_complete->interval);
             
-            if (conn_complete->role == HCI_ROLE_SLAVE) {
-                stop_scan();
-                master_connect_handle = conn_complete->handle;
-            } else {
+            att_set_db(enh_conn_complete->handle, att_db_util_get_address());
+        
+            gap_conn_table[enh_conn_complete->handle] = true;
+            
+            if (enh_conn_complete->role == HCI_ROLE_SLAVE) {
                 stop_adv();
-                slave_connect_handle = conn_complete->handle;
+                
+                memcpy(g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr, enh_conn_complete->peer_addr, MAC_ADDR_LEN);
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr_type = enh_conn_complete->peer_addr_type;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].link_mode = SLAVE_ROLE;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].encryption = false;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].phy = phy_configs[0].phy;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_min = enh_conn_complete->interval;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_max = enh_conn_complete->interval;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.latency = enh_conn_complete->latency;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.supervision_timeout = enh_conn_complete->sup_timeout;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_int = phy_configs[0].conn_param.scan_int;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_win = phy_configs[0].conn_param.scan_win;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.min_ce_len = phy_configs[0].conn_param.min_ce_len;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.max_ce_len = phy_configs[0].conn_param.max_ce_len;
+                
+                if (gAT_ctrl_env.transparent_start == false)
+                {
+                    uint8_t at_rsp[30];
+                    sprintf((char *)at_rsp,"+CONN:%d\r\nOK",enh_conn_complete->handle);
+                    at_send_rsp((char *)at_rsp);
+                }
+                
+                //TODO: auto transparent mode
+            } else {
+                stop_scan();
+                
+                memcpy(g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr, enh_conn_complete->peer_addr, MAC_ADDR_LEN);
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr_type = enh_conn_complete->peer_addr_type;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].link_mode = MASTER_ROLE;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].encryption = false;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].phy = phy_configs[0].phy;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_min = enh_conn_complete->interval;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_max = enh_conn_complete->interval;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.latency = enh_conn_complete->latency;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.supervision_timeout = enh_conn_complete->sup_timeout;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_int = phy_configs[0].conn_param.scan_int;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_win = phy_configs[0].conn_param.scan_win;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.min_ce_len = phy_configs[0].conn_param.min_ce_len;
+                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.max_ce_len = phy_configs[0].conn_param.max_ce_len;
+                
+                memcpy(&g_power_off_save_data_in_ram.master_peer_param,
+                    &g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle], sizeof(private_module_conn_peer_param_t));
+                
+                LOG_MSG("at_master_connected\r\n");
+                            
+                if(gAT_ctrl_env.transparent_start == false)         //if(gAT_ctrl_env.async_evt_on_going)
+                {
+                    uint8_t at_rsp[30];
+                    sprintf((char *)at_rsp,"+CONN:%d\r\nOK", enh_conn_complete->handle);
+                    at_send_rsp((char *)at_rsp);
+                    gAT_ctrl_env.async_evt_on_going = false;
+                }
+                
+                discovery_service(enh_conn_complete->handle);
+                
+                //TODO: auto transparent mode
             }
-            update_device_type();
             
-            gap_read_remote_used_features(conn_complete->handle);
-            
-            discovery_service();
+            gap_read_remote_used_features(enh_conn_complete->handle);
             break;
         
         case HCI_SUBEVENT_LE_PHY_UPDATE_COMPLETE:
@@ -640,29 +703,18 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
 
     case HCI_EVENT_DISCONNECTION_COMPLETE:
         disconn_event = decode_hci_event_disconn_complete(packet);
+    
+        gap_conn_table[disconn_event->conn_handle] = false;
+    
+        if (at_cb_func[AT_GAP_CB_DISCONNECT] != NULL)
+            at_cb_func[AT_GAP_CB_DISCONNECT]((void*)disconn_event);
+    
         LOG_MSG("Disconnected!! %d\r\n", disconn_event->reason);
-    
         
-    
-        uart_io_print("Disconnected!!\r\n");
-    
-        // TODO send disconnected info to AT console
-        
-        if (disconn_event->conn_handle == slave_connect_handle) {
-            slave_connect_handle = INVALID_HANDLE;
-        } else if (disconn_event->conn_handle == master_connect_handle) {
-            master_connect_handle = INVALID_HANDLE;
-        }
-        update_device_type();
-        
-        
-        if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_NO_CONNECTION) 
-        {
-            stop_adv();
-            config_adv_and_set_interval(50);
-            start_adv();
-            start_scan();
-        }
+        stop_adv();
+        config_adv_and_set_interval(50);
+        start_adv();
+        start_scan();
         break;
 
     case ATT_EVENT_CAN_SEND_NOW:
@@ -679,9 +731,14 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         p_user_msg = hci_event_packet_get_user_msg(packet);
         user_msg_handler(p_user_msg->msg_id, p_user_msg->data, p_user_msg->len);
         break;
+    
+    case HCI_EVENT_COMMAND_COMPLETE:
+        decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
+    
+        break;
 
     default:
-        //LOG_MSG("event:%d\r\n", event);
+        LOG_MSG("event:%d\r\n", event);
         break;
     }
 }

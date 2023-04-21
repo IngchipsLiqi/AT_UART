@@ -21,6 +21,31 @@ private_flash_data_t g_power_off_save_data_in_ram = {
     .dev_id = 1,
     .dev_type = BLE_DEV_TYPE_NO_CONNECTION,
     .peer_mac_address = {0xF1, 0xF2, 0x28, 0x07, 0x07, 0x07},
+    .default_info = {
+        .auto_sleep         = false,
+        .wakeup_source      = GIO_GPIO_0,
+        .wakeup_level       = 1,
+        .rf_power           = 2,
+        .adv_int            = 1,
+    },
+    .uart_param = {
+        .word_length        = UART_WLEN_8_BITS,
+        .parity             = UART_PARITY_NOT_CHECK,
+        .fifo_enable        = 1,
+        .two_stop_bits      = 0,
+        .receive_en         = 1,
+        .transmit_en        = 1,
+        .UART_en            = 1,
+        .cts_en             = 1,
+        .rts_en             = 1,
+        .rxfifo_waterlevel  = 1,
+        .txfifo_waterlevel  = 1,
+        .ClockFrequency     = OSC_CLK_FREQ,
+        .BaudRate           = 115200,
+    },
+    .serivce_uuid = {0},
+    .characteristic_input_uuid = {0},
+    .characteristic_output_uuid = {0},
 };
 static private_flash_data_t *p_power_off_save_data_in_flash = (private_flash_data_t *)PRIVATE_FLASH_DATA_START_ADD;
 
@@ -57,6 +82,10 @@ void sdk_load_private_flash_data(void)
             g_power_off_save_data_in_ram.module_name, sizeof(g_power_off_save_data_in_ram.module_name));
 
         LOG_MSG("Device name:%s", g_power_off_save_data_in_ram.module_name);
+            
+        memcpy(g_power_off_save_data_in_ram.serivce_uuid, UUID_NORDIC_TPT, UUID_SIZE_16);
+        memcpy(g_power_off_save_data_in_ram.characteristic_input_uuid, UUID_NORDIC_CHAR_GEN_IN, UUID_SIZE_16);
+        memcpy(g_power_off_save_data_in_ram.characteristic_output_uuid, UUID_NORDIC_CHAR_GEN_OUT, UUID_SIZE_16);
             
         sdk_private_data_write_to_flash();
     } else {

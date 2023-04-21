@@ -6,6 +6,9 @@
 #include "at_recv_cmd.h"
 #include "common/flash_data.h"
 #include "util/utils.h"
+#include "service/transmission_service.h"
+#include "le_device_db.h"
+#include "profile.h"
 
 #include "gap.h"
 
@@ -69,6 +72,9 @@ const char *cmds[] =
 
 extern private_flash_data_t g_power_off_save_data_in_ram;
 
+const int16_t rf_power_arr[6] = {5,2,0,-5,-10,-17}; //TODO 2.5dbm?arr[1]
+const uint16_t adv_int_arr[6] = {80,160,320,800,1600,3200};
+
 #define co_printf(...) platform_printf(__VA_ARGS__)
 
 /*********************************************************************
@@ -116,7 +122,7 @@ void gap_set_dev_name(uint8_t* name, uint32_t size)
  * @brief   get the device name
  *			
  *
- * @param   out data name
+ * @param[out]  local_name  - out data name
  *       	 
  *
  * @return  name length
@@ -136,7 +142,7 @@ int gap_get_dev_name(uint8_t* local_name)
  * @brief   get the address
  *			
  *
- * @param[addr] address, out data 
+ * @param   addr    - out data 
  *       	 
  *
  * @return  None
@@ -152,7 +158,7 @@ void gap_address_get(bd_addr_t addr)
  * @brief   set the address
  *			
  *
- * @param[addr] address
+ * @param   addr
  *
  *
  * @return  None
@@ -173,9 +179,9 @@ void gap_address_set(bd_addr_t addr)
  * @brief   convert buffer data to hex str
  *			
  *
- * @param[buff]     hex buffer
- * @param[len]      hex buffer length
- * @param[out_str]  hex str, out data
+ * @param[in]   buff    - hex buffer
+ * @param[in]   len     - hex buffer length
+ * @param[out]  out_str - hex str
  *       	 
  *
  * @return  None
@@ -191,9 +197,9 @@ void hex_arr_to_str(uint8_t* buff, uint16_t len, uint8_t* out_str)
  * @brief   convert hex str to data
  *			
  *
- * @param[in_str]   hex str
- * @param[buff]     buffer
- * @param[len]      buffer length
+ * @param   in_str  - hex str
+ * @param   buff    - buffer
+ * @param   len     - buffer length
  *       	 
  *
  * @return  1 if has connection, otherwise 0
@@ -202,6 +208,8 @@ void str_to_hex_arr(uint8_t* in_str, uint8_t* buff, uint16_t len)
 {
     str2hex((char*)in_str, len * 2, buff, len);
 }
+
+bool gap_conn_table[BLE_CONNECTION_MAX] = {0}; //
 
 /*********************************************************************
  * @fn      gap_get_connect_status
@@ -215,8 +223,29 @@ void str_to_hex_arr(uint8_t* in_str, uint8_t* buff, uint16_t len)
  * @return  1 if has connection, otherwise 0
  */
 int gap_get_connect_status(int idx)
+{   
+    return gap_conn_table[idx];
+}
+
+
+/*********************************************************************
+ * @fn      gap_get_connect_num
+ *
+ * @brief   get the connection num
+ *			
+ *
+ * @param   None.
+ *       	 
+ *
+ * @return  connect num
+ */
+int gap_get_connect_num()
 {
-    return 1;
+    int num = 0;
+    for (int i = 0; i < BLE_CONNECTION_MAX; ++i)
+        if (gap_conn_table[i])
+            num++;
+    return num;
 }
 
 
@@ -262,6 +291,402 @@ static uint8_t *find_int_from_str(uint8_t *buff)
         pos++;
     }
     return pos;
+}
+
+/*********************************************************************
+ * @fn      system_sleep_enable
+ *
+ * @brief   enable system enter deep sleep mode when all conditions are satisfied.
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+void system_sleep_enable(void)
+{
+    platform_config(PLATFORM_CFG_POWER_SAVING, PLATFORM_CFG_ENABLE);
+}
+
+/*********************************************************************
+ * @fn      system_sleep_disable
+ *
+ * @brief   disable system enter deep sleep mode.
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+void system_sleep_disable(void)
+{
+    platform_config(PLATFORM_CFG_POWER_SAVING, PLATFORM_CFG_DISABLE);
+}
+
+/*********************************************************************
+ * @fn      at_con_param_update
+ *
+ * @brief   function to update link parameters.
+ *
+ * @param   conidx  - indicate which link idx will do patameter updation 
+ *       	latency - indicate latency for patameter updation operation 
+ *
+ * @return  None.
+ */
+void at_con_param_update(uint8_t conidx,uint16_t latency)
+{
+    conn_para_t *con_param = &g_power_off_save_data_in_ram.peer_param[conidx].conn_param;
+    
+    int current_con_interval = 15;  // TODO
+
+    if( con_param->latency != latency || con_param->interval_min > current_con_interval || con_param->supervision_timeout != 400 )
+    {
+        gap_update_connection_parameters(conidx, 
+            current_con_interval, 
+            current_con_interval, 
+            latency, 
+            400, 
+            con_param->min_ce_len, 
+            con_param->max_ce_len);
+    }
+}
+
+/*********************************************************************
+ * @fn      gap_bond_manager_delete_all
+ *
+ * @brief   Erase all bond information.
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+void gap_bond_manager_delete_all(void)
+{
+    le_device_memory_db_iter_t device_db_iter;
+    le_device_db_iter_init(&device_db_iter);
+    while (le_device_db_iter_next(&device_db_iter))
+        le_device_db_remove_key(device_db_iter.key);
+    platform_write_persistent_reg(1);
+    platform_reset();
+}
+
+/*********************************************************************
+ * @fn      convert_to_word_length
+ *
+ * @brief   convert at databit to word length.
+ *
+ * @param   databit.
+ *
+ * @return  enum word length.
+ */
+UART_eWLEN convert_to_word_length(int databit)
+{
+    switch (databit) 
+    {
+        case 8: 
+            return UART_WLEN_8_BITS;
+        case 7: 
+            return UART_WLEN_7_BITS;
+        case 6: 
+            return UART_WLEN_6_BITS;
+        case 5: 
+            return UART_WLEN_5_BITS;
+        default:
+            return UART_WLEN_8_BITS;
+    }
+}
+
+/*********************************************************************
+ * @fn      convert_from_word_length
+ *
+ * @brief   convert word length to at databit.
+ *
+ * @param   word length.
+ *
+ * @return  databit.
+ */
+int convert_from_word_length(UART_eWLEN word_length)
+{
+    switch (word_length) 
+    {
+        case UART_WLEN_8_BITS: 
+            return 8;
+        case UART_WLEN_7_BITS: 
+            return 7;
+        case UART_WLEN_6_BITS: 
+            return 6;
+        case UART_WLEN_5_BITS: 
+            return 5;
+        default:
+            return 8;
+    }
+}
+
+/*********************************************************************
+ * @fn      convert_to_parity
+ *
+ * @brief   convert at pari to uart parity
+ *
+ * @param   pari.
+ *
+ * @return  enum parity.
+ */
+UART_ePARITY convert_to_parity(int pari)
+{
+    switch (pari) 
+    {
+        case 0: 
+            return UART_PARITY_NOT_CHECK;
+        case 1: 
+            return UART_PARITY_ODD_PARITY;
+        case 2: 
+            return UART_PARITY_EVEN_PARITY;
+        default:
+            return UART_PARITY_NOT_CHECK;
+    }
+}
+
+/*********************************************************************
+ * @fn      convert_to_parity
+ *
+ * @brief   convert uart parity to at pari
+ *
+ * @param   parity.
+ *
+ * @return  pari.
+ */
+int convert_from_parity(UART_ePARITY parity)
+{
+    switch (parity) 
+    {
+        case UART_PARITY_NOT_CHECK: 
+            return 0;
+        case UART_PARITY_ODD_PARITY: 
+            return 1;
+        case UART_PARITY_EVEN_PARITY: 
+            return 2;
+        default:
+            return 0;
+    }
+}
+int convert_to_two_stop_bits(int stop_bits)
+{
+    return stop_bits == 2 ? 1 : 0;
+}
+int convert_from_two_stop_bits(int two_stop_bits)
+{
+    return two_stop_bits == 1 ? 2 : 1;
+}
+
+
+
+
+/***********SCAN Handle***************/
+
+/*********************************************************************
+ * @fn      at_get_adv
+ *
+ * @brief   at event call back function, handle after advertising report is posted
+ *			
+ *
+ * @param   arg  - pointer to advertising report buffer
+ *       	
+ *
+ * @return   None
+ */
+void at_get_adv(void *arg)
+{
+    const le_meta_event_ext_adv_report_t *param = (const le_meta_event_ext_adv_report_t *)arg;
+    const le_ext_adv_report_t* report = param->reports;
+    
+    
+    uint8_t free_rpt_idx = 0xff;
+    for(uint8_t idx = 0; idx<ADV_REPORT_NUM; idx++)
+    {
+        if(gAT_buff_env.adv_rpt[idx].evt_type == 0xff && free_rpt_idx == 0xff)
+            free_rpt_idx = idx;
+        if(memcmp(gAT_buff_env.adv_rpt[idx].adv_addr,report->address,sizeof(mac_addr_t)) == 0 )
+            goto _exit;
+    }
+    
+    gAT_buff_env.adv_rpt[free_rpt_idx].evt_type = report->evt_type;
+    gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr_type = report->addr_type;
+    memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr,report->address,sizeof(mac_addr_t));
+    gAT_buff_env.adv_rpt[free_rpt_idx].rssi = report->rssi;
+    gAT_buff_env.adv_rpt[free_rpt_idx].data_len = report->data_len;
+    memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].data,report->data,report->data_len);
+_exit:
+    ;
+}
+
+/*********************************************************************
+ * @fn      at_scan_done
+ *
+ * @brief   at event call back function, handle after scan operation end
+ *			
+ *
+ * @param   arg  - pointer to buffer, which store scan done status
+ *       	
+ *
+ * @return  None
+ */
+void at_scan_done(void *arg)
+{
+    uint8_t *at_rsp = malloc(150);
+    uint8_t *addr_str = malloc(MAC_ADDR_LEN*2+1);
+    uint8_t *rsp_data_str = malloc(0x1F*2+1);        //adv data len
+
+    sprintf((char *)at_rsp,"+SCAN:ON\r\nOK");
+    at_send_rsp((char *)at_rsp);
+
+    for(uint8_t idx = 0; idx<ADV_REPORT_NUM; idx++)
+    {
+        //if(gAT_buff_env.adv_rpt[idx].evt_type ==0 || gAT_buff_env.adv_rpt[idx].evt_type ==2 || gAT_buff_env.adv_rpt[idx].evt_type ==8)
+        //{
+            hex_arr_to_str(gAT_buff_env.adv_rpt[idx].adv_addr,MAC_ADDR_LEN,addr_str);
+            addr_str[MAC_ADDR_LEN * 2] = 0;
+
+            if(gAT_buff_env.adv_rpt[idx].data_len != 0)
+            {
+                hex_arr_to_str(gAT_buff_env.adv_rpt[idx].data,gAT_buff_env.adv_rpt[idx].data_len,rsp_data_str);
+                rsp_data_str[gAT_buff_env.adv_rpt[idx].data_len * 2] = 0;
+            }
+            else
+                memcpy(rsp_data_str,"NONE",sizeof("NONE"));
+
+            sprintf((char *)at_rsp,"\n\nNo: %d Addr:%s Type:%d Rssi:%ddBm\n\n\r\nAdv data: \r\n %s\r\n",idx
+                    ,addr_str
+                    ,gAT_buff_env.adv_rpt[idx].adv_addr_type
+                    ,(signed char)gAT_buff_env.adv_rpt[idx].rssi
+                    ,rsp_data_str);
+            uart_put_data_noint(UART1,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
+        //}
+        //else
+        //    break;
+    }
+    free(rsp_data_str);
+    free(addr_str);
+    free(at_rsp);
+    gAT_ctrl_env.async_evt_on_going = false;
+}
+
+/*********************************************************************
+ * @fn      at_start_scan
+ *
+ * @brief   Start a active scan opertaion, duration is deceided by gAT_ctrl_env.scan_duration. Or 10s if gAT_ctrl_env.scan_duration is 0
+ *			
+ *
+ * @param   None
+ *       	
+ *
+ * @return  None
+ */
+void at_start_scan(void)
+{
+    uint16_t duration = 1000;
+    if (gAT_ctrl_env.scan_duration != 0)
+        duration = gAT_ctrl_env.scan_duration;
+    start_continuous_scan(duration);
+    
+    gAT_ctrl_env.scan_ongoing = true;
+}
+/***********SCAN Handle***************/
+
+/***********CONNECTION Handle***************/
+extern initiating_phy_config_t phy_configs[];
+
+/*********************************************************************
+ * @fn      at_start_connecting
+ *
+ * @brief   Start a active connection opertaion
+ *			
+ *
+ * @param   arg - reseved
+ *       	
+ *
+ * @return  None
+ */
+void at_start_connecting(void *arg)
+{
+    bd_addr_t addr;
+    memcpy(addr, g_power_off_save_data_in_ram.master_peer_param.addr, MAC_ADDR_LEN);
+    uint8_t addr_type = g_power_off_save_data_in_ram.master_peer_param.addr_type;
+    
+    gap_ext_create_connection(INITIATING_ADVERTISER_FROM_PARAM, // Initiator_Filter_Policy,
+                              BD_ADDR_TYPE_LE_RANDOM,           // Own_Address_Type,
+                              addr_type,                        // Peer_Address_Type,
+                              addr,                             // Peer_Address,
+                              1,
+                              phy_configs);
+    
+    gAT_ctrl_env.initialization_ongoing = true;
+}
+/***********CONNECTION Handle***************/
+
+/***********ADVERTISIING Handle***************/
+
+/*********************************************************************
+ * @fn      at_start_advertising
+ *
+ * @brief   Start an advertising action 
+ *			
+ *
+ * @param   arg - reserved
+ *       	
+ *
+ * @return  None
+ */
+void at_start_advertising(void *arg)
+{
+    if (gAT_ctrl_env.curr_adv_int != adv_int_arr[gAT_buff_env.default_info.adv_int])
+        config_adv_and_set_interval(adv_int_arr[gAT_buff_env.default_info.adv_int]);
+    start_adv();
+    gAT_ctrl_env.adv_ongoing = true;
+    ADV_LED_ON;
+}
+
+/*********************************************************************
+ * @fn      at_cb_adv_end
+ *
+ * @brief   at event call back function, handle after adv action end.
+ *			
+ *
+ * @param   arg - reserved
+ *       	
+ *
+ * @return  None
+ */
+void at_cb_adv_end(void *arg)
+{
+    if(gAT_buff_env.default_info.role & SLAVE_ROLE)     //B mode
+        at_start_advertising(NULL);
+    else
+        ADV_LED_OFF;
+}
+/***********ADVERTISIING Handle***************/
+
+/*********************************************************************
+ * @fn      at_idle_status_hdl
+ *
+ * @brief   at event call back function, handle after all adv actions stop, include advtertising, scan and conn actions.
+ *			
+ *
+ * @param   arg - reserved
+ *       	
+ *
+ * @return  None
+ */
+void at_idle_status_hdl(void *arg)
+{
+    if(gAT_ctrl_env.async_evt_on_going
+       && gAT_ctrl_env.adv_ongoing == false
+       && gAT_ctrl_env.scan_ongoing == false
+       && gAT_ctrl_env.initialization_ongoing == false)
+    {
+        uint8_t *at_rsp = malloc(150);
+        sprintf((char *)at_rsp,"+MODE:I\r\nOK");
+        at_send_rsp((char *)at_rsp);
+        free(at_rsp);
+        gAT_ctrl_env.async_evt_on_going = false;
+    }
 }
 
 /*********************************************************************
@@ -343,7 +768,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         }
         break;
 
-        /*
         case AT_CMD_IDX_MODE:
         {
             switch(*buff++)
@@ -380,17 +804,17 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
 
                         if(gAT_ctrl_env.adv_ongoing)
                         {
-                            gap_stop_advertising();
+                            stop_adv();
                             at_set_gap_cb_func(AT_GAP_CB_ADV_END,at_idle_status_hdl);
                         }
                         if(gAT_ctrl_env.scan_ongoing)
                         {
-                            gap_stop_scan();
+                            stop_scan();
                             at_set_gap_cb_func(AT_GAP_CB_SCAN_END,at_idle_status_hdl);
                         }
                         if(gAT_ctrl_env.initialization_ongoing)
                         {
-                            gap_stop_conn();
+                            gap_disconnect_all();
                             at_set_gap_cb_func(AT_GAP_CB_CONN_END,at_idle_status_hdl);
                         }
                         at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
@@ -399,15 +823,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         at_send_rsp((char *)at_rsp);
 
                         gAT_ctrl_env.async_evt_on_going = false;
-                        if(gAT_ctrl_env.upgrade_start == true)
-                        {
-                            gAT_ctrl_env.upgrade_start = false;
-                            //os_free("1st_pkt_buff\r\n"); todo
-                        }
-                        if( gAT_buff_env.default_info.auto_sleep)
-                            system_sleep_enable();
-                        else
-                            system_sleep_disable();
                     }
                     else if(*buff == 'B')
                     {
@@ -417,11 +832,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             at_start_advertising(NULL);
                             at_set_gap_cb_func(AT_GAP_CB_ADV_END,at_cb_adv_end);
                             at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
-
-                            if( gAT_buff_env.default_info.auto_sleep)
-                                system_sleep_enable();
-                            else
-                                system_sleep_disable();
                         }
                         sprintf((char *)at_rsp,"+MODE:B\r\nOK");
                         at_send_rsp((char *)at_rsp);
@@ -434,6 +844,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             if(gap_get_connect_status(i) && gAT_buff_env.peer_param[i].link_mode ==MASTER_ROLE)
                                 break;
                         }
+                        LOG_MSG("i = %d", i);
                         if(i >= BLE_CONNECTION_MAX ) //no master link
                         {
                             gAT_buff_env.default_info.role |= MASTER_ROLE;
@@ -448,17 +859,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     }
                     else if(*buff == 'U')
                     {
-                        if(gap_get_connect_num()==0)
-                        {
-                            //upgrade mode, stop sleep
-                            system_sleep_disable();
-                            //set_sleep_flag_after_key_release(false);
-                            gAT_ctrl_env.upgrade_start = true;
-                            //at_ota_init();
-                            sprintf((char *)at_rsp,"+MODE:U\r\nOK");
-                        }
-                        else
-                            sprintf((char *)at_rsp,"+MODE:U\r\nERR");
+                        sprintf((char *)at_rsp,"+MODE:U\r\nERR");
                         at_send_rsp((char *)at_rsp);
                     }
                     break;
@@ -511,7 +912,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             else
                                 encryption = 'N';
 
-                            hex_arr_to_str(gAT_buff_env.peer_param[i].conn_param.peer_addr.addr,MAC_ADDR_LEN,mac_str);
+                            hex_arr_to_str(g_power_off_save_data_in_ram.peer_param[i].addr,MAC_ADDR_LEN,mac_str);
                             mac_str[MAC_ADDR_LEN*2] = 0;
                             sprintf((char *)at_rsp,"Link_ID: %d LinkMode:%c Enc:%c PeerAddr:%s\r\n",i,link_mode,encryption,mac_str);
                             uart_put_data_noint(UART0,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
@@ -527,6 +928,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        /*
         case AT_CMD_IDX_ENC:
         {
             switch(*buff++)
@@ -645,48 +1047,57 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
-        /*
         case AT_CMD_IDX_UART:
         {
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",gAT_buff_env.uart_param.baud_rate,gAT_buff_env.uart_param.data_bit_num
-                            ,gAT_buff_env.uart_param.pari,gAT_buff_env.uart_param.stop_bit);
+                {
+                    int databit = convert_from_word_length(g_power_off_save_data_in_ram.uart_param.word_length);
+                    int pari = convert_from_parity(g_power_off_save_data_in_ram.uart_param.parity);
+                    int stop = convert_from_two_stop_bits(g_power_off_save_data_in_ram.uart_param.two_stop_bits);
+                    
+                    sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
+                        g_power_off_save_data_in_ram.uart_param.BaudRate,
+                        databit,
+                        pari,
+                        stop);
                     at_send_rsp((char *)at_rsp);
-                    break;
+                }
+                break;
                 case '=':
                 {
                     uint8_t *pos_int_end;
                     pos_int_end = find_int_from_str(buff);
-                    gAT_buff_env.uart_param.baud_rate = atoi((const char *)buff);
+                    g_power_off_save_data_in_ram.uart_param.BaudRate = atoi((const char *)buff);
 
                     buff = pos_int_end+1;
                     pos_int_end = find_int_from_str(buff);
-                    gAT_buff_env.uart_param.data_bit_num = atoi((const char *)buff);
+                    int databit = atoi((const char *)buff);
+                    g_power_off_save_data_in_ram.uart_param.word_length = convert_to_word_length(databit);
 
                     buff = pos_int_end+1;
                     pos_int_end = find_int_from_str(buff);
-                    gAT_buff_env.uart_param.pari = atoi((const char *)buff);
+                    int parity = atoi((const char *)buff);
+                    g_power_off_save_data_in_ram.uart_param.parity = convert_to_parity(parity);
 
                     buff = pos_int_end+1;
                     pos_int_end = find_int_from_str(buff);
-                    gAT_buff_env.uart_param.stop_bit = atoi((const char *)buff);
+                    
+                    int stop_bits = atoi((const char *)buff);
+                    g_power_off_save_data_in_ram.uart_param.two_stop_bits = convert_to_two_stop_bits(stop_bits);
                     //at_store_info_to_flash();
 
-                    sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",gAT_buff_env.uart_param.baud_rate,
-                            gAT_buff_env.uart_param.data_bit_num,gAT_buff_env.uart_param.pari,gAT_buff_env.uart_param.stop_bit);
+                    sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
+                            g_power_off_save_data_in_ram.uart_param.BaudRate,
+                            g_power_off_save_data_in_ram.uart_param.word_length,
+                            g_power_off_save_data_in_ram.uart_param.parity,
+                            g_power_off_save_data_in_ram.uart_param.two_stop_bits);
                     at_send_rsp((char *)at_rsp);
                     //uart_init(UART0,find_uart_idx_from_baudrate(gAT_buff_env.uart_param.baud_rate));
   
-                    uart_param_t param =
-                    {
-                        .baud_rate = gAT_buff_env.uart_param.baud_rate,
-                        .data_bit_num = gAT_buff_env.uart_param.data_bit_num,
-                        .pari = gAT_buff_env.uart_param.pari,
-                        .stop_bit = gAT_buff_env.uart_param.stop_bit,
-                    };
-                    uart_init1(UART0,param);
+                    apUART_Initialize(APB_UART1, 
+                            &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );
                 }
                 break;
                 default:
@@ -700,7 +1111,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             at_send_rsp((char *)at_rsp);
             uart_finish_transfers(UART0);
             //NVIC_SystemReset();
-            platform_reset_patch(0);
+            platform_reset();
         }
         break;
         case AT_CMD_IDX_CLR_BOND:
@@ -715,7 +1126,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    if(gAT_buff_env.default_info.auto_sleep)
+                    if(g_power_off_save_data_in_ram.default_info.auto_sleep)
                         sprintf((char *)at_rsp,"+SLEEP:S\r\nOK");
                     else
                         sprintf((char *)at_rsp,"+SLEEP:E\r\nOK");
@@ -764,18 +1175,18 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 case '=':
                 {
                     uint8_t *pos_int_end;
-                    str_to_hex_arr(buff,gAT_buff_env.master_peer_param.conn_param.peer_addr.addr,MAC_ADDR_LEN);
+                    str_to_hex_arr(buff,g_power_off_save_data_in_ram.master_peer_param.addr,MAC_ADDR_LEN);
                     pos_int_end = find_int_from_str(buff);
                     buff = pos_int_end+1;
-                    gAT_buff_env.master_peer_param.conn_param.addr_type = atoi((const char *)buff);
-                    if(gAT_buff_env.master_peer_param.conn_param.addr_type > 1)
-                        gAT_buff_env.master_peer_param.conn_param.addr_type = 0;
+                    g_power_off_save_data_in_ram.master_peer_param.addr_type = atoi((const char *)buff);
+                    // if (g_power_off_save_data_in_ram.master_peer_param.addr_type > 1)
+                    //     g_power_off_save_data_in_ram.master_peer_param.addr_type = 0;
                 }
                 break;
             }
-            hex_arr_to_str(gAT_buff_env.master_peer_param.conn_param.peer_addr.addr,MAC_ADDR_LEN,peer_mac_addr_str);
+            hex_arr_to_str(g_power_off_save_data_in_ram.master_peer_param.addr,MAC_ADDR_LEN,peer_mac_addr_str);
             peer_mac_addr_str[MAC_ADDR_LEN*2] = 0;
-            sprintf((char *)at_rsp,"\r\n+CONNADD:%s,%d\r\nOK",peer_mac_addr_str,gAT_buff_env.master_peer_param.conn_param.addr_type );
+            sprintf((char *)at_rsp,"\r\n+CONNADD:%s,%d\r\nOK",peer_mac_addr_str,g_power_off_save_data_in_ram.master_peer_param.addr_type);
             at_send_rsp((char *)at_rsp);
         }
         break;
@@ -789,9 +1200,9 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
 
                     if(gAT_ctrl_env.initialization_ongoing == false) //no master link
                     {
-                        memcpy(gAT_buff_env.master_peer_param.conn_param.peer_addr.addr, gAT_buff_env.adv_rpt[connect_idx].adv_addr.addr, MAC_ADDR_LEN);
-                        gAT_buff_env.master_peer_param.conn_param.addr_type = gAT_buff_env.adv_rpt[connect_idx].adv_addr_type;
-                        gAT_buff_env.default_info.role |= MASTER_ROLE;
+                        memcpy(g_power_off_save_data_in_ram.master_peer_param.addr, gAT_buff_env.adv_rpt[connect_idx].adv_addr, MAC_ADDR_LEN);
+                        g_power_off_save_data_in_ram.master_peer_param.addr_type = gAT_buff_env.adv_rpt[connect_idx].adv_addr_type;
+                        g_power_off_save_data_in_ram.default_info.role |= MASTER_ROLE;
                         at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_start_connecting);
                         gAT_ctrl_env.async_evt_on_going = true;
                         at_start_connecting(NULL);
@@ -814,11 +1225,11 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    hex_arr_to_str(spss_uuids,UUID_SIZE_16,uuid_str_svc);
+                    hex_arr_to_str(g_power_off_save_data_in_ram.serivce_uuid,UUID_SIZE_16,uuid_str_svc);
                     uuid_str_svc[UUID_SIZE_16*2] = 0;
-                    hex_arr_to_str(spss_uuids + UUID_SIZE_16,UUID_SIZE_16,uuid_str_tx);
+                    hex_arr_to_str(g_power_off_save_data_in_ram.characteristic_output_uuid,UUID_SIZE_16,uuid_str_tx);
                     uuid_str_tx[UUID_SIZE_16*2] = 0;
-                    hex_arr_to_str(spss_uuids + UUID_SIZE_16*2,UUID_SIZE_16,uuid_str_rx);
+                    hex_arr_to_str(g_power_off_save_data_in_ram.characteristic_input_uuid,UUID_SIZE_16,uuid_str_rx);
                     uuid_str_rx[UUID_SIZE_16*2] = 0;
 
                     sprintf((char *)at_rsp,"+%s:\r\nDATA:UUID\r\n\r\n+%s:\r\nDATA:UUID\r\n\r\n+%s:\r\nDATA:UUID\r\n\r\nOK"
@@ -828,33 +1239,19 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
 
                 case '=':
                 {
-                    svc_change_t svc_change =
-                    {
-                        .svc_id = spss_svc_id,
-                        .type = SVC_CHANGE_UUID,
-                        .param.new_uuid.size = UUID_SIZE_16,
-                    };
                     if( *buff == 'A' && *(buff+1) == 'A')
                     {
-                        str_to_hex_arr(buff+3,spss_uuids,UUID_SIZE_16);
-                        svc_change.att_idx = 0;
-                        memcpy(svc_change.param.new_uuid.p_uuid,spss_uuids,UUID_SIZE_16);
-                        gatt_change_svc(svc_change);
+                        str_to_hex_arr(buff+3,g_power_off_save_data_in_ram.serivce_uuid,UUID_SIZE_16);
                     }
                     else if( *buff == 'B' && *(buff+1) == 'B')
                     {
-                        str_to_hex_arr(buff+3,spss_uuids + UUID_SIZE_16,UUID_SIZE_16);
-                        svc_change.att_idx = 2;
-                        memcpy(svc_change.param.new_uuid.p_uuid,spss_uuids + UUID_SIZE_16,UUID_SIZE_16);
-                        gatt_change_svc(svc_change);
+                        str_to_hex_arr(buff+3,g_power_off_save_data_in_ram.characteristic_output_uuid,UUID_SIZE_16);
                     }
                     else if( *buff == 'C' && *(buff+1) == 'C')
                     {
-                        str_to_hex_arr(buff+3,spss_uuids + UUID_SIZE_16*2,UUID_SIZE_16);
-                        svc_change.att_idx = 6;
-                        memcpy(svc_change.param.new_uuid.p_uuid,spss_uuids + UUID_SIZE_16*2,UUID_SIZE_16);
-                        gatt_change_svc(svc_change);
+                        str_to_hex_arr(buff+3,g_power_off_save_data_in_ram.characteristic_input_uuid,UUID_SIZE_16);
                     }
+                    init_service();
                     *(buff+3 + UUID_SIZE_16*2) = 0;
 
                     sprintf((char *)at_rsp,"+%s:\r\nDATA:UUID\r\n\r\nsuccessful",buff+3);
@@ -866,7 +1263,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
-        */
         case AT_CMD_IDX_FLASH:            //store param
         {
             at_store_info_to_flash();
@@ -965,22 +1361,23 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        */
         case AT_CMD_IDX_POWER:            //rf_power set/req
         {
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+POWER:%d\r\nOK",gAT_buff_env.default_info.rf_power);
+                    sprintf((char *)at_rsp,"+POWER:%d\r\nOK",g_power_off_save_data_in_ram.default_info.rf_power);
                     at_send_rsp((char *)at_rsp);
                     break;
                 case '=':
-                    gAT_buff_env.default_info.rf_power = atoi((const char *)buff);
-                    if(gAT_buff_env.default_info.rf_power > 5)
-                        sprintf((char *)at_rsp,"+POWER:%d\r\nERR",gAT_buff_env.default_info.rf_power);
+                    g_power_off_save_data_in_ram.default_info.rf_power = atoi((const char *)buff);
+                    if(g_power_off_save_data_in_ram.default_info.rf_power > 5)
+                        sprintf((char *)at_rsp,"+POWER:%d\r\nERR",g_power_off_save_data_in_ram.default_info.rf_power);
                     else
                     {
                         //rf_set_tx_power(rf_power_arr[gAT_buff_env.default_info.rf_power]);
-                        sprintf((char *)at_rsp,"+POWER:%d\r\nOK",gAT_buff_env.default_info.rf_power);
+                        sprintf((char *)at_rsp,"+POWER:%d\r\nOK",g_power_off_save_data_in_ram.default_info.rf_power);
                     }
                     at_send_rsp((char *)at_rsp);
                     break;
@@ -994,21 +1391,21 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+ADVINT:%d\r\nOK",gAT_buff_env.default_info.adv_int);
+                    sprintf((char *)at_rsp,"+ADVINT:%d\r\nOK",g_power_off_save_data_in_ram.default_info.adv_int);
                     at_send_rsp((char *)at_rsp);
                     break;
                 case '=':
                 {
-                    uint8_t tmp = gAT_buff_env.default_info.adv_int;
-                    gAT_buff_env.default_info.adv_int = atoi((const char *)buff);
-                    if(gAT_buff_env.default_info.adv_int > 5)
+                    uint8_t tmp = g_power_off_save_data_in_ram.default_info.adv_int;
+                    g_power_off_save_data_in_ram.default_info.adv_int = atoi((const char *)buff);
+                    if(g_power_off_save_data_in_ram.default_info.adv_int > 5)
                     {
-                        sprintf((char *)at_rsp,"+ADVINT:%d\r\nERR",gAT_buff_env.default_info.adv_int);
-                        gAT_buff_env.default_info.adv_int = tmp;
+                        sprintf((char *)at_rsp,"+ADVINT:%d\r\nERR",g_power_off_save_data_in_ram.default_info.adv_int);
+                        g_power_off_save_data_in_ram.default_info.adv_int = tmp;
                     }
                     else
                     {
-                        sprintf((char *)at_rsp,"+ADVINT:%d\r\nOK",gAT_buff_env.default_info.adv_int);
+                        sprintf((char *)at_rsp,"+ADVINT:%d\r\nOK",g_power_off_save_data_in_ram.default_info.adv_int);
                     }
                     at_send_rsp((char *)at_rsp);
                 }
@@ -1018,6 +1415,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        /*
         case AT_CMD_IDX_CLR_DFT:
         {
             sprintf((char *)at_rsp,"+CLR_INFO\r\nOK");

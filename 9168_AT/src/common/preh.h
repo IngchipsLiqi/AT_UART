@@ -4,6 +4,7 @@
 //#define ROLE_MASTER
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <platform_api.h>
 
@@ -28,6 +29,10 @@ typedef enum {
 #define MAC_ADDR_LEN 6
 #define UUID_SIZE_2 2
 #define UUID_SIZE_16 16
+#define BLE_CONNECTION_MAX (20)
+
+#define ADV_LED_OFF __NOP()
+#define ADV_LED_ON __NOP()
 
 #define PRINT_PORT      APB_UART0
 
