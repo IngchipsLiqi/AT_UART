@@ -9,6 +9,7 @@
 #include "service/transmission_service.h"
 #include "le_device_db.h"
 #include "profile.h"
+#include "ad_parser.h"
 
 #include "gap.h"
 
@@ -28,6 +29,7 @@ enum
     AT_CMD_IDX_CLR_BOND,
     AT_CMD_IDX_LINK,
     AT_CMD_IDX_ENC,
+    AT_CMD_IDX_SCAN_FILTER,
     AT_CMD_IDX_SCAN,
     AT_CMD_IDX_APP,
     AT_CMD_IDX_CONNADD,
@@ -54,6 +56,7 @@ const char *cmds[] =
     [AT_CMD_IDX_CLR_BOND] = "CLR_BOND",
     [AT_CMD_IDX_LINK] = "LINK",
     [AT_CMD_IDX_ENC] = "ENC",
+    [AT_CMD_IDX_SCAN_FILTER] = "SCAN_FILTER",
     [AT_CMD_IDX_SCAN] = "SCAN",
     [AT_CMD_IDX_APP] = "ADP",
     [AT_CMD_IDX_CONNADD] = "CONNADD",
@@ -498,18 +501,78 @@ void at_get_adv(void *arg)
     const le_ext_adv_report_t* report = param->reports;
     
     
+    uint16_t name_len = 0;
+    const uint8_t* name = NULL;
+    
+    // filter name prefix
+    if (strcmp(g_power_off_save_data_in_ram.scan_filter.name_prefix, "*") != 0) 
+    {
+        name = ad_data_from_type(report->data_len, (uint8_t*)report->data, 9, &name_len);
+        uint32_t name_prefix_len = strlen(g_power_off_save_data_in_ram.scan_filter.name_prefix);
+        
+        if (name == NULL || name_len < name_prefix_len ||
+            memcmp(name, g_power_off_save_data_in_ram.scan_filter.name_prefix, name_prefix_len) != 0) {
+            goto _exit;
+        }
+    }
+    // filter name suffix
+    if (strcmp(g_power_off_save_data_in_ram.scan_filter.name_suffix, "*") != 0) 
+    {
+        name = ad_data_from_type(report->data_len, (uint8_t*)report->data, 9, &name_len);
+        uint32_t name_suffix_len = strlen(g_power_off_save_data_in_ram.scan_filter.name_suffix);
+        
+        const uint8_t* compare_pointer = name + (name_len - name_suffix_len);
+        
+        if (name == NULL || name_len < name_suffix_len ||
+            memcmp(compare_pointer, g_power_off_save_data_in_ram.scan_filter.name_suffix, name_suffix_len) != 0) {
+            goto _exit;
+        }
+    }
+    // filter service uuid16
+    if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter)
+    {
+        uint8_t uuid_16[2] = {0};
+        uint16_t uuid16_len = 0;
+        const uint8_t* uuid16_reverse = ad_data_from_type(report->data_len, (uint8_t*)report->data, 3, &uuid16_len);
+        reverse(uuid_16, uuid16_reverse, UUID_SIZE_2);
+        
+        if (memcmp(uuid_16, g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2) != 0)
+            goto _exit;
+    }
+    // filter service uuid128
+    if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter)
+    {
+        
+        uint8_t uuid_128[2] = {0};
+        uint16_t uuid128_len = 0;
+        const uint8_t* uuid128_reverse = ad_data_from_type(report->data_len, (uint8_t*)report->data, 7, &uuid128_len);
+        reverse(uuid_128, uuid128_reverse, UUID_SIZE_16);
+        
+        if (memcmp(uuid_128, g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16) != 0)
+            goto _exit;
+    }
+    // filter rssi
+    if (g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter)
+    {
+        if (report->rssi < g_power_off_save_data_in_ram.scan_filter.rssi)
+            goto _exit;
+    }
+    
+    bd_addr_t peer_addr;
+    reverse_bd_addr(report->address, peer_addr);
+    
     uint8_t free_rpt_idx = 0xff;
     for(uint8_t idx = 0; idx<ADV_REPORT_NUM; idx++)
     {
         if(gAT_buff_env.adv_rpt[idx].evt_type == 0xff && free_rpt_idx == 0xff)
             free_rpt_idx = idx;
-        if(memcmp(gAT_buff_env.adv_rpt[idx].adv_addr,report->address,sizeof(mac_addr_t)) == 0 )
+        if(memcmp(gAT_buff_env.adv_rpt[idx].adv_addr,peer_addr,sizeof(mac_addr_t)) == 0 )
             goto _exit;
     }
     
     gAT_buff_env.adv_rpt[free_rpt_idx].evt_type = report->evt_type;
     gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr_type = report->addr_type;
-    memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr,report->address,sizeof(mac_addr_t));
+    memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr,peer_addr,sizeof(mac_addr_t));
     gAT_buff_env.adv_rpt[free_rpt_idx].rssi = report->rssi;
     gAT_buff_env.adv_rpt[free_rpt_idx].data_len = report->data_len;
     memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].data,report->data,report->data_len);
@@ -539,8 +602,10 @@ void at_scan_done(void *arg)
 
     for(uint8_t idx = 0; idx<ADV_REPORT_NUM; idx++)
     {
+        
         //if(gAT_buff_env.adv_rpt[idx].evt_type ==0 || gAT_buff_env.adv_rpt[idx].evt_type ==2 || gAT_buff_env.adv_rpt[idx].evt_type ==8)
-        //{
+        if (gAT_buff_env.adv_rpt[idx].evt_type != 0xff)
+        {
             hex_arr_to_str(gAT_buff_env.adv_rpt[idx].adv_addr,MAC_ADDR_LEN,addr_str);
             addr_str[MAC_ADDR_LEN * 2] = 0;
 
@@ -558,9 +623,9 @@ void at_scan_done(void *arg)
                     ,(signed char)gAT_buff_env.adv_rpt[idx].rssi
                     ,rsp_data_str);
             uart_put_data_noint(UART1,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
-        //}
-        //else
-        //    break;
+        }
+        else
+            break;
     }
     free(rsp_data_str);
     free(addr_str);
@@ -868,6 +933,90 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        
+        case AT_CMD_IDX_SCAN_FILTER:
+        {
+            switch(*buff++)
+            {
+                case '?':
+                {
+                }
+                break;
+                case '=':
+                {
+                    uint8_t* p_name_prefix = buff;
+                    
+                    uint8_t* p_name_suffix = find_int_from_str(buff) + 1;
+                    buff = p_name_suffix;
+                    
+                    uint8_t* p_uuid16 = find_int_from_str(buff) + 1;
+                    buff = p_uuid16;
+                    
+                    uint8_t* p_uuid128 = find_int_from_str(buff) + 1;
+                    buff = p_uuid128;
+                    
+                    uint8_t* p_rssi = find_int_from_str(buff) + 1;
+                    buff = p_rssi;
+                    
+                    find_int_from_str(buff);
+                    
+                    strcpy(g_power_off_save_data_in_ram.scan_filter.name_prefix, (char*)p_name_prefix);
+                    strcpy(g_power_off_save_data_in_ram.scan_filter.name_suffix, (char*)p_name_suffix);
+                    
+                    if (strcmp((char*)p_uuid16, "*") == 0 || strlen((char*)p_uuid16) != (UUID_SIZE_2 * 2)) {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter = false;
+                    } else {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter = true;
+                        str_to_hex_arr(p_uuid16, g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2);
+                    }
+                    
+                    if (strcmp((char*)p_uuid128, "*") == 0 || strlen((char*)p_uuid128) != (UUID_SIZE_16 * 2)) {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter = false;
+                    } else {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter = true;
+                        str_to_hex_arr(p_uuid128, g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16);
+                    }
+                    
+                    if (strcmp((char*)p_rssi, "*") == 0) {
+                        g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter = false;
+                    } else {
+                        g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter = true;
+                        g_power_off_save_data_in_ram.scan_filter.rssi = atoi((char*)p_rssi);
+                    }
+                }
+                break;
+            }
+            
+            char uuid16_buf[5] = {0};
+            char uuid128_buf[33] = {0};
+            char rssi_buf[5] = {0};
+            
+            if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter) {
+                hex_arr_to_str(g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2, (uint8_t*)uuid16_buf);
+            } else {
+                strcpy(uuid16_buf, "*");
+            }
+            if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter) {
+                hex_arr_to_str(g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16, (uint8_t*)uuid128_buf);
+            } else {
+                strcpy(uuid128_buf, "*");
+            }
+            if (g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter) {
+                sprintf(rssi_buf, "%d", g_power_off_save_data_in_ram.scan_filter.rssi);
+            } else {
+                strcpy(rssi_buf, "*");
+            }
+            
+            sprintf((char *)at_rsp,"+SCAN_FILTER:%s,%s,%s,%s,%s\r\nOK", 
+                g_power_off_save_data_in_ram.scan_filter.name_prefix, 
+                g_power_off_save_data_in_ram.scan_filter.name_suffix,
+                uuid16_buf,
+                uuid128_buf,
+                rssi_buf);
+            at_send_rsp((char *)at_rsp);
+        }
+        break;
+        
         case AT_CMD_IDX_SCAN:
         {
             switch(*buff++)
@@ -901,6 +1050,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     at_send_rsp((char *)at_rsp);
                     for(uint8_t i=0; i< BLE_CONNECTION_MAX; i++)
                     {
+                        LOG_MSG("conn status idx:%d %d", i, gap_conn_table[i]);
                         if(gap_get_connect_status(i))
                         {
                             if(gAT_buff_env.peer_param[i].link_mode == SLAVE_ROLE)

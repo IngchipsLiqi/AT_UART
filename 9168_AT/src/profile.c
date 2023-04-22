@@ -591,8 +591,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         
             if (at_cb_func[AT_GAP_CB_ADV_RPT] != NULL)
                 at_cb_func[AT_GAP_CB_ADV_RPT]((void*)report_complete);
-        
-            //receive_advertising_report(report_complete);
+            
             break;
         case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
             
@@ -607,6 +606,8 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             break;
         case HCI_SUBEVENT_LE_ENHANCED_CONNECTION_COMPLETE:
             LOG_MSG("Connected!\r\n");
+        
+            gAT_ctrl_env.initialization_ongoing = false;
         
             enh_conn_complete = decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
             
@@ -710,11 +711,6 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             at_cb_func[AT_GAP_CB_DISCONNECT]((void*)disconn_event);
     
         LOG_MSG("Disconnected!! %d\r\n", disconn_event->reason);
-        
-        stop_adv();
-        config_adv_and_set_interval(50);
-        start_adv();
-        start_scan();
         break;
 
     case ATT_EVENT_CAN_SEND_NOW:
@@ -732,11 +728,13 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         user_msg_handler(p_user_msg->msg_id, p_user_msg->data, p_user_msg->len);
         break;
     
-    case HCI_EVENT_COMMAND_COMPLETE:
-        decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
-    
+    case HCI_EVENT_COMMAND_STATUS:
+        {
+            uint8_t status = hci_event_command_status_get_status(packet);
+            LOG_MSG("status:%d\r\n", status);
+        }
         break;
-
+        
     default:
         LOG_MSG("event:%d\r\n", event);
         break;

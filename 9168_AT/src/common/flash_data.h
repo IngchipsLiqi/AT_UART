@@ -54,6 +54,19 @@ typedef struct
     uint8_t stop_bit;       //1 = stop bit is 1,  2 = stop bit is 1.5 for 5bit data OR stop bit is 2 for 6,7,8 bit data,
 } uart_param_t;
 
+#define ADV_DATA_MAC_LEN 32
+typedef struct 
+{
+    char name_prefix[ADV_DATA_MAC_LEN];
+    char name_suffix[ADV_DATA_MAC_LEN];
+    uint8_t uuid_16[UUID_SIZE_2];
+    uint8_t uuid_128[UUID_SIZE_16];
+    int8_t rssi;
+    bool enable_uuid_16_filter;
+    bool enable_uuid_128_filter;
+    bool enable_rssi_filter;
+} scan_filter_t;
+
 typedef struct {
     uint32_t data_init_flag;
     uint32_t data_len;
@@ -69,6 +82,7 @@ typedef struct {
     private_module_default_info_t default_info;
     
     UART_sStateStruct uart_param;
+    scan_filter_t scan_filter;
     
     uint8_t peer_mac_address[BT_AT_CMD_TTM_MAC_ADDRESS_LEN];
     
