@@ -7,6 +7,7 @@
 #include "profile.h"
 
 
+at_recv_data_func_t spsc_recv_data_ind_func = NULL;
 
 
 /*********************************************************************

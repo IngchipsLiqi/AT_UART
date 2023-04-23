@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
     uint8_t role;               //0 = idle; 1 = salve; 2 = master;
     bool auto_sleep;
+    bool auto_transparent;
     int wakeup_source;
     int wakeup_level;
     uint16_t rf_power;

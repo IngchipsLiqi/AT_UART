@@ -22,6 +22,7 @@ private_flash_data_t g_power_off_save_data_in_ram = {
     .dev_type = BLE_DEV_TYPE_NO_CONNECTION,
     .peer_mac_address = {0xF1, 0xF2, 0x28, 0x07, 0x07, 0x07},
     .default_info = {
+        .auto_transparent   = false,
         .auto_sleep         = false,
         .wakeup_source      = GIO_GPIO_0,
         .wakeup_level       = 1,

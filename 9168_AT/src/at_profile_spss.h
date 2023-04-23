@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+typedef void (*at_recv_data_func_t)(uint8_t *value, uint16_t length);
+
+extern at_recv_data_func_t spss_recv_data_ind_func;
+
 /*********************************************************************
  * @fn      at_spss_send_data
  *

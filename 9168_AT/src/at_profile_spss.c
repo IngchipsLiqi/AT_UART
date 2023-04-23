@@ -6,6 +6,8 @@
 #include "att_db.h"
 #include "service/transmission_service.h"
 
+at_recv_data_func_t spss_recv_data_ind_func = NULL;
+
 /*********************************************************************
  * @fn      at_spss_send_data
  *

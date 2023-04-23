@@ -2,7 +2,9 @@
 #define _AT_PROFILE_SPSC_H_
 
 #include <stdint.h>
+#include "at_profile_spss.h"
 
+extern at_recv_data_func_t spsc_recv_data_ind_func;
 
 /*********************************************************************
  * @fn      at_spsc_send_data

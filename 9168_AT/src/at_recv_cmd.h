@@ -110,11 +110,14 @@ void at_store_info_to_flash(void);
 void uart_finish_transfers(UART_TypeDef* pBase);
 
 
+int os_get_free_heap_size();
+
 uint32_t uart_isr(void *user_data);
 
 void uart_io_print(const char* buf);
 void uart_io_send(const uint8_t* buf, uint32_t size);
 
 extern TimerHandle_t at_transparent_timer;
+extern TimerHandle_t at_exit_transparent_mode_timer;
 
 #endif

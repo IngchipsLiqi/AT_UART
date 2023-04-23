@@ -47,8 +47,7 @@ struct at_env
 } gAT_env = {0};
 
 TimerHandle_t at_transparent_timer = 0;
-static TimerHandle_t at_exit_transparent_mode_timer = 0;
-
+TimerHandle_t at_exit_transparent_mode_timer = 0;
 
 
 /*********************************************************************
@@ -156,13 +155,13 @@ void transparent_timer_handler(TimerHandle_t xTimer)
  */
 void exit_trans_tim_fn(TimerHandle_t xTimer)
 {
-//    os_timer_stop(&gAT_env.transparent_timer);
-//    gAT_ctrl_env.transparent_start = 0;
-//    gAT_env.at_recv_index = 0;
-//    //spss_recv_data_ind_func = NULL;
-//    //spsc_recv_data_ind_func = NULL;
-//    uint8_t at_rsp[] = "OK";
-//    at_send_rsp((char *)at_rsp);
+    xTimerStop(at_transparent_timer, portMAX_DELAY);
+    gAT_ctrl_env.transparent_start = false;
+    gAT_env.at_recv_index = 0;
+    //spss_recv_data_ind_func = NULL;
+    //spsc_recv_data_ind_func = NULL;
+    uint8_t at_rsp[] = "OK";
+    at_send_rsp((char *)at_rsp);
 }
 void uart_init(uint32_t freq, uint32_t baud)
 {
@@ -222,19 +221,25 @@ void recv_transparent_data()
     xTimerStop(at_transparent_timer, portMAX_DELAY);
     
     //__disable_irq();
+    
+    LOG_MSG("conidx = %d\r\n", gAT_ctrl_env.transparent_conidx);
+    
     if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx))
     {
+        
+        LOG_MSG("heap size = %d\r\n", os_get_free_heap_size());
+        
         if( os_get_free_heap_size()>2000) //11264 )
         {
             //printf("c:%d\r\n",gAT_env.at_recv_index);
             
-            if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
+            if(g_power_off_save_data_in_ram.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
                 at_spss_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
-            else if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)      //master
+            else if(g_power_off_save_data_in_ram.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)      //master
                 at_spsc_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
         }
         else
-            uart_putc_noint(UART0,'X');
+            uart_putc_noint(UART1,'X');
     }
     gAT_env.at_recv_index = 0;
     gAT_env.transparent_data_send_ongoing = 0;
@@ -275,16 +280,31 @@ static void app_at_recv_c(uint8_t c)
     {
         if(gAT_env.at_recv_index == 0)
         {
-
+            btstack_push_user_msg(USER_MSG_AT_TRANSPARENT_START_TIMER, NULL, 0);
         }
         if( gAT_env.at_recv_index < (AT_RECV_MAX_LEN-2) )
             gAT_env.at_recv_buffer[gAT_env.at_recv_index++] = c;
-
-
-
+        
+        BaseType_t xHigherPriorityTaskWoke = pdFALSE;
+        xTimerStopFromISR(at_exit_transparent_mode_timer, &xHigherPriorityTaskWoke);
+        if (xHigherPriorityTaskWoke == pdTRUE){}
+        
+        if(gAT_env.at_recv_index ==3)
+        {
+            if( gAT_env.at_recv_buffer[gAT_env.at_recv_index-1] == '+'
+                && gAT_env.at_recv_buffer[gAT_env.at_recv_index-2] == '+'
+                && gAT_env.at_recv_buffer[gAT_env.at_recv_index-3] == '+')
+            {
+                xHigherPriorityTaskWoke = pdFALSE;
+                xTimerStartFromISR(at_exit_transparent_mode_timer, &xHigherPriorityTaskWoke);
+                if (xHigherPriorityTaskWoke == pdTRUE){}
+            }
+        }
+        
         if( (gAT_env.at_recv_index >AT_TRANSPARENT_DOWN_LEVEL) && (gAT_env.transparent_data_send_ongoing == 0) )
         {
-
+            gAT_env.transparent_data_send_ongoing = 1;
+            btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
         }
         goto _exit;
     }
@@ -464,6 +484,7 @@ void at_init(void)
                 pdFALSE,
                 NULL,
                 transparent_timer_handler);
+     
     
     if (at_exit_transparent_mode_timer == 0)
         at_exit_transparent_mode_timer = xTimerCreate("t2",
