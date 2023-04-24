@@ -25,6 +25,8 @@ uint8_t send_to_slave_flow_control_enable = BT_PRIVT_DISABLE;
 uint8_t recv_from_master_flow_control_enable = BT_PRIVT_DISABLE;
 uint8_t recv_from_slave_flow_control_enable = BT_PRIVT_DISABLE;
 
+extern uint32_t receive_master_sum;
+
 void init_tansmit_service(void)
 {
     uint16_t att_value_handle;
@@ -76,6 +78,8 @@ int att_write_input_callback(uint16_t offset, const uint8_t *buffer, uint16_t bu
     //platform_printf("%p %p %p\r\n", data, &data[0], &data[299]);
     
     memcpy(data, buffer, buffer_size);
+    
+    receive_master_sum += buffer_size;
     
     btstack_push_user_msg(USER_MSG_PROCESS_BLE_MASTER_DATA, data, buffer_size);
     

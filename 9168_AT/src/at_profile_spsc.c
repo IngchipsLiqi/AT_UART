@@ -5,9 +5,17 @@
 
 #include "gatt_client.h"
 #include "profile.h"
+#include "at_recv_cmd.h"
+#include "att_dispatch.h"
+#include "btstack_defines.h"
 
 
+at_recv_data_func_t spsc_recv_data_ind_func = NULL;
 
+
+extern uint32_t send_to_slave_sum;
+
+extern struct at_env gAT_env;
 
 /*********************************************************************
  * @fn      at_spsc_send_data
@@ -15,30 +23,46 @@
  * @brief   function to write date to peer. write without response
  *
  * @param   conidx - link  index
- *       	data   - pointer to data buffer 
- *       	len    - data len
  *
  * @return  None
  */
-void at_spsc_send_data(uint8_t conidx,uint8_t *data, uint8_t len)
+void at_spsc_send_data(uint8_t conidx)
 {
-    //if(l2cm_get_nb_buffer_available() > 0)
-    //{
-    //    gatt_client_write_t write;
-    //    write.conidx = conidx;
-    //    write.client_id = spsc_client_id;
-    //    write.att_idx = 1; //TX
-    //    write.p_data = data;
-    //    write.data_len = MIN(len,gatt_get_mtu(conidx) - 3);
-    //    gatt_client_write_cmd(write);
-    //} 
+    uint16_t send_packet_len , r, valid_data, this_time_send_len = 0;
+    uint8_t* p_send_data = NULL;
     
-    uint16_t send_packet_len = 0;
     gatt_client_get_mtu(conidx, &send_packet_len);
+    send_packet_len -= 3;
     
-    if (len > send_packet_len)
-        len = send_packet_len;
-    
-    gatt_client_write_value_of_characteristic_without_response(conidx, slave_input_char.value_handle, 
-                                                                       len, data);
+    while ((valid_data = at_buffer_data_size()) > 0) 
+    {
+        LOG_MSG("valid_data_len:%d\r\n", valid_data);
+        this_time_send_len = valid_data;
+        if (this_time_send_len > send_packet_len)
+            this_time_send_len = send_packet_len;
+        if (gAT_env.at_recv_buffer_rp + this_time_send_len >= AT_RECV_MAX_LEN) {
+            this_time_send_len = AT_RECV_MAX_LEN - gAT_env.at_recv_buffer_rp;
+        }
+        p_send_data = gAT_env.at_recv_buffer + gAT_env.at_recv_buffer_rp;
+        
+        LOG_MSG("send_len:%d\r\n", this_time_send_len);
+        if (this_time_send_len != 0)
+        {
+            r = gatt_client_write_value_of_characteristic_without_response(conidx, slave_input_char.value_handle, 
+                                                                               this_time_send_len, p_send_data);
+            if (r == 0)
+            {
+                send_to_slave_sum += this_time_send_len;
+                gAT_env.at_recv_buffer_rp += this_time_send_len;
+                if (gAT_env.at_recv_buffer_rp >= AT_RECV_MAX_LEN)
+                    gAT_env.at_recv_buffer_rp = gAT_env.at_recv_buffer_rp - AT_RECV_MAX_LEN;
+        LOG_MSG("p:%d %d\r\n", gAT_env.at_recv_buffer_rp, gAT_env.at_recv_buffer_wp);
+            }
+            else if (r == BTSTACK_ACL_BUFFERS_FULL)
+            {
+                att_dispatch_client_request_can_send_now_event(conidx); // Request can send now
+                break;
+            }
+        }
+    }
 }

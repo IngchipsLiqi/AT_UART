@@ -553,6 +553,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\util\utils.c</FilePath>
             </File>
+            <File>
+              <FileName>circular_queue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\util\circular_queue.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

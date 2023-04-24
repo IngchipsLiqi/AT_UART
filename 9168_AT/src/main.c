@@ -189,7 +189,6 @@ int app_main()
     platform_config(PLATFORM_CFG_RTOS_ENH_TICK, PLATFORM_CFG_ENABLE);
     platform_printf("MAIN_OK\r\n");
     
-    
     // Config wakeup source
     int wakeup_source_pull = 
         (1 == g_power_off_save_data_in_ram.default_info.wakeup_level) ? PINCTRL_PULL_DOWN : PINCTRL_PULL_UP;

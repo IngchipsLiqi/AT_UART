@@ -32,6 +32,8 @@
 #include "at_cmd_task.h"
 #include "sm.h"
 
+#include "at_profile_spsc.h"
+
 
 
 
@@ -97,6 +99,14 @@ static at_cb_func_t at_cb_func[AT_GAP_CB_MAX] = {0};
 void at_set_gap_cb_func(enum at_cb_func_idx func_idx,at_cb_func_t func)
 {
     at_cb_func[func_idx] = func;
+}
+
+static void on_connect_end()
+{
+    gAT_ctrl_env.initialization_ongoing = false;
+
+    if (at_cb_func[AT_GAP_CB_CONN_END]!=NULL)
+        at_cb_func[AT_GAP_CB_CONN_END](NULL);
 }
 
 //==============================================================================================================
@@ -261,9 +271,7 @@ void service_discovery_callback(uint8_t packet_type, uint16_t _, const uint8_t *
 
 static void discovery_service(uint16_t conn_handle)
 {
-    if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
-        gatt_client_discover_primary_services(service_discovery_callback, conn_handle);
-    }
+    gatt_client_discover_primary_services(service_discovery_callback, conn_handle);
 }
 
 //==============================================================================================================
@@ -472,23 +480,29 @@ void show_heap(void)
     LOG_MSG(buffer, strlen(buffer) + 1);
 }
 
+
 static void timer_task(TimerHandle_t xTimer)
 {
-    //show_heap();
-
-    if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_NO_CONNECTION) {
-        LOG_MSG("cmd processor\r\n");
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
-        LOG_MSG("rx_sum:%d tx_sum:%d receive_slave_sum:%d send_to_slave_sum:%d\r\n", rx_sum, tx_sum, receive_slave_sum, send_to_slave_sum);
-    } else if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_SLAVE) {
-        LOG_MSG("rx_sum:%d tx_sum:%d receive_master_sum:%d send_to_master_sum:%d\r\n", rx_sum, tx_sum, receive_master_sum, send_to_master_sum);
+    if (g_power_off_save_data_in_ram.default_info.role & MASTER_ROLE)
+    {
+        LOG_MSG("send_to_slave:%d\r\n", send_to_slave_sum);
     }
+    else if (g_power_off_save_data_in_ram.default_info.role & SLAVE_ROLE)
+    {
+        LOG_MSG("receive_from_master_sum:%d\r\n", receive_master_sum);
+    }
+    else
+    {
+        LOG_MSG("asd");
+    }
+
 }
+
 
 void init_slave_and_master_port_task()
 {
-//    TimerHandle_t timer = xTimerCreate("state_print_task", pdMS_TO_TICKS(10000), pdTRUE, NULL, timer_task);
-//    xTimerStart(timer, portMAX_DELAY);
+    TimerHandle_t timer = xTimerCreate("state_print_task", pdMS_TO_TICKS(10000), pdTRUE, NULL, timer_task);
+    xTimerStart(timer, portMAX_DELAY);
 }
 
 //==============================================================================================================
@@ -591,22 +605,12 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         
             if (at_cb_func[AT_GAP_CB_ADV_RPT] != NULL)
                 at_cb_func[AT_GAP_CB_ADV_RPT]((void*)report_complete);
-        
-            //receive_advertising_report(report_complete);
-            break;
-        case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
             
-            conn_complete = decode_hci_le_meta_event(packet, le_meta_event_create_conn_complete_t);
-            
-            LOG_MSG("conn_end,reason:0x%02x\r\n", conn_complete->status);
-            gAT_ctrl_env.initialization_ongoing = false;
-
-            if (at_cb_func[AT_GAP_CB_CONN_END]!=NULL)
-                at_cb_func[AT_GAP_CB_CONN_END]((void*)conn_complete);
-        
             break;
         case HCI_SUBEVENT_LE_ENHANCED_CONNECTION_COMPLETE:
             LOG_MSG("Connected!\r\n");
+        
+            gAT_ctrl_env.initialization_ongoing = false;
         
             enh_conn_complete = decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
             
@@ -621,7 +625,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             if (enh_conn_complete->role == HCI_ROLE_SLAVE) {
                 stop_adv();
                 
-                memcpy(g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr, enh_conn_complete->peer_addr, MAC_ADDR_LEN);
+                reverse_bd_addr(enh_conn_complete->peer_addr, g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr);
                 g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr_type = enh_conn_complete->peer_addr_type;
                 g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].link_mode = SLAVE_ROLE;
                 g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].encryption = false;
@@ -642,11 +646,14 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
                     at_send_rsp((char *)at_rsp);
                 }
                 
-                //TODO: auto transparent mode
+                if(gap_get_connect_num() == 1)
+                    auto_transparent_set();
+                else
+                    auto_transparent_clr();
             } else {
                 stop_scan();
                 
-                memcpy(g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr, enh_conn_complete->peer_addr, MAC_ADDR_LEN);
+                reverse_bd_addr(enh_conn_complete->peer_addr, g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr);
                 g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr_type = enh_conn_complete->peer_addr_type;
                 g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].link_mode = MASTER_ROLE;
                 g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].encryption = false;
@@ -675,10 +682,15 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
                 
                 discovery_service(enh_conn_complete->handle);
                 
-                //TODO: auto transparent mode
+                if(gap_get_connect_num() == 1)
+                    auto_transparent_set();
+                else
+                    auto_transparent_clr();
             }
             
             gap_read_remote_used_features(enh_conn_complete->handle);
+            
+            on_connect_end();
             break;
         
         case HCI_SUBEVENT_LE_PHY_UPDATE_COMPLETE:
@@ -710,11 +722,6 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             at_cb_func[AT_GAP_CB_DISCONNECT]((void*)disconn_event);
     
         LOG_MSG("Disconnected!! %d\r\n", disconn_event->reason);
-        
-        stop_adv();
-        config_adv_and_set_interval(50);
-        start_adv();
-        start_scan();
         break;
 
     case ATT_EVENT_CAN_SEND_NOW:
@@ -724,7 +731,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
 
     case L2CAP_EVENT_CAN_SEND_NOW:
         LOG_MSG("Into Can Send Now\r\n");
-        handle_can_send_now();
+        at_spsc_send_data(gAT_ctrl_env.transparent_conidx);
         break;
 
     case BTSTACK_EVENT_USER_MSG:
@@ -732,11 +739,29 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         user_msg_handler(p_user_msg->msg_id, p_user_msg->data, p_user_msg->len);
         break;
     
-    case HCI_EVENT_COMMAND_COMPLETE:
-        decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
-    
+    case HCI_EVENT_COMMAND_STATUS:
+        {
+            uint8_t status = hci_event_command_status_get_status(packet);
+            
+            //uint8_t at_rsp[30];
+            //sprintf((char *)at_rsp,"status:%d %d %d\r\n", status, gAT_ctrl_env.async_evt_on_going, gAT_ctrl_env.initialization_ongoing);
+            //at_send_rsp((char *)at_rsp);
+            
+            
+            if (status == 0x07) 
+            {
+                if (gAT_ctrl_env.async_evt_on_going && gAT_ctrl_env.initialization_ongoing)
+                {
+                    //sprintf((char *)at_rsp,"+CONN:%d\r\nScheduling failed", enh_conn_complete->handle);
+                    //at_send_rsp((char *)at_rsp);
+                    gAT_ctrl_env.async_evt_on_going = false;
+                    
+                    on_connect_end();
+                }
+            }
+        }
         break;
-
+        
     default:
         LOG_MSG("event:%d\r\n", event);
         break;
@@ -745,6 +770,8 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
 //==============================================================================================================
 
 static btstack_packet_callback_registration_t hci_event_callback_registration;
+
+
 
 uint32_t setup_profile(void *data, void *user_data)
 {

@@ -33,6 +33,8 @@ typedef enum {
 
 #define ADV_LED_OFF __NOP()
 #define ADV_LED_ON __NOP()
+#define LINK_LED_OFF __NOP()
+#define LINK_LED_ON __NOP()
 
 #define PRINT_PORT      APB_UART0
 

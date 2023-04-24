@@ -147,4 +147,31 @@ void system_sleep_enable(void);
  * @return  None.
  */
 void system_sleep_disable(void);
+
+
+/*********************************************************************
+ * @fn      auto_transparent_set
+ *
+ * @brief   Set flag and preparate to enter into transparent mode
+ *			
+ *
+ * @param   param - pointer to at command data buffer
+ *       	
+ *
+ * @return  None
+ */
+void auto_transparent_set(void);
+
+/*********************************************************************
+ * @fn      auto_transparent_clr
+ *
+ * @brief   Clear transparent mode flag and clear related profile data receive function. 
+ *			
+ *
+ * @param   None
+ *       	
+ *
+ * @return  None
+ */
+void auto_transparent_clr(void);
 #endif

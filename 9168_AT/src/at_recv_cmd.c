@@ -10,7 +10,6 @@
 #include "util/buffer.h"
 
 #include "util/circular_queue.h"
-#include "router.h"
 #include "private_user_packet_handler.h"
 #include "profile.h"
 #include "at_cmd_task.h"
@@ -22,33 +21,61 @@
 #include "at_profile_spsc.h"
 
 #include "common/flash_data.h"
+#include "util/circular_queue.h"
 
 
 #ifndef TMR_CLK_FREQ
 #define TMR_CLK_FREQ 112000000
 #endif
 
+#define TMR1_CLK_1S_COUNT 10000
+#define TMR1_CLK_CMP (TMR_CLK_FREQ / TMR1_CLK_1S_COUNT)
 
 
 #define AT_UART    APB_UART1
 
-#define AT_RECV_MAX_LEN     244
-#define AT_TRANSPARENT_DOWN_LEVEL   (AT_RECV_MAX_LEN - 40)
-struct at_env
-{
-    uint8_t at_recv_buffer[AT_RECV_MAX_LEN];
-    uint8_t at_recv_index;
-    uint8_t at_recv_state;
-    uint16_t at_task_id;
-    uint8_t transparent_data_send_ongoing;
-    uint8_t upgrade_data_processing;
-    uint16_t transparent_timer;       //recv timer out timer.    50ms
-    uint16_t exit_transparent_mode_timer;     //send "+++" ,then 500ms later, exit transparent mode;
-} gAT_env = {0};
+
+struct at_env gAT_env = {0};
 
 TimerHandle_t at_transparent_timer = 0;
-static TimerHandle_t at_exit_transparent_mode_timer = 0;
+TimerHandle_t at_exit_transparent_mode_timer = 0;
 
+
+bool at_buffer_full()
+{
+    return (gAT_env.at_recv_buffer_wp + 1) % AT_RECV_MAX_LEN == gAT_env.at_recv_buffer_rp;
+}
+bool at_buffer_empty()
+{
+    return gAT_env.at_recv_buffer_wp == gAT_env.at_recv_buffer_rp;
+}
+uint16_t at_buffer_data_size()
+{
+    int32_t len = gAT_env.at_recv_buffer_wp - gAT_env.at_recv_buffer_rp;
+    return len >= 0 ? len : len + AT_RECV_MAX_LEN;
+}
+void at_buffer_enqueue_data(uint8_t data)
+{
+    gAT_env.at_recv_buffer[gAT_env.at_recv_buffer_wp++] = data;
+    
+    if (gAT_env.at_recv_buffer_wp == AT_RECV_MAX_LEN)
+        gAT_env.at_recv_buffer_wp = 0;
+}
+uint8_t at_buffer_dequeue_data(void)
+{
+    uint8_t data = gAT_env.at_recv_buffer[gAT_env.at_recv_buffer_rp++];
+    
+    if (gAT_env.at_recv_buffer_rp == AT_RECV_MAX_LEN)
+        gAT_env.at_recv_buffer_rp = 0;
+    return data;
+}
+uint8_t at_buffer_read_data(uint16_t index) 
+{
+    index += gAT_env.at_recv_buffer_rp;
+    if (index >= AT_RECV_MAX_LEN)
+        index -= AT_RECV_MAX_LEN;
+    return gAT_env.at_recv_buffer[index];
+}
 
 
 /*********************************************************************
@@ -118,7 +145,7 @@ void uart_putc_noint(UART_TypeDef* pBase, uint8_t data)
  */
 void at_clr_uart_buff(void)
 {
-    gAT_env.at_recv_index = 0;
+    gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
 }
 
 /*********************************************************************
@@ -156,13 +183,13 @@ void transparent_timer_handler(TimerHandle_t xTimer)
  */
 void exit_trans_tim_fn(TimerHandle_t xTimer)
 {
-//    os_timer_stop(&gAT_env.transparent_timer);
-//    gAT_ctrl_env.transparent_start = 0;
-//    gAT_env.at_recv_index = 0;
-//    //spss_recv_data_ind_func = NULL;
-//    //spsc_recv_data_ind_func = NULL;
-//    uint8_t at_rsp[] = "OK";
-//    at_send_rsp((char *)at_rsp);
+    xTimerStop(at_transparent_timer, portMAX_DELAY);
+    gAT_ctrl_env.transparent_start = false;
+    gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
+    //spss_recv_data_ind_func = NULL;
+    //spsc_recv_data_ind_func = NULL;
+    uint8_t at_rsp[] = "OK";
+    at_send_rsp((char *)at_rsp);
 }
 void uart_init(uint32_t freq, uint32_t baud)
 {
@@ -222,21 +249,26 @@ void recv_transparent_data()
     xTimerStop(at_transparent_timer, portMAX_DELAY);
     
     //__disable_irq();
+    
+    LOG_MSG("conidx = %d\r\n", gAT_ctrl_env.transparent_conidx);
+    
     if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx))
     {
+        
+        LOG_MSG("heap size = %d\r\n", os_get_free_heap_size());
+        
         if( os_get_free_heap_size()>2000) //11264 )
         {
             //printf("c:%d\r\n",gAT_env.at_recv_index);
             
-            if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
-                at_spss_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
-            else if(gAT_buff_env.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)      //master
-                at_spsc_send_data(gAT_ctrl_env.transparent_conidx, gAT_env.at_recv_buffer,gAT_env.at_recv_index);
+            if(g_power_off_save_data_in_ram.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
+                at_spss_send_data(gAT_ctrl_env.transparent_conidx);
+            else if(g_power_off_save_data_in_ram.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)      //master
+                at_spsc_send_data(gAT_ctrl_env.transparent_conidx);
         }
         else
-            uart_putc_noint(UART0,'X');
+            uart_putc_noint(UART1,'X');
     }
-    gAT_env.at_recv_index = 0;
     gAT_env.transparent_data_send_ongoing = 0;
 
     //__enable_irq();
@@ -273,78 +305,36 @@ static void app_at_recv_c(uint8_t c)
     //AT_LOG("%02x ",c);
     if(gAT_ctrl_env.transparent_start)
     {
-        if(gAT_env.at_recv_index == 0)
+        if( at_buffer_empty() )
         {
-
+            btstack_push_user_msg(USER_MSG_AT_TRANSPARENT_START_TIMER, NULL, 0);
         }
-        if( gAT_env.at_recv_index < (AT_RECV_MAX_LEN-2) )
-            gAT_env.at_recv_buffer[gAT_env.at_recv_index++] = c;
-
-
-
-        if( (gAT_env.at_recv_index >AT_TRANSPARENT_DOWN_LEVEL) && (gAT_env.transparent_data_send_ongoing == 0) )
+        if( at_buffer_data_size() < (AT_RECV_MAX_LEN-2) )
+            at_buffer_enqueue_data(c);
+        
+        BaseType_t xHigherPriorityTaskWoke = pdFALSE;
+        xTimerStopFromISR(at_exit_transparent_mode_timer, &xHigherPriorityTaskWoke);
+        if (xHigherPriorityTaskWoke == pdTRUE){}
+        
+        if(at_buffer_data_size() ==3)
         {
-
-        }
-        goto _exit;
-    }
-
-    if(gAT_ctrl_env.one_slot_send_start)        // one slot send
-    {
-        if(gAT_ctrl_env.one_slot_send_len > 0)
-        {
-            if(gAT_env.at_recv_index == 0)
+            if( at_buffer_read_data(at_buffer_data_size() - 1) == '+'
+                && at_buffer_read_data(at_buffer_data_size() - 2) == '+'
+                && at_buffer_read_data(at_buffer_data_size() - 3) == '+')
             {
-                btstack_push_user_msg(USER_MSG_AT_TRANSPARENT_START_TIMER, NULL, 0);
-            }
-            if( gAT_env.at_recv_index < (AT_RECV_MAX_LEN-2) )
-                gAT_env.at_recv_buffer[gAT_env.at_recv_index++] = c;
-            gAT_ctrl_env.one_slot_send_len--;
-
-            if( ((gAT_env.at_recv_index >AT_TRANSPARENT_DOWN_LEVEL) && (gAT_env.transparent_data_send_ongoing == 0))
-                || (gAT_ctrl_env.one_slot_send_len == 0)
-              )
-            {
-                gAT_env.transparent_data_send_ongoing = 1;
-                btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
+                xHigherPriorityTaskWoke = pdFALSE;
+                xTimerStartFromISR(at_exit_transparent_mode_timer, &xHigherPriorityTaskWoke);
+                if (xHigherPriorityTaskWoke == pdTRUE){}
             }
         }
-        goto _exit;
-    }
-
-    if(gAT_ctrl_env.upgrade_start == true)
-    {
-        /*
-        if( gAT_env.upgrade_data_processing == 0 )
+        
+        if( (at_buffer_data_size() >AT_TRANSPARENT_DOWN_LEVEL) && (gAT_env.transparent_data_send_ongoing == 0) )
         {
-            if( gAT_env.at_recv_index < (AT_RECV_MAX_LEN-2) )
-            {
-                gAT_env.at_recv_buffer[gAT_env.at_recv_index++] = c;
-                uint8_t chk_ret = check_whole_pkt_in_upgrade_mode();
-                if( chk_ret > 0 )
-                {
-                    if(chk_ret == 0xff)
-                    {
-                        gAT_env.at_recv_index = 0;
-                        goto _exit;
-                    }
-                    gAT_env.upgrade_data_processing = 1;
-                    os_event_t evt;
-                    evt.event_id = AT_RECV_UPGRADE_DATA;
-                    evt.param_len = 0;
-                    evt.param = NULL;
-                    if( chk_ret == 1 )
-                        evt.src_task_id = (TASK_ID_NONE-1);
-                    else if (chk_ret == 2)
-                        evt.src_task_id = TASK_ID_NONE;
-                    os_msg_post(gAT_env.at_task_id,&evt);
-                }
-            }
-            else
-                gAT_env.at_recv_index = 0;
+            LOG_MSG("start send\r\n");
+            gAT_env.transparent_data_send_ongoing = 1;
+            btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
         }
         goto _exit;
-        */
     }
 
     switch(gAT_env.at_recv_state)
@@ -369,27 +359,39 @@ static void app_at_recv_c(uint8_t c)
                 gAT_env.at_recv_state = 0;
             break;
         case 3:
-            gAT_env.at_recv_buffer[gAT_env.at_recv_index] = c;
-            if(  (c == '\n') && (gAT_env.at_recv_buffer[gAT_env.at_recv_index-1] == '\r') )
+            at_buffer_enqueue_data(c);
+        
+            if(  (c == '\n') && (at_buffer_read_data(at_buffer_data_size() - 2) == '\r') )
             {
-                struct recv_cmd_t *cmd = (struct recv_cmd_t *)malloc(sizeof(struct recv_cmd_t)+(gAT_env.at_recv_index+1));
-                cmd->recv_length = gAT_env.at_recv_index+1;
+                struct recv_cmd_t *cmd = (struct recv_cmd_t *)malloc(sizeof(struct recv_cmd_t)+(at_buffer_data_size()+1));
+                cmd->recv_length = at_buffer_data_size()+1;
+                
+                // 
+                if (gAT_env.at_recv_buffer_rp <= gAT_env.at_recv_buffer_wp)
+                {
+                    memcpy(cmd->recv_data, gAT_env.at_recv_buffer + gAT_env.at_recv_buffer_rp, at_buffer_data_size());
+                }
+                else
+                {
+                    uint16_t part1_size = AT_RECV_MAX_LEN - gAT_env.at_recv_buffer_wp;
+                    memcpy(cmd->recv_data, gAT_env.at_recv_buffer + gAT_env.at_recv_buffer_wp, part1_size);
+                    memcpy(cmd->recv_data + part1_size, gAT_env.at_recv_buffer, gAT_env.at_recv_buffer_wp + 1);
+                }
+                
                 memcpy(&cmd->recv_data[0], &gAT_env.at_recv_buffer[0], cmd->recv_length);
                 
                 btstack_push_user_msg(USER_MSG_AT_RECV_CMD, cmd, sizeof(struct recv_cmd_t) + cmd->recv_length);
                                
                 //free(cmd);
                 gAT_env.at_recv_state = 0;
-                gAT_env.at_recv_index = 0;
-
+                gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
             }
             else
             {
-                gAT_env.at_recv_index++;
-                if(gAT_env.at_recv_index >= AT_RECV_MAX_LEN)
+                if (at_buffer_full())
                 {
                     gAT_env.at_recv_state = 0;
-                    gAT_env.at_recv_index = 0;
+                    gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
                 }
             }
             break;
@@ -439,6 +441,27 @@ uint32_t uart_isr(void *user_data)
     }
     return 0;
 }
+
+static void app_at_recv()
+{
+    
+}
+
+// Timer 中断
+static uint32_t bt_cmd_data_timer_isr(void *user_data)
+{
+    TMR_IntClr(APB_TMR1, 0, 0x1);
+    
+    // uart rx fifo >>> gAT_env.at_recv_buffer
+    while (apUART_Check_RXFIFO_EMPTY(APB_UART1) != 1) 
+    {
+        if (at_buffer_data_size() >= AT_RECV_MAX_LEN)
+            break;
+        app_at_recv_c(APB_UART1->DataRead);
+    }
+    return 0;
+}
+
 void at_init(void)
 {  
     //1.配置串口的IO口 
@@ -455,7 +478,7 @@ void at_init(void)
     
     //2.UART的串口参数初始化
     uart_init(OSC_CLK_FREQ, 115200);
-    platform_set_irq_callback(PLATFORM_CB_IRQ_UART1, uart_isr, NULL);
+    //platform_set_irq_callback(PLATFORM_CB_IRQ_UART1, uart_isr, NULL); //暂不采用串口中断的方式
     
     //3.用于透传的控制
     if (at_transparent_timer == 0) 
@@ -465,10 +488,20 @@ void at_init(void)
                 NULL,
                 transparent_timer_handler);
     
+    
     if (at_exit_transparent_mode_timer == 0)
         at_exit_transparent_mode_timer = xTimerCreate("t2",
             pdMS_TO_TICKS(500),
             pdFALSE,
             NULL,
             exit_trans_tim_fn);
+    
+    //4.Timer查询串口数据
+    SYSCTRL_ClearClkGateMulti(  (1 << SYSCTRL_ClkGate_APB_TMR1));
+    TMR_SetOpMode(APB_TMR1, 0, TMR_CTL_OP_MODE_32BIT_TIMER_x1, TMR_CLK_MODE_APB, 0);
+    TMR_SetReload(APB_TMR1, 0, TMR1_CLK_CMP);
+    TMR_Enable(APB_TMR1, 0, 0x1);
+    TMR_IntEnable(APB_TMR1, 0, 0x1);
+    platform_set_irq_callback(PLATFORM_CB_IRQ_TIMER1, bt_cmd_data_timer_isr, NULL);
+    
 }

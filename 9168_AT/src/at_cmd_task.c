@@ -9,6 +9,9 @@
 #include "service/transmission_service.h"
 #include "le_device_db.h"
 #include "profile.h"
+#include "ad_parser.h"
+#include "at_profile_spss.h"
+#include "at_profile_spsc.h"
 
 #include "gap.h"
 
@@ -28,6 +31,7 @@ enum
     AT_CMD_IDX_CLR_BOND,
     AT_CMD_IDX_LINK,
     AT_CMD_IDX_ENC,
+    AT_CMD_IDX_SCAN_FILTER,
     AT_CMD_IDX_SCAN,
     AT_CMD_IDX_APP,
     AT_CMD_IDX_CONNADD,
@@ -54,6 +58,7 @@ const char *cmds[] =
     [AT_CMD_IDX_CLR_BOND] = "CLR_BOND",
     [AT_CMD_IDX_LINK] = "LINK",
     [AT_CMD_IDX_ENC] = "ENC",
+    [AT_CMD_IDX_SCAN_FILTER] = "SCAN_FILTER",
     [AT_CMD_IDX_SCAN] = "SCAN",
     [AT_CMD_IDX_APP] = "ADP",
     [AT_CMD_IDX_CONNADD] = "CONNADD",
@@ -478,6 +483,46 @@ int convert_from_two_stop_bits(int two_stop_bits)
 
 
 
+/*********************************************************************
+ * @fn      at_spss_recv_data_ind_func
+ *
+ * @brief   This function will send data which is received from AT service profile to UART0.
+ *			
+ *
+ * @param   value  - point to data buffer received from AT service profile  
+ *       	length - data buffer length
+ *
+ * @return   None
+ */
+void at_spss_recv_data_ind_func(uint8_t *value, uint16_t length)
+{
+    if( os_get_free_heap_size()>2000 )
+        uart_put_data_noint(UART1,value,length);
+    else
+        uart_putc_noint(UART0,'Y');
+    //co_printf("%d\r\n",length);
+}
+
+/*********************************************************************
+ * @fn      at_spsc_recv_data_ind_func
+ *
+ * @brief   This function will send data which is received from AT client profile to UART0.
+ *			
+ *
+ * @param   value  - point to data buffer received from AT service profile  
+ *       	length - data buffer length
+ *
+ * @return   None
+ */
+void at_spsc_recv_data_ind_func(uint8_t *value, uint16_t length)
+{
+    if( os_get_free_heap_size()>2000 )
+        uart_put_data_noint(UART1,value,length);    //uart is no limited
+    else
+        uart_putc_noint(UART0,'Y');
+    //co_printf("%d\r\n",length);
+}
+
 
 /***********SCAN Handle***************/
 
@@ -498,18 +543,78 @@ void at_get_adv(void *arg)
     const le_ext_adv_report_t* report = param->reports;
     
     
+    uint16_t name_len = 0;
+    const uint8_t* name = NULL;
+    
+    // filter name prefix
+    if (strcmp(g_power_off_save_data_in_ram.scan_filter.name_prefix, "*") != 0) 
+    {
+        name = ad_data_from_type(report->data_len, (uint8_t*)report->data, 9, &name_len);
+        uint32_t name_prefix_len = strlen(g_power_off_save_data_in_ram.scan_filter.name_prefix);
+        
+        if (name == NULL || name_len < name_prefix_len ||
+            memcmp(name, g_power_off_save_data_in_ram.scan_filter.name_prefix, name_prefix_len) != 0) {
+            goto _exit;
+        }
+    }
+    // filter name suffix
+    if (strcmp(g_power_off_save_data_in_ram.scan_filter.name_suffix, "*") != 0) 
+    {
+        name = ad_data_from_type(report->data_len, (uint8_t*)report->data, 9, &name_len);
+        uint32_t name_suffix_len = strlen(g_power_off_save_data_in_ram.scan_filter.name_suffix);
+        
+        const uint8_t* compare_pointer = name + (name_len - name_suffix_len);
+        
+        if (name == NULL || name_len < name_suffix_len ||
+            memcmp(compare_pointer, g_power_off_save_data_in_ram.scan_filter.name_suffix, name_suffix_len) != 0) {
+            goto _exit;
+        }
+    }
+    // filter service uuid16
+    if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter)
+    {
+        uint8_t uuid_16[2] = {0};
+        uint16_t uuid16_len = 0;
+        const uint8_t* uuid16_reverse = ad_data_from_type(report->data_len, (uint8_t*)report->data, 3, &uuid16_len);
+        reverse(uuid_16, uuid16_reverse, UUID_SIZE_2);
+        
+        if (memcmp(uuid_16, g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2) != 0)
+            goto _exit;
+    }
+    // filter service uuid128
+    if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter)
+    {
+        
+        uint8_t uuid_128[2] = {0};
+        uint16_t uuid128_len = 0;
+        const uint8_t* uuid128_reverse = ad_data_from_type(report->data_len, (uint8_t*)report->data, 7, &uuid128_len);
+        reverse(uuid_128, uuid128_reverse, UUID_SIZE_16);
+        
+        if (memcmp(uuid_128, g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16) != 0)
+            goto _exit;
+    }
+    // filter rssi
+    if (g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter)
+    {
+        if (report->rssi < g_power_off_save_data_in_ram.scan_filter.rssi)
+            goto _exit;
+    }
+    
+    bd_addr_t peer_addr;
+    reverse_bd_addr(report->address, peer_addr);
+    
     uint8_t free_rpt_idx = 0xff;
     for(uint8_t idx = 0; idx<ADV_REPORT_NUM; idx++)
     {
         if(gAT_buff_env.adv_rpt[idx].evt_type == 0xff && free_rpt_idx == 0xff)
             free_rpt_idx = idx;
-        if(memcmp(gAT_buff_env.adv_rpt[idx].adv_addr,report->address,sizeof(mac_addr_t)) == 0 )
+        if(memcmp(gAT_buff_env.adv_rpt[idx].adv_addr,peer_addr,sizeof(mac_addr_t)) == 0 )
             goto _exit;
     }
     
     gAT_buff_env.adv_rpt[free_rpt_idx].evt_type = report->evt_type;
     gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr_type = report->addr_type;
-    memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr,report->address,sizeof(mac_addr_t));
+    memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].adv_addr,peer_addr,sizeof(mac_addr_t));
     gAT_buff_env.adv_rpt[free_rpt_idx].rssi = report->rssi;
     gAT_buff_env.adv_rpt[free_rpt_idx].data_len = report->data_len;
     memcpy(gAT_buff_env.adv_rpt[free_rpt_idx].data,report->data,report->data_len);
@@ -539,8 +644,10 @@ void at_scan_done(void *arg)
 
     for(uint8_t idx = 0; idx<ADV_REPORT_NUM; idx++)
     {
+        
         //if(gAT_buff_env.adv_rpt[idx].evt_type ==0 || gAT_buff_env.adv_rpt[idx].evt_type ==2 || gAT_buff_env.adv_rpt[idx].evt_type ==8)
-        //{
+        if (gAT_buff_env.adv_rpt[idx].evt_type != 0xff)
+        {
             hex_arr_to_str(gAT_buff_env.adv_rpt[idx].adv_addr,MAC_ADDR_LEN,addr_str);
             addr_str[MAC_ADDR_LEN * 2] = 0;
 
@@ -558,9 +665,9 @@ void at_scan_done(void *arg)
                     ,(signed char)gAT_buff_env.adv_rpt[idx].rssi
                     ,rsp_data_str);
             uart_put_data_noint(UART1,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
-        //}
-        //else
-        //    break;
+        }
+        else
+            break;
     }
     free(rsp_data_str);
     free(addr_str);
@@ -610,7 +717,7 @@ void at_start_connecting(void *arg)
     memcpy(addr, g_power_off_save_data_in_ram.master_peer_param.addr, MAC_ADDR_LEN);
     uint8_t addr_type = g_power_off_save_data_in_ram.master_peer_param.addr_type;
     
-    gap_ext_create_connection(INITIATING_ADVERTISER_FROM_PARAM, // Initiator_Filter_Policy,
+    int ret = gap_ext_create_connection(INITIATING_ADVERTISER_FROM_PARAM, // Initiator_Filter_Policy,
                               BD_ADDR_TYPE_LE_RANDOM,           // Own_Address_Type,
                               addr_type,                        // Peer_Address_Type,
                               addr,                             // Peer_Address,
@@ -618,6 +725,14 @@ void at_start_connecting(void *arg)
                               phy_configs);
     
     gAT_ctrl_env.initialization_ongoing = true;
+    
+    // call gap_ext_create_connection failed
+    if (ret != 0) 
+    {
+        LOG_MSG("gap_ext_create_connection failed.\r\n");
+        gAT_ctrl_env.initialization_ongoing = false;
+        gAT_ctrl_env.async_evt_on_going = false;
+    }
 }
 /***********CONNECTION Handle***************/
 
@@ -636,8 +751,8 @@ void at_start_connecting(void *arg)
  */
 void at_start_advertising(void *arg)
 {
-    if (gAT_ctrl_env.curr_adv_int != adv_int_arr[gAT_buff_env.default_info.adv_int])
-        config_adv_and_set_interval(adv_int_arr[gAT_buff_env.default_info.adv_int]);
+    if (gAT_ctrl_env.curr_adv_int != adv_int_arr[g_power_off_save_data_in_ram.default_info.adv_int])
+        config_adv_and_set_interval(adv_int_arr[g_power_off_save_data_in_ram.default_info.adv_int]);
     start_adv();
     gAT_ctrl_env.adv_ongoing = true;
     ADV_LED_ON;
@@ -656,7 +771,7 @@ void at_start_advertising(void *arg)
  */
 void at_cb_adv_end(void *arg)
 {
-    if(gAT_buff_env.default_info.role & SLAVE_ROLE)     //B mode
+    if(g_power_off_save_data_in_ram.default_info.role & SLAVE_ROLE)     //B mode
         at_start_advertising(NULL);
     else
         ADV_LED_OFF;
@@ -686,6 +801,33 @@ void at_idle_status_hdl(void *arg)
         at_send_rsp((char *)at_rsp);
         free(at_rsp);
         gAT_ctrl_env.async_evt_on_going = false;
+    }
+}
+
+/*********************************************************************
+ * @fn      at_link_idle_status_hdl
+ *
+ * @brief   at event call back function, handle after all link is disconnected
+ *			
+ *
+ * @param   arg - reserved
+ *       	
+ *
+ * @return  None
+ */
+void at_link_idle_status_hdl(void *arg)
+{
+    if(gap_get_connect_num()==0)
+    {
+        LINK_LED_OFF;
+        if(gAT_ctrl_env.async_evt_on_going)
+        {
+            uint8_t *at_rsp = malloc(150);
+            sprintf((char *)at_rsp,"+DISCONN:A\r\nOK");
+            at_send_rsp((char *)at_rsp);
+            free(at_rsp);
+            gAT_ctrl_env.async_evt_on_going = false;
+        }
     }
 }
 
@@ -800,7 +942,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     if(*buff == 'I')
                     {
                         gAT_ctrl_env.async_evt_on_going = true;
-                        gAT_buff_env.default_info.role = IDLE_ROLE;
+                        g_power_off_save_data_in_ram.default_info.role = IDLE_ROLE;
 
                         if(gAT_ctrl_env.adv_ongoing)
                         {
@@ -828,7 +970,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     {
                         if(gAT_ctrl_env.adv_ongoing == false)
                         {
-                            gAT_buff_env.default_info.role |= SLAVE_ROLE;
+                            g_power_off_save_data_in_ram.default_info.role |= SLAVE_ROLE;
                             at_start_advertising(NULL);
                             at_set_gap_cb_func(AT_GAP_CB_ADV_END,at_cb_adv_end);
                             at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
@@ -841,13 +983,13 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         uint8_t i=0;
                         for(; i<BLE_CONNECTION_MAX; i++)
                         {
-                            if(gap_get_connect_status(i) && gAT_buff_env.peer_param[i].link_mode ==MASTER_ROLE)
+                            if(gap_get_connect_status(i) && g_power_off_save_data_in_ram.peer_param[i].link_mode ==MASTER_ROLE)
                                 break;
                         }
                         LOG_MSG("i = %d", i);
                         if(i >= BLE_CONNECTION_MAX ) //no master link
                         {
-                            gAT_buff_env.default_info.role |= MASTER_ROLE;
+                            g_power_off_save_data_in_ram.default_info.role |= MASTER_ROLE;
                             at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_start_connecting);
                             //gAT_ctrl_env.async_evt_on_going = true;
                             at_start_connecting(NULL);
@@ -868,6 +1010,90 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        
+        case AT_CMD_IDX_SCAN_FILTER:
+        {
+            switch(*buff++)
+            {
+                case '?':
+                {
+                }
+                break;
+                case '=':
+                {
+                    uint8_t* p_name_prefix = buff;
+                    
+                    uint8_t* p_name_suffix = find_int_from_str(buff) + 1;
+                    buff = p_name_suffix;
+                    
+                    uint8_t* p_uuid16 = find_int_from_str(buff) + 1;
+                    buff = p_uuid16;
+                    
+                    uint8_t* p_uuid128 = find_int_from_str(buff) + 1;
+                    buff = p_uuid128;
+                    
+                    uint8_t* p_rssi = find_int_from_str(buff) + 1;
+                    buff = p_rssi;
+                    
+                    find_int_from_str(buff);
+                    
+                    strcpy(g_power_off_save_data_in_ram.scan_filter.name_prefix, (char*)p_name_prefix);
+                    strcpy(g_power_off_save_data_in_ram.scan_filter.name_suffix, (char*)p_name_suffix);
+                    
+                    if (strcmp((char*)p_uuid16, "*") == 0 || strlen((char*)p_uuid16) != (UUID_SIZE_2 * 2)) {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter = false;
+                    } else {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter = true;
+                        str_to_hex_arr(p_uuid16, g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2);
+                    }
+                    
+                    if (strcmp((char*)p_uuid128, "*") == 0 || strlen((char*)p_uuid128) != (UUID_SIZE_16 * 2)) {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter = false;
+                    } else {
+                        g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter = true;
+                        str_to_hex_arr(p_uuid128, g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16);
+                    }
+                    
+                    if (strcmp((char*)p_rssi, "*") == 0) {
+                        g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter = false;
+                    } else {
+                        g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter = true;
+                        g_power_off_save_data_in_ram.scan_filter.rssi = atoi((char*)p_rssi);
+                    }
+                }
+                break;
+            }
+            
+            char uuid16_buf[5] = {0};
+            char uuid128_buf[33] = {0};
+            char rssi_buf[5] = {0};
+            
+            if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter) {
+                hex_arr_to_str(g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2, (uint8_t*)uuid16_buf);
+            } else {
+                strcpy(uuid16_buf, "*");
+            }
+            if (g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter) {
+                hex_arr_to_str(g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16, (uint8_t*)uuid128_buf);
+            } else {
+                strcpy(uuid128_buf, "*");
+            }
+            if (g_power_off_save_data_in_ram.scan_filter.enable_rssi_filter) {
+                sprintf(rssi_buf, "%d", g_power_off_save_data_in_ram.scan_filter.rssi);
+            } else {
+                strcpy(rssi_buf, "*");
+            }
+            
+            sprintf((char *)at_rsp,"+SCAN_FILTER:%s,%s,%s,%s,%s\r\nOK", 
+                g_power_off_save_data_in_ram.scan_filter.name_prefix, 
+                g_power_off_save_data_in_ram.scan_filter.name_suffix,
+                uuid16_buf,
+                uuid128_buf,
+                rssi_buf);
+            at_send_rsp((char *)at_rsp);
+        }
+        break;
+        
         case AT_CMD_IDX_SCAN:
         {
             switch(*buff++)
@@ -901,13 +1127,14 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     at_send_rsp((char *)at_rsp);
                     for(uint8_t i=0; i< BLE_CONNECTION_MAX; i++)
                     {
+                        LOG_MSG("conn status idx:%d %d", i, gap_conn_table[i]);
                         if(gap_get_connect_status(i))
                         {
-                            if(gAT_buff_env.peer_param[i].link_mode == SLAVE_ROLE)
+                            if(g_power_off_save_data_in_ram.peer_param[i].link_mode == SLAVE_ROLE)
                                 link_mode = 'S';
                             else
                                 link_mode = 'M';
-                            if(gAT_buff_env.peer_param[i].encryption)
+                            if(g_power_off_save_data_in_ram.peer_param[i].encryption)
                                 encryption = 'Y';
                             else
                                 encryption = 'N';
@@ -915,7 +1142,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             hex_arr_to_str(g_power_off_save_data_in_ram.peer_param[i].addr,MAC_ADDR_LEN,mac_str);
                             mac_str[MAC_ADDR_LEN*2] = 0;
                             sprintf((char *)at_rsp,"Link_ID: %d LinkMode:%c Enc:%c PeerAddr:%s\r\n",i,link_mode,encryption,mac_str);
-                            uart_put_data_noint(UART0,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
+                            uart_put_data_noint(UART1,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
                         }
                         else
                         {
@@ -935,9 +1162,9 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '?':
                 {
-                    if(gAT_buff_env.default_info.encryption_link == 'M'
-                       || gAT_buff_env.default_info.encryption_link == 'B')
-                        sprintf((char *)at_rsp,"+ENC:%c\r\nOK",gAT_buff_env.default_info.encryption_link);
+                    if(g_power_off_save_data_in_ram.default_info.encryption_link == 'M'
+                       || g_power_off_save_data_in_ram.default_info.encryption_link == 'B')
+                        sprintf((char *)at_rsp,"+ENC:%c\r\nOK",g_power_off_save_data_in_ram.default_info.encryption_link);
                     else
                         sprintf((char *)at_rsp,"+ENC:N\r\nOK");
                     at_send_rsp((char *)at_rsp);
@@ -947,12 +1174,12 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 {
                     if(*buff == 'M' || *buff == 'B')
                     {
-                        gAT_buff_env.default_info.encryption_link = *buff;
+                        g_power_off_save_data_in_ram.default_info.encryption_link = *buff;
                         sprintf((char *)at_rsp,"+ENC:%c\r\nOK",*buff);
                     }
                     else
                     {
-                        gAT_buff_env.default_info.encryption_link = 0;
+                        g_power_off_save_data_in_ram.default_info.encryption_link = 0;
                         sprintf((char *)at_rsp,"+ENC:N\r\nOK");
                     }
                     at_send_rsp((char *)at_rsp);
@@ -961,6 +1188,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        */
         case AT_CMD_IDX_DISCONN:
         {
             switch(*buff++)
@@ -975,7 +1203,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             for(uint8_t i = 0; i<BLE_CONNECTION_MAX; i++)
                             {
                                 if(gap_get_connect_status(i))
-                                    gap_disconnect_req(i);
+                                    gap_disconnect(i);
                             }
                             at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_link_idle_status_hdl);
                         }
@@ -988,7 +1216,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         {
                             gAT_ctrl_env.async_evt_on_going = true;
                             if(gap_get_connect_status(link_num))
-                                gap_disconnect_req(link_num);
+                                gap_disconnect(link_num);
                             at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
                         }
                         else
@@ -1002,7 +1230,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
-        */
         case AT_CMD_IDX_MAC:
         {
             uint8_t mac_str[MAC_ADDR_LEN*2+1];
@@ -1094,7 +1321,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             g_power_off_save_data_in_ram.uart_param.parity,
                             g_power_off_save_data_in_ram.uart_param.two_stop_bits);
                     at_send_rsp((char *)at_rsp);
-                    //uart_init(UART0,find_uart_idx_from_baudrate(gAT_buff_env.uart_param.baud_rate));
   
                     apUART_Initialize(APB_UART1, 
                             &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );
@@ -1136,7 +1362,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     if(*buff == 'S')
                     {
                         system_sleep_enable();
-                        gAT_buff_env.default_info.auto_sleep = true;
+                        g_power_off_save_data_in_ram.default_info.auto_sleep = true;
                         //set_sleep_flag_after_key_release(true);
                         for(uint8_t i=0; i< BLE_CONNECTION_MAX; i++)
                         {
@@ -1149,7 +1375,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     else if(*buff == 'E')
                     {
                         system_sleep_disable();
-                        gAT_buff_env.default_info.auto_sleep = false;
+                        g_power_off_save_data_in_ram.default_info.auto_sleep = false;
                         //set_sleep_flag_after_key_release(false);
                         for(uint8_t i=0; i< BLE_CONNECTION_MAX; i++)
                         {
@@ -1301,13 +1527,11 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
-        
-        /*
         case AT_CMD_IDX_TRANSPARENT:            //go to transparent transmit
         {
             if(gap_get_connect_num()==1)
             {
-                //printf("%d,%d\r\n",app_env.conidx,gAT_buff_env.peer_param[app_env.conidx].link_mode);
+                //printf("%d,%d\r\n",app_env.conidx,g_power_off_save_data_in_ram.peer_param[app_env.conidx].link_mode);
                 gAT_ctrl_env.transparent_start = true;
                 at_clr_uart_buff();
 
@@ -1320,9 +1544,9 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 }
 
                 gAT_ctrl_env.transparent_conidx = i;
-                if(gAT_buff_env.peer_param[i].link_mode == SLAVE_ROLE)
+                if(g_power_off_save_data_in_ram.peer_param[i].link_mode == SLAVE_ROLE)
                     spss_recv_data_ind_func = at_spss_recv_data_ind_func;
-                else if(gAT_buff_env.peer_param[i].link_mode == MASTER_ROLE)
+                else if(g_power_off_save_data_in_ram.peer_param[i].link_mode == MASTER_ROLE)
                     spsc_recv_data_ind_func = at_spsc_recv_data_ind_func;
                 //app_spss_send_ble_flowctrl(160);
                 sprintf((char *)at_rsp,"+++\r\nOK");
@@ -1332,12 +1556,13 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             at_send_rsp((char *)at_rsp);
         }
         break;
+        
         case AT_CMD_IDX_AUTO_TRANSPARENT:            //go to transparent transmit
         {
             switch(*buff++)
             {
                 case '?':
-                    if(gAT_buff_env.default_info.auto_transparent == true)
+                    if(g_power_off_save_data_in_ram.default_info.auto_transparent == true)
                         sprintf((char *)at_rsp,"+AUTO+++:Y\r\nOK");
                     else
                         sprintf((char *)at_rsp,"+AUTO+++:N\r\nOK");
@@ -1346,12 +1571,12 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 case '=':
                     if(*buff == 'Y')
                     {
-                        gAT_buff_env.default_info.auto_transparent = true;
+                        g_power_off_save_data_in_ram.default_info.auto_transparent = true;
                         sprintf((char *)at_rsp,"+AUTO+++:Y\r\nOK");
                     }
                     else if(*buff == 'N')
                     {
-                        gAT_buff_env.default_info.auto_transparent = false;
+                        g_power_off_save_data_in_ram.default_info.auto_transparent = false;
                         sprintf((char *)at_rsp,"+AUTO+++:N\r\nOK");
                     }
                     at_send_rsp((char *)at_rsp);
@@ -1361,7 +1586,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
-        */
+        
         case AT_CMD_IDX_POWER:            //rf_power set/req
         {
             switch(*buff++)
@@ -1376,7 +1601,6 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         sprintf((char *)at_rsp,"+POWER:%d\r\nERR",g_power_off_save_data_in_ram.default_info.rf_power);
                     else
                     {
-                        //rf_set_tx_power(rf_power_arr[gAT_buff_env.default_info.rf_power]);
                         sprintf((char *)at_rsp,"+POWER:%d\r\nOK",g_power_off_save_data_in_ram.default_info.rf_power);
                     }
                     at_send_rsp((char *)at_rsp);
@@ -1432,4 +1656,59 @@ _exit:
     free(at_rsp);
 _out:
     ;
+}
+
+
+/*********************************************************************
+ * @fn      auto_transparent_set
+ *
+ * @brief   Set flag and preparate to enter into transparent mode
+ *			
+ *
+ * @param   param - pointer to at command data buffer
+ *       	
+ *
+ * @return  None
+ */
+void auto_transparent_set(void)
+{
+    if(g_power_off_save_data_in_ram.default_info.auto_transparent == true)
+    {
+        at_clr_uart_buff();
+        gAT_ctrl_env.transparent_start = true;
+
+        uint8_t i;
+        //find which conidx is connected
+        for(i = 0; i<BLE_CONNECTION_MAX; i++)
+        {
+            if(gap_get_connect_status(i))
+                break;
+        }
+        if(g_power_off_save_data_in_ram.peer_param[i].link_mode == SLAVE_ROLE)
+            spss_recv_data_ind_func = at_spss_recv_data_ind_func;
+        else if(g_power_off_save_data_in_ram.peer_param[i].link_mode == MASTER_ROLE)
+            spsc_recv_data_ind_func = at_spsc_recv_data_ind_func;
+    }
+}
+
+/*********************************************************************
+ * @fn      auto_transparent_clr
+ *
+ * @brief   Clear transparent mode flag and clear related profile data receive function. 
+ *			
+ *
+ * @param   None
+ *       	
+ *
+ * @return  None
+ */
+void auto_transparent_clr(void)
+{
+    if(gAT_ctrl_env.transparent_start)
+    {
+        gAT_ctrl_env.transparent_start = 0;
+        at_clr_uart_buff();
+        spss_recv_data_ind_func = NULL;
+        spsc_recv_data_ind_func = NULL;
+    }
 }

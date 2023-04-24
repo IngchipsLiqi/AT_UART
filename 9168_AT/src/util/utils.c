@@ -19,7 +19,7 @@ void hint_ce_len(uint16_t interval)
         ll_hint_on_ce_len(0, ce_len - 15, ce_len - 15);
 }
 
-void reverse(uint8_t* dst, uint8_t* src, uint32_t size)
+void reverse(uint8_t* dst, const uint8_t* src, uint32_t size)
 {
     for (uint32_t i = 0; i < size; ++i)
         dst[i] = src[size - i - 1];
