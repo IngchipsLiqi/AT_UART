@@ -341,6 +341,30 @@ static void app_at_recv_c(uint8_t c)
         }
         goto _exit;
     }
+    
+    if(gAT_ctrl_env.one_slot_send_start)        // one slot send
+    {
+        if(gAT_ctrl_env.one_slot_send_len > 0)
+        {
+            if( at_buffer_empty() )
+            {
+                btstack_push_user_msg(USER_MSG_AT_TRANSPARENT_START_TIMER, NULL, 0);
+            }
+            if( at_buffer_data_size() < (AT_RECV_MAX_LEN-2) )
+                at_buffer_enqueue_data(c);
+            gAT_ctrl_env.one_slot_send_len--;
+
+            if( ((at_buffer_data_size() >AT_TRANSPARENT_DOWN_LEVEL) && (gAT_env.transparent_data_send_ongoing == 0))
+                || (gAT_ctrl_env.one_slot_send_len == 0)
+              )
+            {
+                gAT_env.transparent_data_send_ongoing = 1;
+                btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
+            }
+        }
+        goto _exit;
+    }
+
 
     switch(gAT_env.at_recv_state)
     {

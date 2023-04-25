@@ -377,9 +377,9 @@ void start_scan(void)
 
 void stop_scan(void)
 {
-    gap_set_ext_scan_enable(1, 0, 0, 0);   // stop scanning
+    gap_set_ext_scan_enable(0, 0, 0, 0);   // stop scanning
                           
-    LOG_MSG("Start Scan\r\n");
+    LOG_MSG("Stop Scan\r\n");
 }
 
 //==============================================================================================================
@@ -579,9 +579,15 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         config_scan();
         
         if (g_power_off_save_data_in_ram.default_info.role & SLAVE_ROLE)
+        {
+            gAT_ctrl_env.adv_ongoing = true;
             start_adv();
-        if (g_power_off_save_data_in_ram.default_info.role & MASTER_ROLE)
-            start_scan();
+        }
+//        if (g_power_off_save_data_in_ram.default_info.role & MASTER_ROLE)
+//        {
+//            gAT_ctrl_env.scan_ongoing = true;
+//            start_scan();
+//        }
         
         //TODO: auto transparent mode
         
