@@ -183,13 +183,20 @@ void transparent_timer_handler(TimerHandle_t xTimer)
  */
 void exit_trans_tim_fn(TimerHandle_t xTimer)
 {
-    xTimerStop(at_transparent_timer, portMAX_DELAY);
-    gAT_ctrl_env.transparent_start = false;
-    gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
-    //spss_recv_data_ind_func = NULL;
-    //spsc_recv_data_ind_func = NULL;
-    uint8_t at_rsp[] = "OK";
-    at_send_rsp((char *)at_rsp);
+   if( at_buffer_empty() )
+   {
+        xTimerStop(at_transparent_timer, portMAX_DELAY);
+        gAT_ctrl_env.transparent_start = false;
+        gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
+        //spss_recv_data_ind_func = NULL;
+        //spsc_recv_data_ind_func = NULL;
+        uint8_t at_rsp[] = "OK";
+        at_send_rsp((char *)at_rsp);
+   }
+   else{
+        uint8_t at_rsp[] = "ERROR";
+        at_send_rsp((char *)at_rsp);
+   }
 }
 void uart_init(uint32_t freq, uint32_t baud)
 {
@@ -309,20 +316,18 @@ static void app_at_recv_c(uint8_t c)
         {
             btstack_push_user_msg(USER_MSG_AT_TRANSPARENT_START_TIMER, NULL, 0);
         }
+        
         if( at_buffer_data_size() < (AT_RECV_MAX_LEN-2) )
             at_buffer_enqueue_data(c);
-        
-        BaseType_t xHigherPriorityTaskWoke = pdFALSE;
-        xTimerStopFromISR(at_exit_transparent_mode_timer, &xHigherPriorityTaskWoke);
-        if (xHigherPriorityTaskWoke == pdTRUE){}
-        
-        if(at_buffer_data_size() ==3)
+ 
+        if(at_buffer_data_size() ==3)//连续收到3个+++，退出透传
         {
+            
             if( at_buffer_read_data(at_buffer_data_size() - 1) == '+'
                 && at_buffer_read_data(at_buffer_data_size() - 2) == '+'
                 && at_buffer_read_data(at_buffer_data_size() - 3) == '+')
             {
-                xHigherPriorityTaskWoke = pdFALSE;
+                BaseType_t xHigherPriorityTaskWoke = pdFALSE;
                 xTimerStartFromISR(at_exit_transparent_mode_timer, &xHigherPriorityTaskWoke);
                 if (xHigherPriorityTaskWoke == pdTRUE){}
             }
@@ -390,6 +395,7 @@ static void app_at_recv_c(uint8_t c)
             {
                 if (at_buffer_full())
                 {
+                    btstack_push_user_msg(USER_MSG_AT_QUENEUE_FULL_CMD, NULL, 0);
                     gAT_env.at_recv_state = 0;
                     gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
                 }
@@ -442,10 +448,6 @@ uint32_t uart_isr(void *user_data)
     return 0;
 }
 
-static void app_at_recv()
-{
-    
-}
 
 // Timer 中断
 static uint32_t bt_cmd_data_timer_isr(void *user_data)

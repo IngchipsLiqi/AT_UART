@@ -537,6 +537,12 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
     case USER_MSG_AT_RECV_TRANSPARENT_DATA:
         recv_transparent_data();
         break;
+    case USER_MSG_AT_QUENEUE_FULL_CMD: //TODO  
+        {
+            uint8_t at_rsp[] = "QUENEUE";
+            at_send_rsp((char *)at_rsp);
+        }
+        break;   
          
     default:
         break;
@@ -592,7 +598,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
                 at_cb_func[AT_GAP_CB_SCAN_END](NULL);
             break;
         case HCI_SUBEVENT_LE_ADVERTISING_SET_TERMINATED:
-            LOG_MSG("advertising set terminated\r\n");
+            LOG_MSG("stop adv\r\n");
             gAT_ctrl_env.adv_ongoing = false;
         
             if (at_cb_func[AT_GAP_CB_ADV_END]!=NULL)
