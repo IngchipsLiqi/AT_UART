@@ -54,12 +54,9 @@ extern bool gap_conn_table[];
 //* Global variable
 //==============================================================================================================
 
-uint32_t rx_sum = 0;
-uint32_t tx_sum = 0;
-uint32_t receive_slave_sum = 0;
-uint32_t receive_master_sum = 0;
-uint32_t send_to_slave_sum = 0;
-uint32_t send_to_master_sum = 0;
+uint32_t receive_master_data_len = 0;
+
+bool print_data_len_flag = false;
 
 
 
@@ -322,6 +319,7 @@ void stop_adv(void)
 {
     gap_set_ext_adv_enable(0, sizeof(adv_sets_en) / sizeof(adv_sets_en[0]), adv_sets_en);
     
+    gAT_ctrl_env.adv_ongoing = false;
     LOG_MSG("Stop Adv\r\n");
 }
 //==============================================================================================================
@@ -480,31 +478,6 @@ void show_heap(void)
     LOG_MSG(buffer, strlen(buffer) + 1);
 }
 
-
-static void timer_task(TimerHandle_t xTimer)
-{
-    if (g_power_off_save_data_in_ram.default_info.role & MASTER_ROLE)
-    {
-        LOG_MSG("send_to_slave:%d\r\n", send_to_slave_sum);
-    }
-    else if (g_power_off_save_data_in_ram.default_info.role & SLAVE_ROLE)
-    {
-        LOG_MSG("receive_from_master_sum:%d\r\n", receive_master_sum);
-    }
-    else
-    {
-        LOG_MSG("asd");
-    }
-
-}
-
-
-void init_slave_and_master_port_task()
-{
-    TimerHandle_t timer = xTimerCreate("state_print_task", pdMS_TO_TICKS(10000), pdTRUE, NULL, timer_task);
-    xTimerStart(timer, portMAX_DELAY);
-}
-
 //==============================================================================================================
 //* GATT read/write callback
 //==============================================================================================================
@@ -543,7 +516,13 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
             at_send_rsp((char *)at_rsp);
         }
         break;   
-         
+    case USER_MSG_PROCESS_BLE_MASTER_DATA_LEN:
+        {
+            char at_rsp[20];
+            sprintf(at_rsp, "data len:%d\r\n", receive_master_data_len);
+            at_send_rsp((char *)at_rsp);
+        }
+        break;
     default:
         break;
     }
@@ -565,6 +544,8 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
     uint8_t event = hci_event_packet_get_type(packet);
     const btstack_user_msg_t *p_user_msg;
     if (packet_type != HCI_EVENT_PACKET) return;
+    
+    LOG_MSG("event:%d", event);
 
     switch (event)
     {
@@ -775,7 +756,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         break;
         
     default:
-        LOG_MSG("event:%d\r\n", event);
+        //LOG_MSG("event:%d\r\n", event);
         break;
     }
 }
@@ -789,7 +770,6 @@ uint32_t setup_profile(void *data, void *user_data)
 {
     LOG_MSG("setup profile\n");
     init_service();
-    init_slave_and_master_port_task();
     
     att_server_init(att_read_callback, att_write_callback);
     hci_event_callback_registration.callback = &user_packet_handler;

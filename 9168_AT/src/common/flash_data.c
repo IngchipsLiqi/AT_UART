@@ -6,7 +6,7 @@
 #include "../util/utils.h"
 #include "btstack_util.h"
 
-#define PRIVATE_FlASH_INIT_DEV_NAME "ET07_BLE707070"
+#define PRIVATE_FlASH_INIT_DEV_NAME "9168_AT"
 private_flash_data_t g_power_off_save_data_in_ram = {
     .data_init_flag = PRIVATE_FlASH_DATA_IS_INIT,
     .data_len = sizeof(private_flash_data_t),
@@ -24,7 +24,7 @@ private_flash_data_t g_power_off_save_data_in_ram = {
     .default_info = {
         .auto_transparent   = false,
         .auto_sleep         = false,
-        .wakeup_source      = GIO_GPIO_0,
+        .wakeup_source      = GIO_GPIO_5,
         .wakeup_level       = 1,
         .rf_power           = 2,
         .adv_int            = 1,
@@ -45,7 +45,7 @@ private_flash_data_t g_power_off_save_data_in_ram = {
         .BaudRate           = 115200,
     },
     .scan_filter = {
-        .name_prefix = "ET07_BLE",
+        .name_prefix = "9168_AT",
         .name_suffix = "*",
         .uuid_16 = { 0 },
         .uuid_128 = { 0 },
@@ -84,7 +84,7 @@ void sdk_load_private_flash_data(void)
         g_power_off_save_data_in_ram.module_mac_address[3] = rand_temp >> 16;
         g_power_off_save_data_in_ram.module_mac_address[2] = rand_temp >> 24;
         
-        sprintf(g_power_off_save_data_in_ram.module_name, "ET07_BLE%02x%02x%02x", 
+        sprintf(g_power_off_save_data_in_ram.module_name, "9168_AT%02x%02x%02x", 
             g_power_off_save_data_in_ram.module_mac_address[5],
             g_power_off_save_data_in_ram.module_mac_address[4],
             g_power_off_save_data_in_ram.module_mac_address[3]);

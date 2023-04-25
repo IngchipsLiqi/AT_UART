@@ -48,6 +48,7 @@ enum
     AT_CMD_IDX_POWER,
     AT_CMD_IDX_ADVINT,
     AT_CMD_IDX_CLR_DFT,
+    AT_CMD_IDX_RXNUM,
 };
 const char *cmds[] =
 {
@@ -77,9 +78,14 @@ const char *cmds[] =
     [AT_CMD_IDX_POWER] = "POWER",
     [AT_CMD_IDX_ADVINT] = "ADVINT",
     [AT_CMD_IDX_CLR_DFT] = "CLR_INFO",
+    [AT_CMD_IDX_RXNUM] = "RXNUM",
 };
 
 extern private_flash_data_t g_power_off_save_data_in_ram;
+
+
+extern bool print_data_len_flag;
+extern uint32_t receive_master_data_len;
 
 const int16_t rf_power_arr[6] = {5,2,0,-5,-10,-17}; //TODO 2.5dbm?arr[1]
 const uint16_t adv_int_arr[6] = {80,160,320,800,1600,3200};
@@ -950,18 +956,18 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
 
                         if(gAT_ctrl_env.adv_ongoing)
                         {
-                            stop_adv();
                             at_set_gap_cb_func(AT_GAP_CB_ADV_END,at_idle_status_hdl);
+                            stop_adv();
                         }
                         if(gAT_ctrl_env.scan_ongoing)
                         {
-                            stop_scan();
                             at_set_gap_cb_func(AT_GAP_CB_SCAN_END,at_idle_status_hdl);
+                            stop_scan();
                         }
                         if(gAT_ctrl_env.initialization_ongoing)
                         {
-                            gap_disconnect_all();
                             at_set_gap_cb_func(AT_GAP_CB_CONN_END,at_idle_status_hdl);
+                            gap_disconnect_all();
                         }
                         at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
 
@@ -1365,7 +1371,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 case '=':
                     if(*buff == 'S')
                     {
-                        system_sleep_enable();
+                        platform_config(PLATFORM_CFG_POWER_SAVING, PLATFORM_CFG_ENABLE);
                         g_power_off_save_data_in_ram.default_info.auto_sleep = true;
                         //set_sleep_flag_after_key_release(true);
                         for(uint8_t i=0; i< BLE_CONNECTION_MAX; i++)
@@ -1714,6 +1720,38 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         }
         break;
         */
+        
+        case AT_CMD_IDX_RXNUM:
+        {
+            switch(*buff++)
+            {
+                case '?':
+                    sprintf((char *)at_rsp,"+RXNUM:%d\r\nOK",print_data_len_flag);
+                    at_send_rsp((char *)at_rsp);
+                    break;
+                case '=':
+                {
+                    print_data_len_flag = atoi((const char *)buff);
+                    
+                    if (print_data_len_flag)
+                    {
+                        receive_master_data_len = 0;
+                        sprintf((char *)at_rsp,"+RXNUM:enable\r\nOK");
+                    }
+                    else
+                    {
+                        sprintf((char *)at_rsp,"+RXNUM:disable\r\nOK");
+                    }
+                    at_send_rsp((char *)at_rsp);
+                }
+                break;
+                default:
+                    break;
+            }
+        }
+        break;
+        
+        
         default:
             break;
     }

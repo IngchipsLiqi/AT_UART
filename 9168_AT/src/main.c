@@ -15,6 +15,8 @@
 #include "util/rtos_util.h"
 #include "semphr.h"
 
+#define PIN_WAKEUP GIO_GPIO_0
+
 SemaphoreHandle_t sem_delay = NULL;
 uint8_t  buf[3]={1,2,3};
 
@@ -106,10 +108,16 @@ void setup_peripherals(void)
     SYSCTRL_ClearClkGateMulti(  (1 << SYSCTRL_ITEM_APB_PinCtrl)
                               | (1 << SYSCTRL_ITEM_APB_UART0)
                               | (1 << SYSCTRL_ITEM_APB_UART1)
+                              | (1 << SYSCTRL_ClkGate_APB_GPIO0)
                               | (1 << SYSCTRL_ITEM_APB_WDT));
     
     config_uart(OSC_CLK_FREQ, 115200);
     at_init();
+    
+    GIO_EnableRetentionGroupA(0);
+    PINCTRL_SetPadMux(PIN_WAKEUP, IO_SOURCE_GPIO);
+    GIO_SetDirection((GIO_Index_t)PIN_WAKEUP, GIO_DIR_INPUT);
+    PINCTRL_Pull(PIN_WAKEUP, PINCTRL_PULL_DOWN);
 
     TMR_WatchDogEnable3(WDT_INTTIME_INTERVAL_16S, 200, 1);
     platform_set_irq_callback(PLATFORM_CB_IRQ_WDT, (f_platform_irq_cb)wdt_isr, NULL);
@@ -118,7 +126,9 @@ void setup_peripherals(void)
 uint32_t on_deep_sleep_wakeup(const platform_wakeup_call_info_t *info, void *user_data)
 {
     if (PLATFORM_WAKEUP_REASON_NORMAL == info->reason)
+    {
         setup_peripherals();
+    }
     else
         GIO_EnableRetentionGroupA(0);
     return 1;
@@ -187,14 +197,12 @@ int app_main()
     
     
     platform_config(PLATFORM_CFG_RTOS_ENH_TICK, PLATFORM_CFG_ENABLE);
-    platform_printf("MAIN_OK\r\n");
+    LOG_MSG("MAIN_OK\r\n");
+    
     
     // Config wakeup source
-    int wakeup_source_pull = 
-        (1 == g_power_off_save_data_in_ram.default_info.wakeup_level) ? PINCTRL_PULL_DOWN : PINCTRL_PULL_UP;
-    GIO_EnableDeepSleepWakeupSource(
-        g_power_off_save_data_in_ram.default_info.wakeup_source, 1, 
-        g_power_off_save_data_in_ram.default_info.wakeup_level, wakeup_source_pull);
+    GIO_EnableDeepSleepWakeupSource(PIN_WAKEUP, 1, 1, PINCTRL_PULL_DOWN);
+    //GIO_EnableDeepSleepWakeupSource(g_power_off_save_data_in_ram.default_info.wakeup_source, 1, 1, PINCTRL_PULL_DOWN);
     if (g_power_off_save_data_in_ram.default_info.auto_sleep) {
         platform_config(PLATFORM_CFG_POWER_SAVING, PLATFORM_CFG_ENABLE);
     }

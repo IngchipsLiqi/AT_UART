@@ -13,7 +13,6 @@
 at_recv_data_func_t spsc_recv_data_ind_func = NULL;
 
 
-extern uint32_t send_to_slave_sum;
 
 extern struct at_env gAT_env;
 
@@ -52,7 +51,6 @@ void at_spsc_send_data(uint8_t conidx)
                                                                                this_time_send_len, p_send_data);
             if (r == 0)
             {
-                send_to_slave_sum += this_time_send_len;
                 gAT_env.at_recv_buffer_rp += this_time_send_len;
                 if (gAT_env.at_recv_buffer_rp >= AT_RECV_MAX_LEN)
                     gAT_env.at_recv_buffer_rp = gAT_env.at_recv_buffer_rp - AT_RECV_MAX_LEN;

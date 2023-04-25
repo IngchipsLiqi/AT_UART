@@ -25,7 +25,9 @@ uint8_t send_to_slave_flow_control_enable = BT_PRIVT_DISABLE;
 uint8_t recv_from_master_flow_control_enable = BT_PRIVT_DISABLE;
 uint8_t recv_from_slave_flow_control_enable = BT_PRIVT_DISABLE;
 
-extern uint32_t receive_master_sum;
+extern uint32_t receive_master_data_len;
+
+extern bool print_data_len_flag;
 
 void init_tansmit_service(void)
 {
@@ -71,19 +73,22 @@ int att_write_output_desc_callback(uint16_t offset, const uint8_t *buffer, uint1
 int att_write_input_callback(uint16_t offset, const uint8_t *buffer, uint16_t buffer_size)
 {
     LOG_MSG("into write input callback %d\r\n", buffer_size);
-    
-    //uart_io_send(buffer, buffer_size);
 
     uint8_t data[300] = {0};
     //platform_printf("%p %p %p\r\n", data, &data[0], &data[299]);
     
     memcpy(data, buffer, buffer_size);
     
-    receive_master_sum += buffer_size;
-    
-    btstack_push_user_msg(USER_MSG_PROCESS_BLE_MASTER_DATA, data, buffer_size);
-    
-    //platform_printf("over\r\n");
+    if (print_data_len_flag == false)
+    {
+        btstack_push_user_msg(USER_MSG_PROCESS_BLE_MASTER_DATA, data, buffer_size);
+    }
+    else
+    {
+        receive_master_data_len += buffer_size;
+        
+        btstack_push_user_msg(USER_MSG_PROCESS_BLE_MASTER_DATA_LEN, data, buffer_size);
+    }
     
     return 0;
 }
