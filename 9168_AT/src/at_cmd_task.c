@@ -34,6 +34,8 @@ enum
     AT_CMD_IDX_SCAN_FILTER,
     AT_CMD_IDX_SCAN,
     AT_CMD_IDX_APP,
+    AT_CMD_IDX_CONN_PHY,
+    AT_CMD_IDX_CONN_PARAM,
     AT_CMD_IDX_CONNADD,
     AT_CMD_IDX_CONN,
     AT_CMD_IDX_SLEEP,
@@ -61,6 +63,8 @@ const char *cmds[] =
     [AT_CMD_IDX_SCAN_FILTER] = "SCAN_FILTER",
     [AT_CMD_IDX_SCAN] = "SCAN",
     [AT_CMD_IDX_APP] = "ADP",
+    [AT_CMD_IDX_CONN_PHY] = "CONN_PHY",
+    [AT_CMD_IDX_CONN_PARAM] = "CONN_PARAM",
     [AT_CMD_IDX_CONNADD] = "CONNADD",
     [AT_CMD_IDX_CONN] = "CONN",
     [AT_CMD_IDX_SLEEP] = "SLEEP",
@@ -1391,6 +1395,67 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             }
         }
         break;
+        
+        case AT_CMD_IDX_CONN_PHY:
+        {
+            switch(*buff++)
+            {
+                case '=':
+                {
+                    uint8_t *pos_int_end;
+                    pos_int_end = find_int_from_str(buff);
+                    uint8_t conidx = atoi((const char *)buff);
+
+                    buff = pos_int_end+1;
+                    pos_int_end = find_int_from_str(buff);
+                    uint32_t phy = atoi((const char *)buff);
+                    
+                    gap_set_phy(conidx, 0, phy, phy, HOST_NO_PREFERRED_CODING);
+                    
+                    sprintf((char *)at_rsp,"\r\n+CONN_PHY:%d,%d\r\nOK", conidx, phy);
+                    at_send_rsp((char *)at_rsp);
+                }
+                break;
+            }
+        }
+        break;
+        
+        case AT_CMD_IDX_CONN_PARAM:
+        {
+            switch(*buff++)
+            {
+                case '=':
+                {
+                    uint8_t *pos_int_end;
+                    pos_int_end = find_int_from_str(buff);
+                    uint8_t conidx = atoi((const char *)buff);
+
+                    buff = pos_int_end+1;
+                    pos_int_end = find_int_from_str(buff);
+                    uint32_t interval = atoi((const char *)buff);
+
+                    buff = pos_int_end+1;
+                    pos_int_end = find_int_from_str(buff);
+                    uint32_t latency = atoi((const char *)buff);
+
+                    buff = pos_int_end+1;
+                    pos_int_end = find_int_from_str(buff);
+                    uint32_t supervision_timeout = atoi((const char *)buff);
+                    
+                    gap_update_connection_parameters(conidx, interval, interval, 
+                                                     latency, 
+                                                     supervision_timeout, 
+                                                     phy_configs[0].conn_param.min_ce_len, 
+                                                     phy_configs[0].conn_param.max_ce_len);
+                    
+                    sprintf((char *)at_rsp,"\r\n+CONN_PARAM:%d,%d,%d,%d\r\nOK", conidx, interval, latency, supervision_timeout);
+                    at_send_rsp((char *)at_rsp);
+                }
+                break;
+            }
+        }
+        break;
+        
         case AT_CMD_IDX_CONNADD:
         {
             uint8_t peer_mac_addr_str[MAC_ADDR_LEN*2+1];
