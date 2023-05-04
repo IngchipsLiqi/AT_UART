@@ -3,7 +3,6 @@
 
 #include "../at_recv_cmd.h"//#include "at_recv_cmd.h"
 #include <string.h>
-#include "../private_user_packet_handler.h"
 #include "../router.h"
 #include "../at_recv_cmd.h"
 #include "../at_cmd_task.h"
@@ -57,6 +56,8 @@ void init_tansmit_service(void)
     LOG_MSG("ble gatt add transmission characteristic input.");
 }
 
+
+//#define V2
 
 prog_ver_t prog_ver =
 #ifdef V2
@@ -131,7 +132,7 @@ int att_write_input_callback(uint16_t transaction_mode, uint16_t offset, const u
     {
         receive_master_data_len += buffer_size;
         
-        if (timer_isr_count >= 1)
+        if (timer_isr_count >= 10000)
         {
             timer_isr_count = 0;
             
@@ -153,6 +154,6 @@ void init_service()
 
     init_tansmit_service();
     
-    //init_fota_service();
+    init_fota_service();
 }
 

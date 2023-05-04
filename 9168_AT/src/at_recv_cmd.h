@@ -16,7 +16,7 @@
 #define AT_MAIN_VER (0)
 
 
-#define AT_RECV_MAX_LEN     6000
+#define AT_RECV_MAX_LEN     4000
 #define AT_TRANSPARENT_DOWN_LEVEL   205
 struct at_env
 {

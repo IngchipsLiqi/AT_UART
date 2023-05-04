@@ -4,7 +4,6 @@
 #include "common/preh.h"
 
 #include "common/flash_data.h"
-#include "util/circular_queue.h"
 
 void init_rx_buffer();
 

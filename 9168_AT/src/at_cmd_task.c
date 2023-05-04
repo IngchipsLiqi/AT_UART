@@ -84,6 +84,7 @@ const char *cmds[] =
 extern private_flash_data_t g_power_off_save_data_in_ram;
 
 
+extern prog_ver_t prog_ver;
 extern bool print_data_len_flag;
 extern uint32_t receive_master_data_len;
 
@@ -1276,7 +1277,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+VER:%d\r\nOK",AT_MAIN_VER);
+                    sprintf((char *)at_rsp,"+VER:%d.%d.%d\r\nOK", prog_ver.major, prog_ver.minor, prog_ver.patch);
                     at_send_rsp((char *)at_rsp);
                     break;
                 default:
@@ -1306,8 +1307,9 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 {
                     uint8_t *pos_int_end;
                     pos_int_end = find_int_from_str(buff);
+                    
                     g_power_off_save_data_in_ram.uart_param.BaudRate = atoi((const char *)buff);
-
+                    
                     buff = pos_int_end+1;
                     pos_int_end = find_int_from_str(buff);
                     int databit = atoi((const char *)buff);
@@ -1317,12 +1319,11 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     pos_int_end = find_int_from_str(buff);
                     int pari = atoi((const char *)buff);
                     g_power_off_save_data_in_ram.uart_param.parity = convert_to_parity(pari);
-
+                    
                     buff = pos_int_end+1;
                     pos_int_end = find_int_from_str(buff);
                     int stop_bits = atoi((const char *)buff);
                     g_power_off_save_data_in_ram.uart_param.two_stop_bits = convert_to_two_stop_bits(stop_bits);
-                    //at_store_info_to_flash();
 
                     databit = convert_from_word_length(g_power_off_save_data_in_ram.uart_param.word_length);
                     pari = convert_from_parity(g_power_off_save_data_in_ram.uart_param.parity);
@@ -1334,6 +1335,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         pari,
                         stop_bits);
                     at_send_rsp((char *)at_rsp);
+                    
+                    vTaskDelay(pdMS_TO_TICKS(1000));
                     
                     apUART_Initialize(APB_UART1, 
                             &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );

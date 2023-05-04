@@ -23,7 +23,6 @@
 #include "service/transmission_callback.h"
 
 #include "common/flash_data.h"
-#include "at/at_parser.h"
 #include "router.h"
 
 #include "util/utils.h"

@@ -42,7 +42,7 @@ private_flash_data_t g_power_off_save_data_in_ram = {
         .rxfifo_waterlevel  = 1,
         .txfifo_waterlevel  = 1,
         .ClockFrequency     = OSC_CLK_FREQ,
-        .BaudRate           = 115200,
+        .BaudRate           = 921600,
     },
     .scan_filter = {
         .name_prefix = "9168_AT",

@@ -9,6 +9,7 @@
 #include <stdbool.h>
 
 #include <platform_api.h>
+#include "ota_service.h"
 
 #define  LOG_LEVEL      1
 #define  LOG_LEVEL_MSG  2

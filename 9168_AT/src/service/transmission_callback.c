@@ -60,7 +60,7 @@ uint16_t module_handle_att_read_callback(hci_con_handle_t connection_handle, uin
 {
     for (uint32_t i = 0; i < module_att_read_callback_num; ++i) {
         if (module_att_read_callback[i].cmd == att_handle) {
-            module_att_read_callback[i].fun(offset, buffer, buffer_size);
+            return module_att_read_callback[i].fun(offset, buffer, buffer_size);
         }
     }
     return BT_PRIVT_OK;
@@ -71,7 +71,7 @@ int module_handle_att_write_callback(hci_con_handle_t connection_handle, uint16_
 {
     for (uint32_t i = 0; i < module_att_write_callback_num; ++i) {
         if (module_att_write_callback[i].cmd == att_handle) {
-            module_att_write_callback[i].fun(transaction_mode, offset, buffer, buffer_size);
+            return module_att_write_callback[i].fun(transaction_mode, offset, buffer, buffer_size);
         }
     }
     return BT_PRIVT_OK;

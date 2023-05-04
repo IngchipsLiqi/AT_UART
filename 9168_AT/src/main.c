@@ -11,8 +11,6 @@
 #include "profile.h"
 #include "common/flash_data.h"
 #include "router.h"
-#include "at/at_parser.h"
-#include "util/rtos_util.h"
 #include "semphr.h"
 
 #define PIN_WAKEUP GIO_GPIO_0
