@@ -6,6 +6,8 @@
 #include "../private_user_packet_handler.h"
 #include "../router.h"
 #include "../at_recv_cmd.h"
+#include "../at_cmd_task.h"
+#include "ota_service.h"
 
 static uint8_t att_db_storage[512];
 
@@ -55,7 +57,47 @@ void init_tansmit_service(void)
     LOG_MSG("ble gatt add transmission characteristic input.");
 }
 
-int att_write_output_desc_callback(uint16_t offset, const uint8_t *buffer, uint16_t buffer_size)
+
+prog_ver_t prog_ver =
+#ifdef V2
+    { .major = 1, .minor = 2, .patch = 0 }
+#else
+    { .major = 1, .minor = 1, .patch = 0 }
+#endif
+;
+
+extern uint16_t att_ota_ver_handle;
+extern uint16_t att_ota_data_handle;
+extern uint16_t att_ota_ctrl_handle;
+
+uint16_t ota_ver_read_callback(uint16_t offset, uint8_t * buffer, uint16_t buffer_size)
+{
+    return ota_read_callback(att_ota_ver_handle, offset, buffer, buffer_size);
+}
+uint16_t ota_ctrl_read_callback(uint16_t offset, uint8_t * buffer, uint16_t buffer_size)
+{
+    return ota_read_callback(att_ota_ctrl_handle, offset, buffer, buffer_size);
+}
+int ota_data_write_callback(uint16_t transaction_mode, uint16_t offset, const uint8_t *buffer, uint16_t buffer_size)
+{
+    return ota_write_callback(att_ota_data_handle, transaction_mode, offset, buffer, buffer_size);
+}
+int ota_ctrl_write_callback(uint16_t transaction_mode, uint16_t offset, const uint8_t *buffer, uint16_t buffer_size)
+{
+    return ota_write_callback(att_ota_ctrl_handle, transaction_mode, offset, buffer, buffer_size);
+}
+
+void init_fota_service(void)
+{
+    ota_init_service();
+    
+    module_att_read_callback_register(att_ota_ver_handle, ota_ver_read_callback);
+    module_att_read_callback_register(att_ota_ctrl_handle, ota_ctrl_read_callback);
+    module_att_write_callback_register(att_ota_data_handle, ota_data_write_callback);
+    module_att_write_callback_register(att_ota_ctrl_handle, ota_ctrl_write_callback);
+}
+
+int att_write_output_desc_callback(uint16_t transaction_mode, uint16_t offset, const uint8_t *buffer, uint16_t buffer_size)
 {
     if(*(uint16_t *)buffer == GATT_CLIENT_CHARACTERISTICS_CONFIGURATION_NOTIFICATION) {
         LOG_MSG("configuration notification!\r\n");
@@ -70,24 +112,35 @@ int att_write_output_desc_callback(uint16_t offset, const uint8_t *buffer, uint1
 //==============================================================================================================
 //* Receive Master Data
 //==============================================================================================================
-int att_write_input_callback(uint16_t offset, const uint8_t *buffer, uint16_t buffer_size)
-{
-    LOG_MSG("into write input callback %d\r\n", buffer_size);
 
-    uint8_t data[300] = {0};
-    //platform_printf("%p %p %p\r\n", data, &data[0], &data[299]);
-    
-    memcpy(data, buffer, buffer_size);
-    
+extern uint32_t timer_isr_count;
+
+int att_write_input_callback(uint16_t transaction_mode, uint16_t offset, const uint8_t *buffer, uint16_t buffer_size)
+{
     if (print_data_len_flag == false)
     {
-        btstack_push_user_msg(USER_MSG_PROCESS_BLE_MASTER_DATA, data, buffer_size);
+        uint8_t* data = (uint8_t*)malloc(buffer_size);
+        if (!data) return 0;
+        
+        memcpy(data, buffer, buffer_size);
+        
+        if (btstack_push_user_msg(USER_MSG_PROCESS_BLE_MASTER_DATA, data, buffer_size))
+            free(data);
     }
     else
     {
         receive_master_data_len += buffer_size;
         
-        btstack_push_user_msg(USER_MSG_PROCESS_BLE_MASTER_DATA_LEN, data, buffer_size);
+        if (timer_isr_count >= 1)
+        {
+            timer_isr_count = 0;
+            
+            char at_rsp[20];
+            sprintf(at_rsp, "data len:%d\r\n", receive_master_data_len);
+            at_send_rsp((char *)at_rsp);
+            
+            receive_master_data_len = 0;
+        }
     }
     
     return 0;
@@ -99,5 +152,7 @@ void init_service()
     att_db_util_init(att_db_storage, sizeof(att_db_storage));
 
     init_tansmit_service();
+    
+    //init_fota_service();
 }
 

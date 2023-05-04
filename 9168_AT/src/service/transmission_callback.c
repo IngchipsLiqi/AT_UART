@@ -1,6 +1,6 @@
 #include "transmission_callback.h"
 
-#define GATT_HANDLE_MAX_NUM 20
+#define GATT_HANDLE_MAX_NUM 10
 
 
 static module_att_read_callback_t module_att_read_callback[GATT_HANDLE_MAX_NUM] = { 0 };
@@ -71,7 +71,7 @@ int module_handle_att_write_callback(hci_con_handle_t connection_handle, uint16_
 {
     for (uint32_t i = 0; i < module_att_write_callback_num; ++i) {
         if (module_att_write_callback[i].cmd == att_handle) {
-            module_att_write_callback[i].fun(offset, buffer, buffer_size);
+            module_att_write_callback[i].fun(transaction_mode, offset, buffer, buffer_size);
         }
     }
     return BT_PRIVT_OK;

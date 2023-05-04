@@ -29,8 +29,8 @@ extern uint16_t g_ble_flow_ctrl_handle;
 void init_service(void);
 
 
-int att_write_output_desc_callback(uint16_t offset, const uint8_t *buffer, uint16_t buffer_size);
-int att_write_input_callback(uint16_t offset, const uint8_t *buffer, uint16_t buffer_size);
+int att_write_output_desc_callback(uint16_t transaction_mode, uint16_t offset, const uint8_t *buffer, uint16_t buffer_size);
+int att_write_input_callback(uint16_t transaction_mode, uint16_t offset, const uint8_t *buffer, uint16_t buffer_size);
 
 
 #endif

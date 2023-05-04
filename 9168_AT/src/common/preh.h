@@ -3,6 +3,8 @@
 
 //#define ROLE_MASTER
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -62,14 +64,13 @@ typedef enum {
 #define USER_MSG_AT_RECV_CMD   0x06
 #define USER_MSG_AT_TRANSPARENT_START_TIMER 0x07
 #define USER_MSG_AT_RECV_TRANSPARENT_DATA 0x08
-#define USER_MSG_AT_QUENEUE_FULL_CMD   0x09
-#define USER_MSG_PROCESS_BLE_MASTER_DATA_LEN   0x0a
+
+#define USER_MSG_START_SEND 0x09
 
 
 
 #define FLOW_CONTROL_MASTER_SEND_DATA_TO_SLAVE 0x01
 #define FLOW_CONTROL_SLAVE_SEND_DATA_TO_MASTER 0x02
-
 
 
 #include "ingsoc.h"

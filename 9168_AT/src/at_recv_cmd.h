@@ -16,7 +16,7 @@
 #define AT_MAIN_VER (0)
 
 
-#define AT_RECV_MAX_LEN     2000
+#define AT_RECV_MAX_LEN     6000
 #define AT_TRANSPARENT_DOWN_LEVEL   205
 struct at_env
 {
@@ -145,4 +145,5 @@ uint16_t at_buffer_data_size();
 void at_buffer_enqueue_data(uint8_t data);
 uint8_t at_buffer_dequeue_data(void);
 
+void send_data(void);
 #endif

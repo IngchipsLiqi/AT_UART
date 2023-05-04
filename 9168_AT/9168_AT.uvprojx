@@ -513,6 +513,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\Tools\ad_parser.c</FilePath>
             </File>
+            <File>
+              <FileName>ota_service.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\Tools\ota_service.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -574,5 +579,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>9168_AT</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

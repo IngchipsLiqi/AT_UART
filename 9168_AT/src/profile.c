@@ -58,6 +58,7 @@ uint32_t receive_master_data_len = 0;
 
 bool print_data_len_flag = false;
 
+extern bool can_send_now;
 
 
 //==============================================================================================================
@@ -405,12 +406,12 @@ initiating_phy_config_t phy_configs[] =
         {
             .scan_int = 200,
             .scan_win = 180,
-            .interval_min = 16,
-            .interval_max = 16,
+            .interval_min = 50,
+            .interval_max = 50,
             .latency = 0,
             .supervision_timeout = 600,
-            .min_ce_len = 80,
-            .max_ce_len = 80
+            .min_ce_len = 90,
+            .max_ce_len = 90
         }
     }
 };
@@ -500,28 +501,17 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
     {
     case USER_MSG_PROCESS_BLE_MASTER_DATA:     
         uart_io_send(data, size);
+        free(data);
         break;
-    case USER_MSG_AT_RECV_CMD: //TODO  
+    case USER_MSG_AT_RECV_CMD:
         at_recv_cmd_handler(data);
+        free(data);
         break;
     case USER_MSG_AT_TRANSPARENT_START_TIMER:
         xTimerStart(at_transparent_timer, portMAX_DELAY);
         break;
     case USER_MSG_AT_RECV_TRANSPARENT_DATA:
         recv_transparent_data();
-        break;
-    case USER_MSG_AT_QUENEUE_FULL_CMD: //TODO  
-        {
-            uint8_t at_rsp[] = "QUENEUE";
-            at_send_rsp((char *)at_rsp);
-        }
-        break;   
-    case USER_MSG_PROCESS_BLE_MASTER_DATA_LEN:
-        {
-            char at_rsp[20];
-            sprintf(at_rsp, "data len:%d\r\n", receive_master_data_len);
-            at_send_rsp((char *)at_rsp);
-        }
         break;
     default:
         break;
@@ -545,7 +535,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
     const btstack_user_msg_t *p_user_msg;
     if (packet_type != HCI_EVENT_PACKET) return;
     
-    LOG_MSG("event:%d", event);
+    //LOG_MSG("event:%d", event);
 
     switch (event)
     {
@@ -663,8 +653,6 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
                 memcpy(&g_power_off_save_data_in_ram.master_peer_param,
                     &g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle], sizeof(private_module_conn_peer_param_t));
                 
-                LOG_MSG("at_master_connected\r\n");
-                            
                 if(gAT_ctrl_env.transparent_start == false)         //if(gAT_ctrl_env.async_evt_on_going)
                 {
                     uint8_t at_rsp[30];
@@ -690,6 +678,10 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             {
                 const le_meta_phy_update_complete_t* hci_le_cmpl = decode_hci_le_meta_event(packet, le_meta_phy_update_complete_t);
                 LOG_MSG("PHY updated: Rx %d, Tx %d\r\n", hci_le_cmpl->rx_phy, hci_le_cmpl->tx_phy);
+                
+                uint8_t at_rsp[30];
+                sprintf((char *)at_rsp,"+CONN_PHY: Rx %d, Tx %d\r\nOK", hci_le_cmpl->rx_phy, hci_le_cmpl->tx_phy);
+                at_send_rsp((char *)at_rsp);
             }
             break;
         
@@ -697,6 +689,10 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             {
                 const le_meta_event_conn_update_complete_t *cmpl = decode_hci_le_meta_event(packet, le_meta_event_conn_update_complete_t);
                 LOG_MSG("CONN updated: interval %.2f ms", cmpl->interval * 1.25);
+                
+                uint8_t at_rsp[40];
+                sprintf((char *)at_rsp,"+CONN_PARAM: interval %.2f ms\r\nOK", cmpl->interval * 1.25);
+                at_send_rsp((char *)at_rsp);
             }
             break;
             
@@ -718,12 +714,11 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         break;
 
     case ATT_EVENT_CAN_SEND_NOW:
-        LOG_MSG("Into Can Send Now\r\n");
-        handle_can_send_now();
+        can_send_now = true;
         break;
 
     case L2CAP_EVENT_CAN_SEND_NOW:
-        LOG_MSG("Into Can Send Now\r\n");
+        can_send_now = true;
         at_spsc_send_data(gAT_ctrl_env.transparent_conidx);
         break;
 
@@ -772,9 +767,11 @@ uint32_t setup_profile(void *data, void *user_data)
     init_service();
     
     att_server_init(att_read_callback, att_write_callback);
+    
     hci_event_callback_registration.callback = &user_packet_handler;
     hci_add_event_handler(&hci_event_callback_registration);
     att_server_register_packet_handler(&user_packet_handler);
+    gatt_client_register_handler(user_packet_handler);
     
     return 0;
 }

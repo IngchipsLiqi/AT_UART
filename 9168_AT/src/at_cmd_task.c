@@ -982,7 +982,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         {
                             g_power_off_save_data_in_ram.default_info.role |= SLAVE_ROLE;
                             at_start_advertising(NULL);
-                            at_set_gap_cb_func(AT_GAP_CB_ADV_END,at_cb_adv_end);
+                            //at_set_gap_cb_func(AT_GAP_CB_ADV_END,at_cb_adv_end);
                             at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
                         }
                         sprintf((char *)at_rsp,"+MODE:B\r\nOK");
@@ -1292,13 +1292,13 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 {
                     int databit = convert_from_word_length(g_power_off_save_data_in_ram.uart_param.word_length);
                     int pari = convert_from_parity(g_power_off_save_data_in_ram.uart_param.parity);
-                    int stop = convert_from_two_stop_bits(g_power_off_save_data_in_ram.uart_param.two_stop_bits);
+                    int stop_bits = convert_from_two_stop_bits(g_power_off_save_data_in_ram.uart_param.two_stop_bits);
                     
                     sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
                         g_power_off_save_data_in_ram.uart_param.BaudRate,
                         databit,
                         pari,
-                        stop);
+                        stop_bits);
                     at_send_rsp((char *)at_rsp);
                 }
                 break;
@@ -1315,23 +1315,26 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
 
                     buff = pos_int_end+1;
                     pos_int_end = find_int_from_str(buff);
-                    int parity = atoi((const char *)buff);
-                    g_power_off_save_data_in_ram.uart_param.parity = convert_to_parity(parity);
+                    int pari = atoi((const char *)buff);
+                    g_power_off_save_data_in_ram.uart_param.parity = convert_to_parity(pari);
 
                     buff = pos_int_end+1;
                     pos_int_end = find_int_from_str(buff);
-                    
                     int stop_bits = atoi((const char *)buff);
                     g_power_off_save_data_in_ram.uart_param.two_stop_bits = convert_to_two_stop_bits(stop_bits);
                     //at_store_info_to_flash();
 
+                    databit = convert_from_word_length(g_power_off_save_data_in_ram.uart_param.word_length);
+                    pari = convert_from_parity(g_power_off_save_data_in_ram.uart_param.parity);
+                    stop_bits = convert_from_two_stop_bits(g_power_off_save_data_in_ram.uart_param.two_stop_bits);
+                    
                     sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
-                            g_power_off_save_data_in_ram.uart_param.BaudRate,
-                            g_power_off_save_data_in_ram.uart_param.word_length,
-                            g_power_off_save_data_in_ram.uart_param.parity,
-                            g_power_off_save_data_in_ram.uart_param.two_stop_bits);
+                        g_power_off_save_data_in_ram.uart_param.BaudRate,
+                        databit,
+                        pari,
+                        stop_bits);
                     at_send_rsp((char *)at_rsp);
-  
+                    
                     apUART_Initialize(APB_UART1, 
                             &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );
                 }

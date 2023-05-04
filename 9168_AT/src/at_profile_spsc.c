@@ -12,9 +12,11 @@
 
 at_recv_data_func_t spsc_recv_data_ind_func = NULL;
 
-
+uint32_t send_num = 0;
 
 extern struct at_env gAT_env;
+
+bool can_send_now = true;
 
 /*********************************************************************
  * @fn      at_spsc_send_data
@@ -27,6 +29,9 @@ extern struct at_env gAT_env;
  */
 void at_spsc_send_data(uint8_t conidx)
 {
+    if (!can_send_now)
+        return;
+    
     uint16_t send_packet_len , r, valid_data, this_time_send_len = 0;
     uint8_t* p_send_data = NULL;
     
@@ -35,16 +40,13 @@ void at_spsc_send_data(uint8_t conidx)
     
     while ((valid_data = at_buffer_data_size()) > 0) 
     {
-        LOG_MSG("valid_data_len:%d\r\n", valid_data);
         this_time_send_len = valid_data;
         if (this_time_send_len > send_packet_len)
             this_time_send_len = send_packet_len;
-        if (gAT_env.at_recv_buffer_rp + this_time_send_len >= AT_RECV_MAX_LEN) {
+        if (gAT_env.at_recv_buffer_rp + this_time_send_len >= AT_RECV_MAX_LEN)
             this_time_send_len = AT_RECV_MAX_LEN - gAT_env.at_recv_buffer_rp;
-        }
         p_send_data = gAT_env.at_recv_buffer + gAT_env.at_recv_buffer_rp;
         
-        LOG_MSG("send_len:%d\r\n", this_time_send_len);
         if (this_time_send_len != 0)
         {
             r = gatt_client_write_value_of_characteristic_without_response(conidx, slave_input_char.value_handle, 
@@ -54,10 +56,11 @@ void at_spsc_send_data(uint8_t conidx)
                 gAT_env.at_recv_buffer_rp += this_time_send_len;
                 if (gAT_env.at_recv_buffer_rp >= AT_RECV_MAX_LEN)
                     gAT_env.at_recv_buffer_rp = gAT_env.at_recv_buffer_rp - AT_RECV_MAX_LEN;
-        LOG_MSG("p:%d %d\r\n", gAT_env.at_recv_buffer_rp, gAT_env.at_recv_buffer_wp);
+                send_num += this_time_send_len;
             }
             else if (r == BTSTACK_ACL_BUFFERS_FULL)
             {
+                can_send_now = false;
                 att_dispatch_client_request_can_send_now_event(conidx); // Request can send now
                 break;
             }

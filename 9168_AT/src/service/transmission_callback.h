@@ -7,7 +7,7 @@
 
 
 typedef uint16_t (*pfun_module_att_read_callback)(uint16_t offset, uint8_t * buffer, uint16_t buffer_size);
-typedef int (*pfun_module_att_write_callback)(uint16_t offset, const uint8_t *buffer, uint16_t buffer_size);
+typedef int (*pfun_module_att_write_callback)(uint16_t transaction_mode, uint16_t offset, const uint8_t *buffer, uint16_t buffer_size);
 
 typedef struct {
     uint16_t cmd;

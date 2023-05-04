@@ -23,6 +23,9 @@
 #include "common/flash_data.h"
 #include "util/circular_queue.h"
 
+#include "gatt_client.h"
+#include "att_dispatch.h"
+#include "btstack_defines.h"
 
 #ifndef TMR_CLK_FREQ
 #define TMR_CLK_FREQ 112000000
@@ -31,9 +34,11 @@
 #define TMR1_CLK_1S_COUNT 10000
 #define TMR1_CLK_CMP (TMR_CLK_FREQ / TMR1_CLK_1S_COUNT)
 
+uint32_t rx_num = 0;
 
 #define AT_UART    APB_UART1
 
+uint32_t timer_isr_count = 0;
 
 struct at_env gAT_env = {0};
 
@@ -256,29 +261,21 @@ void recv_transparent_data()
     xTimerStop(at_transparent_timer, portMAX_DELAY);
     
     //__disable_irq();
-    
-    LOG_MSG("conidx = %d\r\n", gAT_ctrl_env.transparent_conidx);
-    
     if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx))
     {
-        
-        LOG_MSG("heap size = %d\r\n", os_get_free_heap_size());
-        
-        if( os_get_free_heap_size()>2000) //11264 )
+        if( os_get_free_heap_size()>2000)
         {
-            //printf("c:%d\r\n",gAT_env.at_recv_index);
-            
             if(g_power_off_save_data_in_ram.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == SLAVE_ROLE)
                 at_spss_send_data(gAT_ctrl_env.transparent_conidx);
-            else if(g_power_off_save_data_in_ram.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)      //master
+            else if(g_power_off_save_data_in_ram.peer_param[gAT_ctrl_env.transparent_conidx].link_mode == MASTER_ROLE)
                 at_spsc_send_data(gAT_ctrl_env.transparent_conidx);
         }
         else
             uart_putc_noint(UART1,'X');
     }
-    gAT_env.transparent_data_send_ongoing = 0;
-
     //__enable_irq();
+    
+    gAT_env.transparent_data_send_ongoing = 0;
     
     if(gAT_ctrl_env.one_slot_send_start && gAT_ctrl_env.one_slot_send_len == 0)
     {
@@ -289,13 +286,34 @@ void recv_transparent_data()
     }
 }
 
-int at_task_func()
+
+void send_data(void)
 {
+    uint16_t send_packet_len = 0;
+    uint8_t r;
 
+    gatt_client_get_mtu(gAT_ctrl_env.transparent_conidx, &send_packet_len);
+    send_packet_len -= 3;
 
+    do
+    {
+        r = gatt_client_write_value_of_characteristic_without_response(gAT_ctrl_env.transparent_conidx,
+                                                                       slave_input_char.value_handle,
+                                                                       send_packet_len, (uint8_t *)0x4000);
 
-    return 0;
+        switch (r)
+        {
+            case 0:
+                break;
+            case BTSTACK_ACL_BUFFERS_FULL:
+                att_dispatch_client_request_can_send_now_event(gAT_ctrl_env.transparent_conidx);
+                break;
+        }
+    } while (0 == r);
 }
+
+
+
 /*********************************************************************
  * @fn      app_at_recv_c
  *
@@ -312,18 +330,16 @@ static void app_at_recv_c(uint8_t c)
     //AT_LOG("%02x ",c);
     if(gAT_ctrl_env.transparent_start)
     {
-        if( at_buffer_empty() )
-        {
+        if(at_buffer_empty())
             btstack_push_user_msg(USER_MSG_AT_TRANSPARENT_START_TIMER, NULL, 0);
-        }
         
-        if( at_buffer_data_size() < (AT_RECV_MAX_LEN-2) )
-            at_buffer_enqueue_data(c);
+        rx_num++;
+        at_buffer_enqueue_data(c);
  
         if(at_buffer_data_size() ==3)//连续收到3个+++，退出透传
         {
             
-            if( at_buffer_read_data(at_buffer_data_size() - 1) == '+'
+            if(    at_buffer_read_data(at_buffer_data_size() - 1) == '+'
                 && at_buffer_read_data(at_buffer_data_size() - 2) == '+'
                 && at_buffer_read_data(at_buffer_data_size() - 3) == '+')
             {
@@ -335,14 +351,18 @@ static void app_at_recv_c(uint8_t c)
         
         if( (at_buffer_data_size() >AT_TRANSPARENT_DOWN_LEVEL) && (gAT_env.transparent_data_send_ongoing == 0) )
         {
-            LOG_MSG("start send\r\n");
             gAT_env.transparent_data_send_ongoing = 1;
             btstack_push_user_msg(USER_MSG_AT_RECV_TRANSPARENT_DATA, NULL, 0);
+        }
+        
+        if (at_buffer_full())
+        {
+            at_buffer_dequeue_data();   // discard.
         }
         goto _exit;
     }
     
-    if(gAT_ctrl_env.one_slot_send_start)        // one slot send
+    if(gAT_ctrl_env.one_slot_send_start)        // one shot send
     {
         if(gAT_ctrl_env.one_slot_send_len > 0)
         {
@@ -410,7 +430,7 @@ static void app_at_recv_c(uint8_t c)
                 memcpy(&cmd->recv_data[0], &gAT_env.at_recv_buffer[0], cmd->recv_length);
                 
                 btstack_push_user_msg(USER_MSG_AT_RECV_CMD, cmd, sizeof(struct recv_cmd_t) + cmd->recv_length);
-                               
+                
                 //free(cmd);
                 gAT_env.at_recv_state = 0;
                 gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
@@ -419,7 +439,9 @@ static void app_at_recv_c(uint8_t c)
             {
                 if (at_buffer_full())
                 {
-                    btstack_push_user_msg(USER_MSG_AT_QUENEUE_FULL_CMD, NULL, 0);
+                    LOG_MSG("buffer full\r\n");
+                    uint8_t at_rsp[] = "buffer full";
+                    at_send_rsp((char *)at_rsp);
                     gAT_env.at_recv_state = 0;
                     gAT_env.at_recv_buffer_wp = gAT_env.at_recv_buffer_rp = 0;
                 }
@@ -464,7 +486,6 @@ uint32_t uart_isr(void *user_data)
         {
             while (apUART_Check_RXFIFO_EMPTY(AT_UART) != 1)
             {
-                //char c = AT_UART->DataRead;
                 app_at_recv_c(AT_UART->DataRead);
             }
         }
@@ -472,19 +493,32 @@ uint32_t uart_isr(void *user_data)
     return 0;
 }
 
+extern uint32_t send_num;
+uint32_t timer_isr_counter2 = 0;
 
 // Timer 中断
 static uint32_t bt_cmd_data_timer_isr(void *user_data)
 {
     TMR_IntClr(APB_TMR1, 0, 0x1);
     
-    // uart rx fifo >>> gAT_env.at_recv_buffer
-    while (apUART_Check_RXFIFO_EMPTY(APB_UART1) != 1) 
+    //// uart rx fifo >>> gAT_env.at_recv_buffer
+    //while (apUART_Check_RXFIFO_EMPTY(APB_UART1) != 1) 
+    //{
+    //    if (at_buffer_data_size() >= AT_RECV_MAX_LEN)
+    //        break;
+    //    app_at_recv_c(APB_UART1->DataRead);
+    //}
+    
+    timer_isr_count ++;
+    timer_isr_counter2 ++;
+    if (timer_isr_counter2 >= 1)
     {
-        if (at_buffer_data_size() >= AT_RECV_MAX_LEN)
-            break;
-        app_at_recv_c(APB_UART1->DataRead);
+        timer_isr_counter2 = 0;
+        LOG_MSG("rx_num:%d, send_num:%d\n", rx_num, send_num);
+        rx_num = 0;
+        send_num = 0;
     }
+    
     return 0;
 }
 
@@ -504,7 +538,7 @@ void at_init(void)
     
     //2.UART的串口参数初始化
     uart_init(OSC_CLK_FREQ, 115200);
-    //platform_set_irq_callback(PLATFORM_CB_IRQ_UART1, uart_isr, NULL); //暂不采用串口中断的方式
+    platform_set_irq_callback(PLATFORM_CB_IRQ_UART1, uart_isr, NULL); //暂不采用串口中断的方式
     
     //3.用于透传的控制
     if (at_transparent_timer == 0) 
@@ -514,7 +548,7 @@ void at_init(void)
                 NULL,
                 transparent_timer_handler);
     
-    
+    //
     if (at_exit_transparent_mode_timer == 0)
         at_exit_transparent_mode_timer = xTimerCreate("t2",
             pdMS_TO_TICKS(500),
@@ -525,7 +559,7 @@ void at_init(void)
     //4.Timer查询串口数据
     SYSCTRL_ClearClkGateMulti(  (1 << SYSCTRL_ClkGate_APB_TMR1));
     TMR_SetOpMode(APB_TMR1, 0, TMR_CTL_OP_MODE_32BIT_TIMER_x1, TMR_CLK_MODE_APB, 0);
-    TMR_SetReload(APB_TMR1, 0, TMR1_CLK_CMP);
+    TMR_SetReload(APB_TMR1, 0, TMR_CLK_FREQ);//TMR1_CLK_CMP);
     TMR_Enable(APB_TMR1, 0, 0x1);
     TMR_IntEnable(APB_TMR1, 0, 0x1);
     platform_set_irq_callback(PLATFORM_CB_IRQ_TIMER1, bt_cmd_data_timer_isr, NULL);
