@@ -2,18 +2,18 @@
  "watchdog": true,
  "bundle_meta": {
   "rom": {
-   "size": 152800,
+   "size": 153236,
    "base": 33562624
   },
   "ram": {
-   "size": 21444,
+   "size": 21484,
    "base": 536870912
   },
   "app": {
    "base": 33718272
   },
   "version": [
-   2,2,12]
+   2,2,22]
  },
  "tc_dir": "C:\/Keil_v5\/uv4",
  "eflash_addr": "0x42000",
@@ -49,7 +49,7 @@
  "is_sdk_path_rel": true,
  "pb_gatt": true,
  "deep_sleep": true,
- "proj_dir": "C:\\Users\\leosh\\AppData\\Roaming\\Local\\Program\\ING_SDK\\sdk\\examples\\9168_AT_master",
+ "proj_dir": "C:\\Users\\leosh\\AppData\\Roaming\\Local\\Program\\ING_SDK\\sdk\\examples\\9168_AT",
  "heap_size": 0,
  "power_saving": false,
  "secondary": false,
@@ -72,8 +72,8 @@
  "keil": true,
  "cmsis": "",
  "cube": true,
- "app_ram_size": 11320,
- "app_ram_addr": 536892360,
+ "app_ram_size": 11280,
+ "app_ram_addr": 536892400,
  "k5_cc_ver": "6",
  "printf_enable": true,
  "ota_ver_patch": "0",

@@ -11,7 +11,7 @@
 #include <platform_api.h>
 #include "ota_service.h"
 
-#define  LOG_LEVEL      1
+#define  LOG_LEVEL      3
 #define  LOG_LEVEL_MSG  2
 #if (LOG_LEVEL <= LOG_LEVEL_MSG)
 #define LOG_MSG(...)   platform_printf( __VA_ARGS__)

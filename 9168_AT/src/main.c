@@ -79,27 +79,6 @@ static uint32_t wdt_isr(void *user_data)
     return 0;
 }
 
-void config_uart(uint32_t freq, uint32_t baud)
-{
-    UART_sStateStruct config;
-
-    config.word_length       = UART_WLEN_8_BITS;
-    config.parity            = UART_PARITY_NOT_CHECK;
-    config.fifo_enable       = 1;
-    config.two_stop_bits     = 0;
-    config.receive_en        = 0;
-    config.transmit_en       = 1;
-    config.UART_en           = 1;
-    config.cts_en            = 0;
-    config.rts_en            = 0;
-    config.rxfifo_waterlevel = 1;
-    config.txfifo_waterlevel = 1;
-    config.ClockFrequency    = freq;
-    config.BaudRate          = baud;
-
-    apUART_Initialize(APB_UART0, &config, 0);
-}
-
 void setup_peripherals(void)
 {
 
@@ -109,7 +88,6 @@ void setup_peripherals(void)
                               | (1 << SYSCTRL_ClkGate_APB_GPIO0)
                               | (1 << SYSCTRL_ITEM_APB_WDT));
     
-    config_uart(OSC_CLK_FREQ, 115200);
     at_init();
     
     GIO_EnableRetentionGroupA(0);

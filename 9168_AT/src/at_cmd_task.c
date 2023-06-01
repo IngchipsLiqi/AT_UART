@@ -278,9 +278,9 @@ int gap_get_connect_num()
  */
 void at_send_rsp(char *str)
 {
-    uart_put_data_noint(UART1,(uint8_t *)"\r\n", 2);
-    uart_put_data_noint(UART1,(uint8_t *)str, strlen(str));
-    uart_put_data_noint(UART1,(uint8_t *)"\r\n", 2);
+    uart_put_data_noint(UART0,(uint8_t *)"\r\n", 2);
+    uart_put_data_noint(UART0,(uint8_t *)str, strlen(str));
+    uart_put_data_noint(UART0,(uint8_t *)"\r\n", 2);
 }
 
 /*********************************************************************
@@ -508,7 +508,7 @@ int convert_from_two_stop_bits(int two_stop_bits)
 void at_spss_recv_data_ind_func(uint8_t *value, uint16_t length)
 {
     if( os_get_free_heap_size()>2000 )
-        uart_put_data_noint(UART1,value,length);
+        uart_put_data_noint(UART0,value,length);
     else
         uart_putc_noint(UART0,'Y');
     //co_printf("%d\r\n",length);
@@ -528,7 +528,7 @@ void at_spss_recv_data_ind_func(uint8_t *value, uint16_t length)
 void at_spsc_recv_data_ind_func(uint8_t *value, uint16_t length)
 {
     if( os_get_free_heap_size()>2000 )
-        uart_put_data_noint(UART1,value,length);    //uart is no limited
+        uart_put_data_noint(UART0,value,length);    //uart is no limited
     else
         uart_putc_noint(UART0,'Y');
     //co_printf("%d\r\n",length);
@@ -675,7 +675,7 @@ void at_scan_done(void *arg)
                     ,gAT_buff_env.adv_rpt[idx].adv_addr_type
                     ,(signed char)gAT_buff_env.adv_rpt[idx].rssi
                     ,rsp_data_str);
-            uart_put_data_noint(UART1,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
+            uart_put_data_noint(UART0,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
         }
         else
             break;
@@ -1153,7 +1153,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             hex_arr_to_str(g_power_off_save_data_in_ram.peer_param[i].addr,MAC_ADDR_LEN,mac_str);
                             mac_str[MAC_ADDR_LEN*2] = 0;
                             sprintf((char *)at_rsp,"Link_ID: %d LinkMode:%c Enc:%c PeerAddr:%s\r\n",i,link_mode,encryption,mac_str);
-                            uart_put_data_noint(UART1,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
+                            uart_put_data_noint(UART0,(uint8_t *)at_rsp, strlen((const char *)at_rsp));
                         }
                         else
                         {
@@ -1338,7 +1338,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     
                     vTaskDelay(pdMS_TO_TICKS(1000));
                     
-                    apUART_Initialize(APB_UART1, 
+                    apUART_Initialize(UART0, 
                             &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );
                 }
                 break;

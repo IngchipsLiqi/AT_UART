@@ -6,12 +6,6 @@
 #include "timers.h"
 
 #define UART0 APB_UART0
-#define UART1 APB_UART1
-
-#define USER_UART_AT_RX 10
-#define USER_UART_AT_TX 9
-#define USER_UART_AT_RTS 17
-#define USER_UART_AT_CTS 18
 
 #define AT_MAIN_VER (0)
 

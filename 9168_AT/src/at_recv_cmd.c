@@ -32,8 +32,6 @@
 
 uint32_t rx_num = 0;
 
-#define AT_UART    APB_UART1
-
 uint32_t timer_isr_count = 0;
 
 struct at_env gAT_env = {0};
@@ -202,14 +200,14 @@ void exit_trans_tim_fn(TimerHandle_t xTimer)
 void uart_init(uint32_t freq, uint32_t baud)
 {
     //初始化串口1,置串口接收中断标志位
-    apUART_Initialize(APB_UART1, &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );//1 << bsUART_RECEIVE_INTENAB);
+    apUART_Initialize(APB_UART0, &g_power_off_save_data_in_ram.uart_param, (1 << bsUART_RECEIVE_INTENAB) );//1 << bsUART_RECEIVE_INTENAB);
 }
 void uart_io_print(const char* buf) 
 {
     uint32_t index = 0;
     while (buf[index] != '\0') {
-        while (apUART_Check_TXFIFO_FULL(APB_UART1) == 1){}
-        UART_SendData(APB_UART1, buf[index]);
+        while (apUART_Check_TXFIFO_FULL(APB_UART0) == 1){}
+        UART_SendData(APB_UART0, buf[index]);
         index++;
     }
 }
@@ -218,8 +216,8 @@ void uart_io_send(const uint8_t* buf, uint32_t size)
     uint8_t i = 0;
     for (;i < size; ++i)
     {
-        while (apUART_Check_TXFIFO_FULL(APB_UART1) == 1){}
-        UART_SendData(APB_UART1, buf[i]);
+        while (apUART_Check_TXFIFO_FULL(APB_UART0) == 1){}
+        UART_SendData(APB_UART0, buf[i]);
     }
 }
 
@@ -267,7 +265,7 @@ void recv_transparent_data()
                 at_spsc_send_data(gAT_ctrl_env.transparent_conidx);
         }
         else
-            uart_putc_noint(UART1,'X');
+            uart_putc_noint(UART0,'X');
     }
     //__enable_irq();
     
@@ -464,31 +462,6 @@ void at_store_info_to_flash(void)
     sdk_private_data_write_to_flash();
 }
 
-//串口1的中断
-uint32_t uart_isr(void *user_data)
-{
-    uint32_t status;
-
-    while(1)
-    {
-        status = apUART_Get_all_raw_int_stat(AT_UART);
-        if (status == 0)
-            break;
-
-        AT_UART->IntClear = status;
-
-        // rx int
-        if (status & (1 << bsUART_RECEIVE_INTENAB))
-        {
-            while (apUART_Check_RXFIFO_EMPTY(AT_UART) != 1)
-            {
-                app_at_recv_c(AT_UART->DataRead);
-            }
-        }
-    }
-    return 0;
-}
-
 extern uint32_t send_num;
 uint32_t timer_isr_counter2 = 0;
 
@@ -498,11 +471,11 @@ static uint32_t bt_cmd_data_timer_isr(void *user_data)
     TMR_IntClr(APB_TMR1, 0, 0x1);
     
     // uart rx fifo >>> gAT_env.at_recv_buffer
-    while (apUART_Check_RXFIFO_EMPTY(APB_UART1) != 1) 
+    while (apUART_Check_RXFIFO_EMPTY(UART0) != 1) 
     {
         if (at_buffer_data_size() >= AT_RECV_MAX_LEN)
             break;
-        app_at_recv_c(APB_UART1->DataRead);
+        app_at_recv_c(UART0->DataRead);
     }
     
     timer_isr_count ++;
@@ -510,7 +483,7 @@ static uint32_t bt_cmd_data_timer_isr(void *user_data)
     if (timer_isr_counter2 >= 10000)
     {
         timer_isr_counter2 = 0;
-        LOG_MSG("rx_num:%d, send_num:%d\n", rx_num, send_num);
+        //LOG_MSG("rx_num:%d, send_num:%d\n", rx_num, send_num);
         rx_num = 0;
         send_num = 0;
     }
@@ -520,21 +493,8 @@ static uint32_t bt_cmd_data_timer_isr(void *user_data)
 
 void at_init(void)
 {  
-    //1.配置串口的IO口 
-    SYSCTRL_ClearClkGateMulti(  (1 << SYSCTRL_ITEM_APB_UART1));
-    PINCTRL_SetPadMux(USER_UART_AT_RX, IO_SOURCE_GENERAL);
-    PINCTRL_SetPadMux(USER_UART_AT_TX, IO_SOURCE_UART1_TXD);
-    PINCTRL_SetPadMux(USER_UART_AT_RTS, IO_SOURCE_UART1_RTS);
-    
-    PINCTRL_Pull(USER_UART_AT_RX, PINCTRL_PULL_UP);
-    PINCTRL_SelUartRxdIn(UART_PORT_1, USER_UART_AT_RX);
-    
-    PINCTRL_Pull(USER_UART_AT_CTS, PINCTRL_PULL_DOWN);
-    PINCTRL_SelUartCtsIn(UART_PORT_1, USER_UART_AT_CTS);
-    
     //2.UART的串口参数初始化
     uart_init(OSC_CLK_FREQ, 115200);
-    //platform_set_irq_callback(PLATFORM_CB_IRQ_UART1, uart_isr, NULL); //暂不采用串口中断的方式
     
     //3.用于透传的控制
     if (at_transparent_timer == 0) 
