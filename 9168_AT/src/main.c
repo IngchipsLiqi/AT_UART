@@ -173,7 +173,7 @@ int app_main()
     
     
     platform_config(PLATFORM_CFG_RTOS_ENH_TICK, PLATFORM_CFG_ENABLE);
-    LOG_MSG("MAIN_OK\r\n");
+    platform_printf("MAIN_OK\r\n");
     
     
     // Config wakeup source
