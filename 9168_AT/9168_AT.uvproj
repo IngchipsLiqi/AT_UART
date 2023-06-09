@@ -348,7 +348,7 @@
               <MiscControls>--gnu</MiscControls>
               <Define>USE_STDPERIPH_DRIVER</Define>
               <Undefine/>
-              <IncludePath>../../bundles/typical/inc;../../bundles/typical/inc/os;../../src/BSP;../../src/FWlib;../../src/StartUP/ing916;../../src/Tools;../../src</IncludePath>
+              <IncludePath>../../bundles/mass_conn/inc;../../bundles/mass_conn/inc/os;../../src/BSP;../../src/FWlib;../../src/StartUP/ing916;../../src/Tools;../../src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -407,7 +407,7 @@
             <File>
               <FileName>symdefs.m</FileName>
               <FileType>3</FileType>
-              <FilePath>../..\bundles\typical\ING9168xx\symdefs.m</FilePath>
+              <FilePath>../..\bundles\mass_conn\ING9168xx\symdefs.m</FilePath>
             </File>
           </Files>
         </Group>

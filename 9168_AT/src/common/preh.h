@@ -32,7 +32,7 @@ typedef enum {
 #define MAC_ADDR_LEN 6
 #define UUID_SIZE_2 2
 #define UUID_SIZE_16 16
-#define BLE_CONNECTION_MAX (20)
+//#define BLE_CONNECTION_MAX (20)
 
 #define ADV_LED_OFF __NOP()
 #define ADV_LED_ON __NOP()
@@ -41,7 +41,15 @@ typedef enum {
 
 #define PRINT_PORT      APB_UART0
 
+#ifndef MAX_CONN_AS_SLAVE
+#define MAX_CONN_AS_SLAVE           2
+#endif
 
+#ifndef MAX_CONN_AS_MASTER
+#define MAX_CONN_AS_MASTER          8
+#endif
+
+#define TOTAL_CONN_NUM              (MAX_CONN_AS_MASTER + MAX_CONN_AS_SLAVE)
 
 #define BT_PRIVT_OK 0
 #define BT_PRIVT_ERROR -1

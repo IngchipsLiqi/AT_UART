@@ -15,6 +15,6 @@ extern at_recv_data_func_t spsc_recv_data_ind_func;
  *
  * @return  None
  */
-void at_spsc_send_data(uint8_t conidx);
+void at_spsc_send_data(uint8_t conn_handle);
 
 #endif

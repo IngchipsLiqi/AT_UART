@@ -47,7 +47,7 @@ extern uint8_t UUID_NORDIC_TPT[];
 extern uint8_t UUID_NORDIC_CHAR_GEN_IN[];
 extern uint8_t UUID_NORDIC_CHAR_GEN_OUT[];
 
-extern bool gap_conn_table[];
+extern struct at_env gAT_env;
 
 //==============================================================================================================
 //* Global variable
@@ -416,7 +416,11 @@ initiating_phy_config_t phy_configs[] =
 };
 //==============================================================================================================
 
+extern conn_info_t conn_infos[];
+extern uint8_t handle_2_id[];
 
+#define get_id_of_handle(handle)    (handle_2_id[handle])
+#define get_handle_of_id(id)        (conn_infos[id].handle)
 
 /*********************************************************************
  * @fn      at_slave_encrypted
@@ -430,35 +434,13 @@ initiating_phy_config_t phy_configs[] =
  */
 void at_cb_disconnected(void *arg)
 {
+    // 
     event_disconn_complete_t *param = (event_disconn_complete_t *)arg;
     platform_printf("at_disconnect[%d]\r\n",param->conn_handle);
+    
+    // 
+    conn_infos[get_id_of_handle(param->conn_handle)].handle = INVALID_HANDLE;
 
-    //TODO: auto transparent off
-
-    if( (gAT_ctrl_env.async_evt_on_going)
-        || (gAT_ctrl_env.async_evt_on_going == false && gAT_ctrl_env.transparent_start == false)    //passive disconnect,no transparant, then report to host
-      )
-    {
-        uint8_t at_rsp[30];
-        sprintf((char *)at_rsp,"+DISCONN:%d\r\nOK",param->conn_handle);
-        at_send_rsp((char *)at_rsp);
-        
-        gAT_ctrl_env.async_evt_on_going = false;
-    }
-
-    // one slot send, but link loss
-    if(gAT_ctrl_env.one_slot_send_start && gAT_ctrl_env.one_slot_send_len > 0)
-    {
-        if(gap_get_connect_status(gAT_ctrl_env.transparent_conidx)==false)
-        {
-            at_clr_uart_buff();
-            gAT_ctrl_env.one_slot_send_start = false;
-            gAT_ctrl_env.one_slot_send_len = 0;
-            
-            uint8_t at_rsp[] = "SEND FAIL";
-            at_send_rsp((char *)at_rsp);
-        }
-    }
 }
 
 void handle_can_send_now(void)
@@ -507,7 +489,7 @@ void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
         free(data);
         break;
     case USER_MSG_AT_TRANSPARENT_START_TIMER:
-        xTimerStart(at_transparent_timer, portMAX_DELAY);
+        xTimerStart(gAT_env.transparent_timer, portMAX_DELAY);
         break;
     case USER_MSG_AT_RECV_TRANSPARENT_DATA:
         recv_transparent_data();
@@ -527,7 +509,6 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
 {
     const le_meta_event_ext_adv_report_t *report_complete;
     const le_meta_event_create_conn_complete_t *conn_complete;
-    const le_meta_event_enh_create_conn_complete_t *enh_conn_complete;
     const event_disconn_complete_t *disconn_event;
     
     uint8_t event = hci_event_packet_get_type(packet);
@@ -548,18 +529,10 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         config_adv_and_set_interval(adv_int_arr[g_power_off_save_data_in_ram.default_info.adv_int]);
         config_scan();
         
-        if (g_power_off_save_data_in_ram.default_info.role & SLAVE_ROLE)
-        {
-            gAT_ctrl_env.adv_ongoing = true;
-            start_adv();
-        }
-//        if (g_power_off_save_data_in_ram.default_info.role & MASTER_ROLE)
-//        {
-//            gAT_ctrl_env.scan_ongoing = true;
-//            start_scan();
-//        }
+        uart_at_start();
         
-        //TODO: auto transparent mode
+        gAT_ctrl_env.adv_ongoing = true;
+        start_adv();
         
         break;
 
@@ -590,88 +563,30 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             
             break;
         case HCI_SUBEVENT_LE_ENHANCED_CONNECTION_COMPLETE:
-            LOG_MSG("Connected!\r\n");
+        {
+            LOG_MSG("connection_complete\n");
         
             gAT_ctrl_env.initialization_ongoing = false;
-        
-            enh_conn_complete = decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
+            gAT_ctrl_env.async_evt_on_going = false;
             
-            ll_set_conn_tx_power(enh_conn_complete->handle, rf_power_arr[g_power_off_save_data_in_ram.default_info.rf_power]);
+            const le_meta_event_enh_create_conn_complete_t *complete
+                    = decode_hci_le_meta_event(packet, le_meta_event_enh_create_conn_complete_t);
             
-            hint_ce_len(enh_conn_complete->interval);
-            
-            att_set_db(enh_conn_complete->handle, att_db_util_get_address());
-        
-            gap_conn_table[enh_conn_complete->handle] = true;
-            
-            if (enh_conn_complete->role == HCI_ROLE_SLAVE) {
-                stop_adv();
-                
-                reverse_bd_addr(enh_conn_complete->peer_addr, g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr);
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr_type = enh_conn_complete->peer_addr_type;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].link_mode = SLAVE_ROLE;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].encryption = false;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].phy = phy_configs[0].phy;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_min = enh_conn_complete->interval;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_max = enh_conn_complete->interval;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.latency = enh_conn_complete->latency;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.supervision_timeout = enh_conn_complete->sup_timeout;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_int = phy_configs[0].conn_param.scan_int;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_win = phy_configs[0].conn_param.scan_win;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.min_ce_len = phy_configs[0].conn_param.min_ce_len;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.max_ce_len = phy_configs[0].conn_param.max_ce_len;
-                
-                if (gAT_ctrl_env.transparent_start == false)
-                {
-                    uint8_t at_rsp[30];
-                    sprintf((char *)at_rsp,"+CONN:%d\r\nOK",enh_conn_complete->handle);
-                    at_send_rsp((char *)at_rsp);
-                }
-                
-                if(gap_get_connect_num() == 1)
-                    auto_transparent_set();
-                else
-                    auto_transparent_clr();
-            } else {
-                stop_scan();
-                
-                reverse_bd_addr(enh_conn_complete->peer_addr, g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr);
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].addr_type = enh_conn_complete->peer_addr_type;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].link_mode = MASTER_ROLE;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].encryption = false;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].phy = phy_configs[0].phy;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_min = enh_conn_complete->interval;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.interval_max = enh_conn_complete->interval;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.latency = enh_conn_complete->latency;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.supervision_timeout = enh_conn_complete->sup_timeout;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_int = phy_configs[0].conn_param.scan_int;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.scan_win = phy_configs[0].conn_param.scan_win;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.min_ce_len = phy_configs[0].conn_param.min_ce_len;
-                g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle].conn_param.max_ce_len = phy_configs[0].conn_param.max_ce_len;
-                
-                memcpy(&g_power_off_save_data_in_ram.master_peer_param,
-                    &g_power_off_save_data_in_ram.peer_param[enh_conn_complete->handle], sizeof(private_module_conn_peer_param_t));
-                
-                if(gAT_ctrl_env.transparent_start == false)         //if(gAT_ctrl_env.async_evt_on_going)
-                {
-                    uint8_t at_rsp[30];
-                    sprintf((char *)at_rsp,"+CONN:%d\r\nOK", enh_conn_complete->handle);
-                    at_send_rsp((char *)at_rsp);
-                    gAT_ctrl_env.async_evt_on_going = false;
-                }
-                
-                discovery_service(enh_conn_complete->handle);
-                
-                if(gap_get_connect_num() == 1)
-                    auto_transparent_set();
-                else
-                    auto_transparent_clr();
+            if ((complete->role == HCI_ROLE_SLAVE) && (complete->status == 0))
+            {
+                att_set_db(complete->handle, att_db_util_get_address());
             }
             
-            gap_read_remote_used_features(enh_conn_complete->handle);
+            at_on_connection_complete(complete);
             
-            on_connect_end();
-            break;
+            if (complete->role == HCI_ROLE_SLAVE) {
+                stop_adv();
+            } else {
+                stop_scan();
+                discovery_service(complete->handle);
+            }
+        }
+        break;
         
         case HCI_SUBEVENT_LE_PHY_UPDATE_COMPLETE:
             {
@@ -704,21 +619,22 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
     case HCI_EVENT_DISCONNECTION_COMPLETE:
         disconn_event = decode_hci_event_disconn_complete(packet);
     
-        gap_conn_table[disconn_event->conn_handle] = false;
-    
         if (at_cb_func[AT_GAP_CB_DISCONNECT] != NULL)
             at_cb_func[AT_GAP_CB_DISCONNECT]((void*)disconn_event);
     
         LOG_MSG("Disconnected!! %d\r\n", disconn_event->reason);
+        
+        at_on_disconnect(decode_hci_event_disconn_complete(packet));
         break;
 
     case ATT_EVENT_CAN_SEND_NOW:
         can_send_now = true;
+        at_spss_send_data(get_handle_by_id(gAT_ctrl_env.transparent_conidx));
         break;
 
     case L2CAP_EVENT_CAN_SEND_NOW:
         can_send_now = true;
-        at_spsc_send_data(gAT_ctrl_env.transparent_conidx);
+        at_spsc_send_data(get_handle_by_id(gAT_ctrl_env.transparent_conidx));
         break;
 
     case BTSTACK_EVENT_USER_MSG:
@@ -730,19 +646,11 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
         {
             uint8_t status = hci_event_command_status_get_status(packet);
             
-            //uint8_t at_rsp[30];
-            //sprintf((char *)at_rsp,"status:%d %d %d\r\n", status, gAT_ctrl_env.async_evt_on_going, gAT_ctrl_env.initialization_ongoing);
-            //at_send_rsp((char *)at_rsp);
-            
-            
             if (status == 0x07) 
             {
                 if (gAT_ctrl_env.async_evt_on_going && gAT_ctrl_env.initialization_ongoing)
                 {
-                    //sprintf((char *)at_rsp,"+CONN:%d\r\nScheduling failed", enh_conn_complete->handle);
-                    //at_send_rsp((char *)at_rsp);
                     gAT_ctrl_env.async_evt_on_going = false;
-                    
                     on_connect_end();
                 }
             }

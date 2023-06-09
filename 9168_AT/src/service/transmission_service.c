@@ -15,7 +15,6 @@ uint8_t UUID_NORDIC_CHAR_GEN_IN[]    = {0x6e,0x40,0x00,0x02,0xb5,0xa3,0xf3,0x93,
 uint8_t UUID_NORDIC_CHAR_GEN_OUT[]   = {0x6e,0x40,0x00,0x03,0xb5,0xa3,0xf3,0x93,0xe0,0xa9,0xe5,0x0e,0x24,0xdc,0xca,0x9e};
 
 
-uint8_t notify_enable = 0;
 uint16_t g_ble_input_handle = 0;
 uint16_t g_ble_output_handle = 0;
 uint16_t g_ble_output_desc_handle = 0;
@@ -25,6 +24,8 @@ uint8_t send_to_master_flow_control_enable = BT_PRIVT_DISABLE;
 uint8_t send_to_slave_flow_control_enable = BT_PRIVT_DISABLE;
 uint8_t recv_from_master_flow_control_enable = BT_PRIVT_DISABLE;
 uint8_t recv_from_slave_flow_control_enable = BT_PRIVT_DISABLE;
+
+extern struct at_ctrl gAT_ctrl_env;
 
 extern uint32_t receive_master_data_len;
 
@@ -102,9 +103,9 @@ int att_write_output_desc_callback(uint16_t transaction_mode, uint16_t offset, c
 {
     if(*(uint16_t *)buffer == GATT_CLIENT_CHARACTERISTICS_CONFIGURATION_NOTIFICATION) {
         LOG_MSG("configuration notification!\r\n");
-        notify_enable = 1;
+        gAT_ctrl_env.transparent_notify_enable = true;
     } else {
-        notify_enable = 0;
+        gAT_ctrl_env.transparent_notify_enable = false;
     }
     return 0;
 }

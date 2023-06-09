@@ -27,7 +27,7 @@ bool can_send_now = true;
  *
  * @return  None
  */
-void at_spsc_send_data(uint8_t conidx)
+void at_spsc_send_data(uint8_t conn_handle)
 {
     if (!can_send_now)
         return;
@@ -35,7 +35,7 @@ void at_spsc_send_data(uint8_t conidx)
     uint16_t send_packet_len , r, valid_data, this_time_send_len = 0;
     uint8_t* p_send_data = NULL;
     
-    gatt_client_get_mtu(conidx, &send_packet_len);
+    gatt_client_get_mtu(conn_handle, &send_packet_len);
     send_packet_len -= 3;
     
     while ((valid_data = at_buffer_data_size()) > 0) 
@@ -49,7 +49,7 @@ void at_spsc_send_data(uint8_t conidx)
         
         if (this_time_send_len != 0)
         {
-            r = gatt_client_write_value_of_characteristic_without_response(conidx, slave_input_char.value_handle, 
+            r = gatt_client_write_value_of_characteristic_without_response(conn_handle, slave_input_char.value_handle, 
                                                                                this_time_send_len, p_send_data);
             if (r == 0)
             {
@@ -61,7 +61,7 @@ void at_spsc_send_data(uint8_t conidx)
             else if (r == BTSTACK_ACL_BUFFERS_FULL)
             {
                 can_send_now = false;
-                att_dispatch_client_request_can_send_now_event(conidx); // Request can send now
+                att_dispatch_client_request_can_send_now_event(conn_handle); // Request can send now
                 break;
             }
         }
