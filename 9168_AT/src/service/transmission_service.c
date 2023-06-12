@@ -57,15 +57,7 @@ void init_tansmit_service(void)
     LOG_MSG("ble gatt add transmission characteristic input.");
 }
 
-
-//#define V2
-
-prog_ver_t prog_ver =
-#ifdef V2
-    { .major = 1, .minor = 2, .patch = 0 }
-#else
-    { .major = 1, .minor = 1, .patch = 0 }
-#endif
+prog_ver_t prog_ver = { .major = 1, .minor = 1, .patch = 1 }
 ;
 
 extern uint16_t att_ota_ver_handle;

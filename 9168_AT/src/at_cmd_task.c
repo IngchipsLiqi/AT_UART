@@ -338,8 +338,14 @@ static uint8_t preprocess_at(uint8_t *at_cmd)
 {
     uint8_t *p = at_cmd;
     uint8_t argc = 0;
-    while (*p != '\r')
+    while (true)
     {
+        if (*p == '\r')
+        {
+            *p = '\0';
+            argc++;
+            break;
+        }
         if (*p == ',')
         {
             *p = '\0';
@@ -347,7 +353,6 @@ static uint8_t preprocess_at(uint8_t *at_cmd)
         }
         p++;
     }
-    *p = 0;
     return argc;
 }
 static uint8_t *find_next_arg(uint8_t *at_cmd_p)
@@ -369,9 +374,9 @@ static bool parse_arg_int(uint8_t *at_cmd_p, int* value)
     else
         return true;
 }
-static bool parse_arg_str_normal(uint8_t *at_cmd_p, char* str)
+static bool parse_arg_str_normal(uint8_t *at_cmd_p, char** str)
 {
-    str = (char*)at_cmd_p;
+    *str = (char*)at_cmd_p;
     return true;
 }
 static bool parse_arg_str_hex_data(uint8_t *at_cmd_p, uint8_t* data)
@@ -385,8 +390,8 @@ static bool parse_arg_str_hex_data(uint8_t *at_cmd_p, uint8_t* data)
     while (*p != '\0')
     {
         if (!((('0' <= *p) && (*p <= '9')) 
-            ||(('A' <= *p) && (*p <= 'Z')) 
-            ||(('a' <= *p) && (*p <= 'z'))))
+            ||(('A' <= *p) && (*p <= 'F')) 
+            ||(('a' <= *p) && (*p <= 'f'))))
             return false;
         p++;
     }
@@ -765,12 +770,12 @@ _exit:
  */
 void at_scan_done(void *arg)
 {
-    uint8_t *at_rsp = malloc(150);
+    char *at_rsp = malloc(150);
     uint8_t *addr_str = malloc(MAC_ADDR_LEN*2+1);
     uint8_t *rsp_data_str = malloc(0x1F*2+1);        //adv data len
 
-    sprintf((char *)at_rsp,"+SCAN:ON\r\nOK");
-    at_send_rsp((char *)at_rsp);
+    sprintf(at_rsp,"+SCAN:ON\r\nOK");
+    at_send_rsp(at_rsp);
 
     for(uint8_t idx = 0; idx<ADV_REPORT_NUM; idx++)
     {
@@ -789,7 +794,7 @@ void at_scan_done(void *arg)
             else
                 memcpy(rsp_data_str,"NONE",sizeof("NONE"));
 
-            sprintf((char *)at_rsp,"\n\nNo: %d Addr:%s Type:%d Rssi:%ddBm\n\n\r\nAdv data: \r\n %s\r\n",idx
+            sprintf(at_rsp,"\n\nNo: %d Addr:%s Type:%d Rssi:%ddBm\n\n\r\nAdv data: \r\n %s\r\n",idx
                     ,addr_str
                     ,gAT_buff_env.adv_rpt[idx].adv_addr_type
                     ,(signed char)gAT_buff_env.adv_rpt[idx].rssi
@@ -924,9 +929,9 @@ void at_idle_status_hdl(void *arg)
        && gAT_ctrl_env.scan_ongoing == false
        && gAT_ctrl_env.initialization_ongoing == false)
     {
-        uint8_t *at_rsp = malloc(150);
-        sprintf((char *)at_rsp,"+MODE:I\r\nOK");
-        at_send_rsp((char *)at_rsp);
+        char *at_rsp = malloc(150);
+        sprintf(at_rsp,"+MODE:I\r\nOK");
+        at_send_rsp(at_rsp);
         free(at_rsp);
         gAT_ctrl_env.async_evt_on_going = false;
     }
@@ -950,9 +955,9 @@ void at_link_idle_status_hdl(void *arg)
         LINK_LED_OFF;
         if(gAT_ctrl_env.async_evt_on_going)
         {
-            uint8_t *at_rsp = malloc(150);
-            sprintf((char *)at_rsp,"+DISCONN:A\r\nOK");
-            at_send_rsp((char *)at_rsp);
+            char *at_rsp = malloc(150);
+            sprintf(at_rsp,"+DISCONN:A\r\nOK");
+            at_send_rsp(at_rsp);
             free(at_rsp);
             gAT_ctrl_env.async_evt_on_going = false;
         }
@@ -1432,6 +1437,78 @@ static void stack_sub_char(void *user_data, uint16_t value_handle)
 }
 
 /*********************************************************************
+ * @fn      stack_gatts_notify
+ *
+ * @brief   
+ *			
+ *
+ * @param[in]   user_data
+ * @param[in]   value_len
+ *       	
+ *
+ * @return  None
+ */
+static void stack_gatts_notify(void *user_data, uint16_t value_len)
+{
+    conn_info_t *p = (conn_info_t *)user_data;
+    platform_printf("notify:%d %d", p->handle, p->gatts_value_info.value_handle);
+    uint8_t r = att_server_notify(p->handle,
+                        p->gatts_value_info.value_handle,
+                        p->gatts_value_info.data, value_len);
+    if (0 == r)
+        at_send_rsp("OK");
+    else
+        at_send_rsp("ERROR");
+}
+
+/*********************************************************************
+ * @fn      stack_gatts_indicate
+ *
+ * @brief   
+ *			
+ *
+ * @param[in]   user_data
+ * @param[in]   value_len
+ *       	
+ *
+ * @return  None
+ */
+static void stack_gatts_indicate(void *user_data, uint16_t value_len)
+{
+    conn_info_t *p = (conn_info_t *)user_data;
+    uint8_t r = att_server_indicate(p->handle,
+                        p->gatts_value_info.value_handle,
+                        p->gatts_value_info.data, value_len);
+    if (0 == r)
+        at_send_rsp("OK");
+    else
+        at_send_rsp("ERROR");
+}
+
+
+#define VALID_ASSERT(r, err_msg) if (r)\
+                    {\
+                        printf(err_msg);\
+                        at_err();\
+                        goto _exit;\
+                    }\
+
+#define VALID_ARGC(n) VALID_ASSERT(argc != (n), "argc not match\n")
+                    
+#define VALID_ARG_INT(at_cmd, p_int) VALID_ASSERT(!parse_arg_int((at_cmd), (p_int)), "arg parse failed\n")
+                    
+#define VALID_ARG_HEX(at_cmd, p_hex) VALID_ASSERT(!parse_arg_str_hex_data((at_cmd), (p_hex)), "arg parse failed\n");
+
+#define VALID_ARG_STR(at_cmd, pp_str) VALID_ASSERT(!parse_arg_str_normal((at_cmd), (pp_str)), "arg parse failed\n");
+                    
+                    
+#define VALID_ARG_NEXT() buff = find_next_arg(buff);
+                    
+#define VALID_ARG_LINK_ID(id) VALID_ASSERT(((id) < 0) || (TOTAL_CONN_NUM <= (id)), "invalid link id\n");\
+                    VALID_ASSERT(!gap_get_connect_status(id), "invalid link id\n");\
+                    
+
+/*********************************************************************
  * @fn      at_recv_cmd_handler
  *
  * @brief   Handle at commands , this function is called in at_task when a whole AT cmd is detected
@@ -1446,7 +1523,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
 {
     uint8_t *buff;      //cmd buff
     uint8_t index;
-    uint8_t *at_rsp;    //scan rsp buff
+    char *at_rsp;    //scan rsp buff
 
     buff = param->recv_data;
     if(gAT_ctrl_env.async_evt_on_going)
@@ -1462,7 +1539,7 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
     }
     at_rsp = malloc(150);
     
-    //uint8_t argc = preprocess_at(buff);
+    uint8_t argc = preprocess_at(buff);
     //printf("argc = %d\n", argc);
     
     switch(index)
@@ -1476,38 +1553,24 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '?':
                 {
-                    sprintf((char *)at_rsp,"+NAME:%s\r\nOK",local_name);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+NAME:%s\r\nOK",local_name);
+                    at_send_rsp(at_rsp);
                 }
                 break;
                 case '=':
                 {
-                    //if (argc != 1)
-                    //{
-                    //    // argc error message
-                    //    at_err();
-                    //    goto _exit;
-                    //}
-                    //
-                    //uint16_t len = get_arg_len(buff);
-                    //char *name = NULL;
-                    //parse_arg_str_normal(buff, name);
-                    //
-                    //if (len >= LOCAL_NAME_MAX_LEN)
-                    //{
-                    //    // name len overflow error message
-                    //    at_err();
-                    //    goto _exit;
-                    //}
-                    //
-                    //if (local_name_len != len || memcmp(local_name, name, local_name_len) != 0)   
-                    //{
-                    //    //name is different, then set it
-                    //    gap_set_dev_name(buff, len + 1);
-                    //    at_init_adv_rsp_parameter();
-                    //}
-                    //sprintf((char *)at_rsp,"+NAME:%s\r\nOK",buff);
-                    //at_send_rsp((char *)at_rsp);
+                    char *name = NULL;
+                    VALID_ARGC(1);
+                    uint16_t len = get_arg_len(buff);
+                    VALID_ARG_STR(buff, &name);
+                    VALID_ASSERT(len >= LOCAL_NAME_MAX_LEN, "name len overflow\n");
+                    
+                    if (local_name_len != len || memcmp(local_name, name, local_name_len) != 0)   
+                    {
+                        gap_set_dev_name(buff, len + 1);
+                        at_init_adv_rsp_parameter();
+                    }
+                    at_ok();
                 }
                 break;
                 default:
@@ -1533,12 +1596,12 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         mode_str[idx++] = 'C';
 
                     if(idx == 1 || idx == 0)
-                        sprintf((char *)at_rsp,"+MODE:%c\r\nOK",mode_str[0]);
+                        sprintf(at_rsp,"+MODE:%c\r\nOK",mode_str[0]);
                     else if(idx == 2)
-                        sprintf((char *)at_rsp,"+MODE:%c %c\r\nOK",mode_str[0],mode_str[1]);
+                        sprintf(at_rsp,"+MODE:%c %c\r\nOK",mode_str[0],mode_str[1]);
                     else if(idx == 3)
-                        sprintf((char *)at_rsp,"+MODE:%c %c %c\r\nOK",mode_str[0],mode_str[1],mode_str[2]);
-                    at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+MODE:%c %c %c\r\nOK",mode_str[0],mode_str[1],mode_str[2]);
+                    at_send_rsp(at_rsp);
                 }
                 break;
                 case '=':
@@ -1563,8 +1626,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         }
                         at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
 
-                        sprintf((char *)at_rsp,"+MODE:I\r\nOK");
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+MODE:I\r\nOK");
+                        at_send_rsp(at_rsp);
 
                         gAT_ctrl_env.async_evt_on_going = false;
                     }
@@ -1575,18 +1638,18 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             at_start_advertising(NULL);
                             at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
                         }
-                        sprintf((char *)at_rsp,"+MODE:B\r\nOK");
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+MODE:B\r\nOK");
+                        at_send_rsp(at_rsp);
                     }
                     else if(*buff == 'M')
                     {
-                        sprintf((char *)at_rsp,"+MODE:M\r\nERR");
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+MODE:M\r\nERR");
+                        at_send_rsp(at_rsp);
                     }
                     else if(*buff == 'U')
                     {
-                        sprintf((char *)at_rsp,"+MODE:U\r\nERR");
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+MODE:U\r\nERR");
+                        at_send_rsp(at_rsp);
                     }
                     break;
                 default:
@@ -1605,21 +1668,22 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 break;
                 case '=':
                 {
-                    uint8_t* p_name_prefix = buff;
+                    char *p_name_prefix = NULL;
+                    char *p_name_suffix = NULL;
+                    char *p_uuid16 = NULL;
+                    char *p_uuid128 = NULL;
+                    char *p_rssi = NULL;
                     
-                    uint8_t* p_name_suffix = find_int_from_str(buff) + 1;
-                    buff = p_name_suffix;
-                    
-                    uint8_t* p_uuid16 = find_int_from_str(buff) + 1;
-                    buff = p_uuid16;
-                    
-                    uint8_t* p_uuid128 = find_int_from_str(buff) + 1;
-                    buff = p_uuid128;
-                    
-                    uint8_t* p_rssi = find_int_from_str(buff) + 1;
-                    buff = p_rssi;
-                    
-                    find_int_from_str(buff);
+                    VALID_ARGC(5);
+                    VALID_ARG_STR(buff, &p_name_prefix);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_STR(buff, &p_name_suffix);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_STR(buff, &p_uuid16);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_STR(buff, &p_uuid128);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_STR(buff, &p_rssi);
                     
                     strcpy(g_power_off_save_data_in_ram.scan_filter.name_prefix, (char*)p_name_prefix);
                     strcpy(g_power_off_save_data_in_ram.scan_filter.name_suffix, (char*)p_name_suffix);
@@ -1628,14 +1692,14 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter = false;
                     } else {
                         g_power_off_save_data_in_ram.scan_filter.enable_uuid_16_filter = true;
-                        str_to_hex_arr(p_uuid16, g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2);
+                        str_to_hex_arr((uint8_t *)p_uuid16, g_power_off_save_data_in_ram.scan_filter.uuid_16, UUID_SIZE_2);
                     }
                     
                     if (strcmp((char*)p_uuid128, "*") == 0 || strlen((char*)p_uuid128) != (UUID_SIZE_16 * 2)) {
                         g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter = false;
                     } else {
                         g_power_off_save_data_in_ram.scan_filter.enable_uuid_128_filter = true;
-                        str_to_hex_arr(p_uuid128, g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16);
+                        str_to_hex_arr((uint8_t *)p_uuid128, g_power_off_save_data_in_ram.scan_filter.uuid_128, UUID_SIZE_16);
                     }
                     
                     if (strcmp((char*)p_rssi, "*") == 0) {
@@ -1668,13 +1732,13 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 strcpy(rssi_buf, "*");
             }
             
-            sprintf((char *)at_rsp,"+SCAN_FILTER:%s,%s,%s,%s,%s\r\nOK", 
+            sprintf(at_rsp,"+SCAN_FILTER:%s,%s,%s,%s,%s\r\nOK", 
                 g_power_off_save_data_in_ram.scan_filter.name_prefix, 
                 g_power_off_save_data_in_ram.scan_filter.name_suffix,
                 uuid16_buf,
                 uuid128_buf,
                 rssi_buf);
-            at_send_rsp((char *)at_rsp);
+            at_send_rsp(at_rsp);
         }
         break;
         
@@ -1684,7 +1748,11 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t scan_time = atoi((const char *)buff);
+                    int scan_time = 0;
+                    
+                    VALID_ARGC(1);
+                    VALID_ARG_INT(buff, &scan_time);
+                    
                     if(scan_time > 0 && scan_time < 100)
                         gAT_ctrl_env.scan_duration = scan_time*100;
                 }
@@ -1727,6 +1795,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
+                    VALID_ARGC(1);
+                    
                     if(*buff == 'A')
                     {
                         if(gap_get_connect_num()>0)
@@ -1742,20 +1812,14 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     }
                     else
                     {
-                        uint8_t link_num = atoi((const char *)buff);
-
-                        if(gap_get_connect_status(link_num))
-                        {
-                            gAT_ctrl_env.async_evt_on_going = true;
-                            if(gap_get_connect_status(link_num))
-                                gap_disconnect(get_handle_of_id(link_num));
-                            at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
-                        }
-                        else
-                        {
-                            sprintf((char *)at_rsp,"+DISCONN:%d\r\nERR",link_num);
-                            at_send_rsp((char *)at_rsp);
-                        }
+                        int conidx = 0;
+                        VALID_ARG_INT(buff, &conidx);
+                        VALID_ARG_LINK_ID(conidx);
+                        
+                        gAT_ctrl_env.async_evt_on_going = true;
+                        if(gap_get_connect_status(conidx))
+                            gap_disconnect(get_handle_of_id(conidx));
+                        at_set_gap_cb_func(AT_GAP_CB_DISCONNECT,at_cb_disconnected);
                     }
                 }
                 break;
@@ -1774,18 +1838,21 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     hex_arr_to_str(addr,MAC_ADDR_LEN,mac_str);
                     mac_str[MAC_ADDR_LEN*2] = 0;
 
-                    sprintf((char *)at_rsp,"+MAC:%s\r\nOK",mac_str);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+MAC:%s\r\nOK",mac_str);
+                    at_send_rsp(at_rsp);
                     break;
                 case '=':
                 {
-                    str_to_hex_arr(buff,addr,MAC_ADDR_LEN);
+                    VALID_ARGC(1);
+                    VALID_ASSERT((MAC_ADDR_LEN * 2) != get_arg_len(buff), "addr len not match\n");
+                    VALID_ARG_HEX(buff, addr);
+                    
                     gap_address_set(addr);
                     hex_arr_to_str(addr,MAC_ADDR_LEN,mac_str);
                     mac_str[MAC_ADDR_LEN*2] = 0;
 
-                    sprintf((char *)at_rsp,"+MAC:%s\r\nOK",mac_str);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+MAC:%s\r\nOK",mac_str);
+                    at_send_rsp(at_rsp);
                 }
                 break;
                 default:
@@ -1798,8 +1865,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+VER:%d.%d.%d\r\nOK", prog_ver.major, prog_ver.minor, prog_ver.patch);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+VER:%d.%d.%d\r\nOK", prog_ver.major, prog_ver.minor, prog_ver.patch);
+                    at_send_rsp(at_rsp);
                     break;
                 default:
                     break;
@@ -1816,46 +1883,45 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     int pari = convert_from_parity(g_power_off_save_data_in_ram.uart_param.parity);
                     int stop_bits = convert_from_two_stop_bits(g_power_off_save_data_in_ram.uart_param.two_stop_bits);
                     
-                    sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
+                    sprintf(at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
                         g_power_off_save_data_in_ram.uart_param.BaudRate,
                         databit,
                         pari,
                         stop_bits);
-                    at_send_rsp((char *)at_rsp);
+                    at_send_rsp(at_rsp);
                 }
                 break;
                 case '=':
                 {
-                    uint8_t *pos_int_end;
-                    pos_int_end = find_int_from_str(buff);
+                    int buadrate = 0;
+                    int databit = 0;
+                    int pari = 0;
+                    int stopbits = 0;
                     
-                    g_power_off_save_data_in_ram.uart_param.BaudRate = atoi((const char *)buff);
+                    VALID_ARGC(4);
+                    VALID_ARG_INT(buff, &buadrate);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &databit);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &pari);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &stopbits);
                     
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    int databit = atoi((const char *)buff);
+                    g_power_off_save_data_in_ram.uart_param.BaudRate = buadrate;
                     g_power_off_save_data_in_ram.uart_param.word_length = convert_to_word_length(databit);
-
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    int pari = atoi((const char *)buff);
                     g_power_off_save_data_in_ram.uart_param.parity = convert_to_parity(pari);
-                    
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    int stop_bits = atoi((const char *)buff);
-                    g_power_off_save_data_in_ram.uart_param.two_stop_bits = convert_to_two_stop_bits(stop_bits);
+                    g_power_off_save_data_in_ram.uart_param.two_stop_bits = convert_to_two_stop_bits(stopbits);
 
                     databit = convert_from_word_length(g_power_off_save_data_in_ram.uart_param.word_length);
                     pari = convert_from_parity(g_power_off_save_data_in_ram.uart_param.parity);
-                    stop_bits = convert_from_two_stop_bits(g_power_off_save_data_in_ram.uart_param.two_stop_bits);
+                    stopbits = convert_from_two_stop_bits(g_power_off_save_data_in_ram.uart_param.two_stop_bits);
                     
-                    sprintf((char *)at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
+                    sprintf(at_rsp,"+UART:%d,%d,%d,%d\r\nOK",
                         g_power_off_save_data_in_ram.uart_param.BaudRate,
                         databit,
                         pari,
-                        stop_bits);
-                    at_send_rsp((char *)at_rsp);
+                        stopbits);
+                    at_send_rsp(at_rsp);
                     
                     vTaskDelay(pdMS_TO_TICKS(1000));
                     
@@ -1870,8 +1936,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         break;
         case AT_CMD_IDX_Z:
         {
-            sprintf((char *)at_rsp,"+Z\r\nOK");
-            at_send_rsp((char *)at_rsp);
+            sprintf(at_rsp,"+Z\r\nOK");
+            at_send_rsp(at_rsp);
             uart_finish_transfers(UART0);
             platform_reset();
         }
@@ -1879,8 +1945,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         case AT_CMD_IDX_CLR_BOND:
         {
             gap_bond_manager_delete_all();
-            sprintf((char *)at_rsp,"+CLR_BOND\r\nOK");
-            at_send_rsp((char *)at_rsp);
+            sprintf(at_rsp,"+CLR_BOND\r\nOK");
+            at_send_rsp(at_rsp);
         }
         break;
         case AT_CMD_IDX_SLEEP:
@@ -1889,12 +1955,13 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '?':
                     if(g_power_off_save_data_in_ram.default_info.auto_sleep)
-                        sprintf((char *)at_rsp,"+SLEEP:S\r\nOK");
+                        sprintf(at_rsp,"+SLEEP:S\r\nOK");
                     else
-                        sprintf((char *)at_rsp,"+SLEEP:E\r\nOK");
-                    at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+SLEEP:E\r\nOK");
+                    at_send_rsp(at_rsp);
                     break;
                 case '=':
+                    VALID_ARGC(1);
                     if(*buff == 'S')
                     {
                         platform_config(PLATFORM_CFG_POWER_SAVING, PLATFORM_CFG_ENABLE);
@@ -1905,8 +1972,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             if(gap_get_connect_status(i))
                                 at_con_param_update(i,15);
                         }
-                        sprintf((char *)at_rsp,"+SLEEP:S\r\nOK");
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+SLEEP:S\r\nOK");
+                        at_send_rsp(at_rsp);
                     }
                     else if(*buff == 'E')
                     {
@@ -1918,8 +1985,14 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                             if(gap_get_connect_status(i))
                                 at_con_param_update(i,0);
                         }
-                        sprintf((char *)at_rsp,"+SLEEP:E\r\nOK");
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+SLEEP:E\r\nOK");
+                        at_send_rsp(at_rsp);
+                    }
+                    else
+                    {
+                        printf("invalid arg\n");
+                        at_err();
+                        goto _exit;
                     }
                     break;
                 default:
@@ -1940,18 +2013,19 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t *pos_int_end;
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t conidx = atoi((const char *)buff);
-
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    uint32_t phy = atoi((const char *)buff);
+                    int conidx = 0;
+                    int phy = 0;
+                    
+                    VALID_ARGC(2);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &phy);
+                    VALID_ARG_LINK_ID(conidx);
                     
                     gap_set_phy(get_handle_of_id(conidx), 0, phy, phy, HOST_NO_PREFERRED_CODING);
                     
-                    sprintf((char *)at_rsp,"\r\n+CONN_PHY:%d,%d\r\nOK", conidx, phy);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"\r\n+CONN_PHY:%d,%d\r\nOK", conidx, phy);
+                    at_send_rsp(at_rsp);
                 }
                 break;
             }
@@ -1964,21 +2038,21 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t *pos_int_end;
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t conidx = atoi((const char *)buff);
-
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    uint32_t interval = atoi((const char *)buff);
-
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    uint32_t latency = atoi((const char *)buff);
-
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    uint32_t supervision_timeout = atoi((const char *)buff);
+                    int conidx = 0;
+                    int interval = 0;
+                    int latency = 0;
+                    int supervision_timeout = 0;
+                    
+                    VALID_ARGC(4);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_LINK_ID(conidx);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &interval);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &latency);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &supervision_timeout);
+                    VALID_ARG_NEXT();
                     
                     gap_update_connection_parameters(get_handle_of_id(conidx), interval, interval, 
                                                      latency, 
@@ -1986,8 +2060,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                                                      phy_configs[0].conn_param.min_ce_len, 
                                                      phy_configs[0].conn_param.max_ce_len);
                     
-                    sprintf((char *)at_rsp,"\r\n+CONN_PARAM:%d,%d,%d,%d\r\nOK", conidx, interval, latency, supervision_timeout);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"\r\n+CONN_PARAM:%d,%d,%d,%d\r\nOK", conidx, interval, latency, supervision_timeout);
+                    at_send_rsp(at_rsp);
                 }
                 break;
             }
@@ -2015,8 +2089,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             //}
             //hex_arr_to_str(g_power_off_save_data_in_ram.master_peer_param.addr,MAC_ADDR_LEN,peer_mac_addr_str);
             //peer_mac_addr_str[MAC_ADDR_LEN*2] = 0;
-            //sprintf((char *)at_rsp,"\r\n+CONNADD:%s,%d\r\nOK",peer_mac_addr_str,g_power_off_save_data_in_ram.master_peer_param.addr_type);
-            //at_send_rsp((char *)at_rsp);
+            //sprintf(at_rsp,"\r\n+CONNADD:%s,%d\r\nOK",peer_mac_addr_str,g_power_off_save_data_in_ram.master_peer_param.addr_type);
+            //at_send_rsp(at_rsp);
         }
         break;
         case AT_CMD_IDX_CONN:
@@ -2025,43 +2099,35 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t id = atoi((const char *)buff);
+                    int id = 0;
                     
-                    if(gAT_ctrl_env.initialization_ongoing == false
-                        && (0 <= id) && (id < ADV_REPORT_NUM)
-                        && gAT_buff_env.adv_rpt[id].evt_type != 0xFF)
+                    VALID_ARGC(1);
+                    VALID_ARG_INT(buff, &id);
+                    
+                    VALID_ASSERT(gAT_ctrl_env.initialization_ongoing, "initialization is ongoing\n");
+                    VALID_ASSERT((id < 0) || (ADV_REPORT_NUM <= id), "invalid adv report index\n");
+                    VALID_ASSERT(gAT_buff_env.adv_rpt[id].evt_type == 0xFF, "invalid adv report index\n");
+                   
+                    gAT_ctrl_env.async_evt_on_going = true;
+                    
+                    conn_info_t *p = NULL;
+                    
+                    int i;
+                    for (i = 0; i < MAX_CONN_AS_MASTER; i++)
                     {
-                        gAT_ctrl_env.async_evt_on_going = true;
-                        
-                        conn_info_t *p = NULL;
-                        
-                        int i;
-                        for (i = 0; i < MAX_CONN_AS_MASTER; i++)
+                        if (conn_infos[i].handle == INVALID_HANDLE)
                         {
-                            if (conn_infos[i].handle == INVALID_HANDLE)
-                            {
-                                p = conn_infos + i;
-                                break;
-                            }
-                        }
-                        if (p)
-                        {
-                            memcpy(p->peer_addr, gAT_buff_env.adv_rpt[id].adv_addr, MAC_ADDR_LEN);
-                            p->peer_addr_type = gAT_buff_env.adv_rpt[id].adv_addr_type;
-                            
-                            btstack_push_user_runnable(stack_initiate, NULL, (uint16_t)id);
-                        }
-                        else
-                        {
-                            sprintf((char *)at_rsp,"+CONN:%d\r\nERR", id);
-                            at_send_rsp((char *)at_rsp);
+                            p = conn_infos + i;
+                            break;
                         }
                     }
-                    else
-                    {
-                        sprintf((char *)at_rsp,"+CONN:%d\r\nERR", id);
-                        at_send_rsp((char *)at_rsp);
-                    }
+                    
+                    VALID_ASSERT(p == NULL, "number of connection is full\n");
+                    
+                    memcpy(p->peer_addr, gAT_buff_env.adv_rpt[id].adv_addr, MAC_ADDR_LEN);
+                    p->peer_addr_type = gAT_buff_env.adv_rpt[id].adv_addr_type;
+                    
+                    btstack_push_user_runnable(stack_initiate, NULL, (uint16_t)i);
                 }
                 break;
             }
@@ -2082,9 +2148,9 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     hex_arr_to_str(g_power_off_save_data_in_ram.characteristic_input_uuid,UUID_SIZE_16,uuid_str_rx);
                     uuid_str_rx[UUID_SIZE_16*2] = 0;
 
-                    sprintf((char *)at_rsp,"+%s:\r\nDATA:UUID\r\n\r\n+%s:\r\nDATA:UUID\r\n\r\n+%s:\r\nDATA:UUID\r\n\r\nOK"
+                    sprintf(at_rsp,"+%s:\r\nDATA:UUID\r\n\r\n+%s:\r\nDATA:UUID\r\n\r\n+%s:\r\nDATA:UUID\r\n\r\nOK"
                             ,uuid_str_svc,uuid_str_tx,uuid_str_rx);
-                    at_send_rsp((char *)at_rsp);
+                    at_send_rsp(at_rsp);
                     break;
 
                 case '=':
@@ -2104,8 +2170,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                     init_service();
                     *(buff+3 + UUID_SIZE_16*2) = 0;
 
-                    sprintf((char *)at_rsp,"+%s:\r\nDATA:UUID\r\n\r\nsuccessful",buff+3);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+%s:\r\nDATA:UUID\r\n\r\nsuccessful",buff+3);
+                    at_send_rsp(at_rsp);
                     break;
                 }
                 default:
@@ -2116,8 +2182,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         case AT_CMD_IDX_FLASH:            //store param
         {
             at_store_info_to_flash();
-            sprintf((char *)at_rsp,"+FLASH\r\nOK");
-            at_send_rsp((char *)at_rsp);
+            sprintf(at_rsp,"+FLASH\r\nOK");
+            at_send_rsp(at_rsp);
         }
         break;
         case AT_CMD_IDX_SEND:
@@ -2126,26 +2192,22 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t *pos_int_end;
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t conidx = atoi((const char *)buff);
+                    int conidx = 0;
+                    int len = 0;
+                    
+                    VALID_ARGC(2);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &len);
+                    VALID_ARG_LINK_ID(conidx);
+                    VALID_ASSERT(gAT_ctrl_env.one_slot_send_start, "one slot send is ongoing\n");
 
-                    buff = pos_int_end+1;
-                    pos_int_end = find_int_from_str(buff);
-                    uint32_t len = atoi((const char *)buff);
-
-                    if(gap_get_connect_status(conidx) && gAT_ctrl_env.one_slot_send_start == false)
-                    {
-                        gAT_ctrl_env.transparent_conidx = conidx;
-                        gAT_ctrl_env.one_slot_send_len = len;
-                        gAT_ctrl_env.one_slot_send_start = true;
-                        at_clr_uart_buff();
-                        sprintf((char *)at_rsp,">");
-                    }
-                    else
-                        sprintf((char *)at_rsp,"+SEND\r\nERR");
-
-                    at_send_rsp((char *)at_rsp);
+                    gAT_ctrl_env.transparent_conidx = conidx;
+                    gAT_ctrl_env.one_slot_send_len = len;
+                    gAT_ctrl_env.one_slot_send_start = true;
+                    at_clr_uart_buff();
+                    sprintf(at_rsp,">");
+                    at_send_rsp(at_rsp);
                 }
                 break;
             }
@@ -2160,42 +2222,32 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                 {
                     if (gAT_ctrl_env.transparent_conidx == 0xFF)
                     {
-                        sprintf((char *)at_rsp,"+TO\r\nNOT SET");
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+TO\r\nNOT SET");
+                        at_send_rsp(at_rsp);
                     }
                     else
                     {
-                        sprintf((char *)at_rsp,"+TO:%d\r\nOK", gAT_ctrl_env.transparent_conidx);
-                        at_send_rsp((char *)at_rsp);
+                        sprintf(at_rsp,"+TO:%d\r\nOK", gAT_ctrl_env.transparent_conidx);
+                        at_send_rsp(at_rsp);
                     }
                 }
                 break;
                 
                 case '=':
                 {
-                    uint8_t *pos_int_end;
+                    int conidx = 0;
+                    VALID_ARGC(1);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_LINK_ID(conidx);
                     
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t conidx = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
-                    
-                    if ((0 <= conidx) && (conidx < TOTAL_CONN_NUM)
-                        && (gap_get_connect_status(conidx) == true))
-                    {
-                        if (conidx < MAX_CONN_AS_MASTER)
-                            gAT_ctrl_env.transparent_method = TRANSMETHOD_M2S_W;
-                        else
-                            gAT_ctrl_env.transparent_method = TRANSMETHOD_S2M_N;
-                        gAT_ctrl_env.transparent_conidx = conidx;
-                        
-                        sprintf((char *)at_rsp,"+TO:%d\r\nOK", gAT_ctrl_env.transparent_conidx);
-                        at_send_rsp((char *)at_rsp);
-                    }
+                    if (conidx < MAX_CONN_AS_MASTER)
+                        gAT_ctrl_env.transparent_method = TRANSMETHOD_M2S_W;
                     else
-                    {
-                        sprintf((char *)at_rsp,"+TO:%d\r\nERR", gAT_ctrl_env.transparent_conidx);
-                        at_send_rsp((char *)at_rsp);
-                    }
+                        gAT_ctrl_env.transparent_method = TRANSMETHOD_S2M_N;
+                    gAT_ctrl_env.transparent_conidx = conidx;
+                    
+                    sprintf(at_rsp,"+TO:%d\r\nOK", gAT_ctrl_env.transparent_conidx);
+                    at_send_rsp(at_rsp);
                 }
                 break;
             }
@@ -2204,46 +2256,43 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         
         case AT_CMD_IDX_TRANSPARENT:            //go to transparent transmit
         {
-            if(gAT_ctrl_env.transparent_conidx != 0xFF 
-                && gap_get_connect_status(gAT_ctrl_env.transparent_conidx) == true)
-            {
-                gAT_ctrl_env.transparent_start = true;
-                at_clr_uart_buff();
-                sprintf((char *)at_rsp,"+++\r\nOK");
-            }
-            else
-                sprintf((char *)at_rsp,"+++\r\nERR");
-            at_send_rsp((char *)at_rsp);
+            VALID_ASSERT(gAT_ctrl_env.transparent_conidx == 0xFF, "Please use \"+TO\" to set the target link\n");
+            VALID_ASSERT(!gap_get_connect_status(gAT_ctrl_env.transparent_conidx), "invalid target link\n");
+           
+            gAT_ctrl_env.transparent_start = true;
+            at_clr_uart_buff();
+            sprintf(at_rsp,"+++\r\nOK");
+            at_send_rsp(at_rsp);
         }
         break;
         
-        case AT_CMD_IDX_AUTO_TRANSPARENT:            //go to transparent transmit
+        case AT_CMD_IDX_AUTO_TRANSPARENT:       //go to transparent transmit
         {
-            switch(*buff++)
-            {
-                case '?':
-                    if(g_power_off_save_data_in_ram.default_info.auto_transparent == true)
-                        sprintf((char *)at_rsp,"+AUTO+++:Y\r\nOK");
-                    else
-                        sprintf((char *)at_rsp,"+AUTO+++:N\r\nOK");
-                    at_send_rsp((char *)at_rsp);
-                    break;
-                case '=':
-                    if(*buff == 'Y')
-                    {
-                        g_power_off_save_data_in_ram.default_info.auto_transparent = true;
-                        sprintf((char *)at_rsp,"+AUTO+++:Y\r\nOK");
-                    }
-                    else if(*buff == 'N')
-                    {
-                        g_power_off_save_data_in_ram.default_info.auto_transparent = false;
-                        sprintf((char *)at_rsp,"+AUTO+++:N\r\nOK");
-                    }
-                    at_send_rsp((char *)at_rsp);
-                    break;
-                default:
-                    break;
-            }
+            //switch(*buff++)
+            //{
+            //    case '?':
+            //        if(g_power_off_save_data_in_ram.default_info.auto_transparent == true)
+            //            sprintf(at_rsp,"+AUTO+++:Y\r\nOK");
+            //        else
+            //            sprintf(at_rsp,"+AUTO+++:N\r\nOK");
+            //        at_send_rsp(at_rsp);
+            //        break;
+            //    case '=':
+            //        if(*buff == 'Y')
+            //        {
+            //            g_power_off_save_data_in_ram.default_info.auto_transparent = true;
+            //            sprintf(at_rsp,"+AUTO+++:Y\r\nOK");
+            //        }
+            //        else if(*buff == 'N')
+            //        {
+            //            g_power_off_save_data_in_ram.default_info.auto_transparent = false;
+            //            sprintf(at_rsp,"+AUTO+++:N\r\nOK");
+            //        }
+            //        at_send_rsp(at_rsp);
+            //        break;
+            //    default:
+            //        break;
+            //}
         }
         break;
         
@@ -2252,19 +2301,22 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+POWER:%d\r\nOK",g_power_off_save_data_in_ram.default_info.rf_power);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+POWER:%d\r\nOK",g_power_off_save_data_in_ram.default_info.rf_power);
+                    at_send_rsp(at_rsp);
                     break;
                 case '=':
-                    g_power_off_save_data_in_ram.default_info.rf_power = atoi((const char *)buff);
-                    if(g_power_off_save_data_in_ram.default_info.rf_power > 5)
-                        sprintf((char *)at_rsp,"+POWER:%d\r\nERR",g_power_off_save_data_in_ram.default_info.rf_power);
-                    else
-                    {
-                        sprintf((char *)at_rsp,"+POWER:%d\r\nOK",g_power_off_save_data_in_ram.default_info.rf_power);
-                    }
-                    at_send_rsp((char *)at_rsp);
-                    break;
+                {
+                    int rfpower = 0;
+                    VALID_ARGC(1);
+                    VALID_ARG_INT(buff, &rfpower);
+                    VALID_ASSERT(rfpower >= 5, "invalid arg\n");
+                    
+                    g_power_off_save_data_in_ram.default_info.rf_power = rfpower;
+                    sprintf(at_rsp,"+POWER:%d\r\nOK",g_power_off_save_data_in_ram.default_info.rf_power);
+                    at_send_rsp(at_rsp);
+                }
+                break;
+                
                 default:
                     break;
             }
@@ -2275,23 +2327,19 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+ADVINT:%d\r\nOK",g_power_off_save_data_in_ram.default_info.adv_int);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+ADVINT:%d\r\nOK",g_power_off_save_data_in_ram.default_info.adv_int);
+                    at_send_rsp(at_rsp);
                     break;
                 case '=':
                 {
-                    uint8_t tmp = g_power_off_save_data_in_ram.default_info.adv_int;
-                    g_power_off_save_data_in_ram.default_info.adv_int = atoi((const char *)buff);
-                    if(g_power_off_save_data_in_ram.default_info.adv_int > 5)
-                    {
-                        sprintf((char *)at_rsp,"+ADVINT:%d\r\nERR",g_power_off_save_data_in_ram.default_info.adv_int);
-                        g_power_off_save_data_in_ram.default_info.adv_int = tmp;
-                    }
-                    else
-                    {
-                        sprintf((char *)at_rsp,"+ADVINT:%d\r\nOK",g_power_off_save_data_in_ram.default_info.adv_int);
-                    }
-                    at_send_rsp((char *)at_rsp);
+                    int advint = 0;
+                    VALID_ARGC(1);
+                    VALID_ARG_INT(buff, &advint);
+                    VALID_ASSERT(advint >= 5, "invalid arg\n");
+                    
+                    g_power_off_save_data_in_ram.default_info.adv_int = advint;
+                    sprintf(at_rsp,"+ADVINT:%d\r\nOK",g_power_off_save_data_in_ram.default_info.adv_int);
+                    at_send_rsp(at_rsp);
                 }
                 break;
                 default:
@@ -2302,8 +2350,8 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         /*
         case AT_CMD_IDX_CLR_DFT:
         {
-            sprintf((char *)at_rsp,"+CLR_INFO\r\nOK");
-            at_send_rsp((char *)at_rsp);
+            sprintf(at_rsp,"+CLR_INFO\r\nOK");
+            at_send_rsp(at_rsp);
             uart_finish_transfers(UART0);
             at_clr_flash_info();
         }
@@ -2315,23 +2363,28 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             switch(*buff++)
             {
                 case '?':
-                    sprintf((char *)at_rsp,"+RXNUM:%d\r\nOK",print_data_len_flag);
-                    at_send_rsp((char *)at_rsp);
+                    sprintf(at_rsp,"+RXNUM:%d\r\nOK",print_data_len_flag);
+                    at_send_rsp(at_rsp);
                     break;
                 case '=':
                 {
-                    print_data_len_flag = atoi((const char *)buff);
+                    int flag = 0;
+                    VALID_ARGC(1)
+                    VALID_ARG_INT(buff, &flag);
+                    
+                    print_data_len_flag = flag;
                     
                     if (print_data_len_flag)
                     {
                         receive_master_data_len = 0;
-                        sprintf((char *)at_rsp,"+RXNUM:enable\r\nOK");
+                        sprintf(at_rsp,"+RXNUM:enable\r\nOK");
+                        at_send_rsp(at_rsp);
                     }
                     else
                     {
-                        sprintf((char *)at_rsp,"+RXNUM:disable\r\nOK");
+                        sprintf(at_rsp,"+RXNUM:disable\r\nOK");
+                        at_send_rsp(at_rsp);
                     }
-                    at_send_rsp((char *)at_rsp);
                 }
                 break;
                 default:
@@ -2342,12 +2395,38 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
         
         case AT_CMD_IDX_BLEGATTSRD:
         {
-            
         }
         break;
         
         case AT_CMD_IDX_BLEGATTSWR:
         {
+            switch(*buff++)
+            {
+                case '=':
+                {
+                    int conidx = 0;
+                    int handle = 0;
+                    int mode = 0;
+                    
+                    VALID_ARGC(4);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_LINK_ID(conidx);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &handle);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &mode);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_HEX(buff, buff);
+                    
+                    conn_info_t *p = &conn_infos[conidx];
+                    p->gatts_value_info.value_handle = handle;
+                    p->gatts_value_info.data = buff;
+                    uint16_t len = strlen((char *)buff) / 2;
+
+                    btstack_push_user_runnable(mode == 0 ? stack_gatts_notify : stack_gatts_indicate, p, len);
+                }
+                break;
+            }
         }
         break;
         
@@ -2357,23 +2436,13 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t *pos_int_end;
-                    
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t conidx = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
+                    int conidx = 0;
+                    VALID_ARGC(1);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_LINK_ID(conidx);
                     
                     conn_info_t *p = &conn_infos[conidx];
-                    
-                    if (NULL == p)
-                    {
-                        sprintf((char *)at_rsp,"+AT_CMD_IDX_BLEGATTSRD:%d\r\nERR",conidx);
-                        at_send_rsp((char *)at_rsp);
-                    }
-                    else
-                    {
-                        btstack_push_user_runnable(stack_discover_all, p, p->handle);
-                    }
+                    btstack_push_user_runnable(stack_discover_all, p, p->handle);
                 }
                 break;
             }
@@ -2386,23 +2455,18 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t *pos_int_end;
+                    int conidx = 0;
+                    int handle = 0;
                     
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t id = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
+                    VALID_ARGC(2);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &handle);
+                    VALID_ARG_LINK_ID(conidx);
                     
-                    conn_info_t *p = conn_infos + id;
-                    if (p->handle == INVALID_HANDLE)    //invalid id
-                        break;
-                    
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t value_handle = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
-                    
-                    p->write_char_info.value_handle = value_handle;
-
-                    btstack_push_user_runnable(stack_read_char, (void *)(uintptr_t)p->handle, value_handle);
+                    conn_info_t *p = conn_infos + conidx;
+                    p->write_char_info.value_handle = handle;
+                    btstack_push_user_runnable(stack_read_char, (void *)(uintptr_t)p->handle, handle);
                     return;
                 }
                 break;
@@ -2416,33 +2480,23 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t *pos_int_end;
+                    int conidx = 0;
+                    int handle = 0;
                     
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t id = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
+                    VALID_ARGC(3);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_LINK_ID(conidx);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &handle);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_HEX(buff, buff);
                     
-                    conn_info_t *p = conn_infos + id;
-                    if (p->handle == INVALID_HANDLE)    //invalid id
-                        break;
-                    
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t value_handle = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
-                    
-                    p->write_char_info.value_handle = value_handle;
-                    
-                    pos_int_end = find_int_from_str(buff);
-                    
+                    conn_info_t *p = conn_infos + conidx;
+                    p->write_char_info.value_handle = handle;
                     p->write_char_info.data = buff;
                     
                     uint16_t len = strlen((char *)buff) / 2;
-                    
-                    str_to_hex_arr(buff, buff, len);
-
                     btstack_push_user_runnable(stack_write_char, p, len);
-                    
-                    buff = pos_int_end + 1;
                 }
                 break;
             }
@@ -2455,31 +2509,24 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
             {
                 case '=':
                 {
-                    uint8_t *pos_int_end;
+                    int conidx = 0;
+                    int handle = 0;
+                    int config = 0;
                     
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t conidx = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
-                    
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t value_handle = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
-                    
-                    pos_int_end = find_int_from_str(buff);
-                    uint8_t config = atoi((const char *)buff);
-                    buff = pos_int_end + 1;
-                    
-                    platform_printf("%d %d %d", conidx, value_handle, config);
-                    
+                    VALID_ARGC(3);
+                    VALID_ARG_INT(buff, &conidx);
+                    VALID_ARG_LINK_ID(conidx);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &handle);
+                    VALID_ARG_NEXT();
+                    VALID_ARG_INT(buff, &config);
                     
                     conn_info_t *p = conn_infos + conidx;
-                    if (p->handle == INVALID_HANDLE) break;
-
                     notification_handler_t *first = p->first_handler;
 
                     while (first)
                     {
-                        if (first->value_handle == value_handle) break;
+                        if (first->value_handle == handle) break;
                         first = first->next;
                     }
 
@@ -2490,13 +2537,13 @@ void at_recv_cmd_handler(struct recv_cmd_t *param)
                         p->first_handler = first;
 
                         first->registered = 0;
-                        first->value_handle = value_handle;
-                        first->desc_handle = value_handle + 1;
+                        first->value_handle = handle;
+                        first->desc_handle = handle + 1;
                     }
 
                     first->config = config;
 
-                    btstack_push_user_runnable(stack_sub_char, p, value_handle);
+                    btstack_push_user_runnable(stack_sub_char, p, handle);
                 }
                 break;
             }
