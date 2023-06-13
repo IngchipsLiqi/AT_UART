@@ -94,6 +94,9 @@ void setup_peripherals(void)
     PINCTRL_SetPadMux(PIN_WAKEUP, IO_SOURCE_GPIO);
     GIO_SetDirection((GIO_Index_t)PIN_WAKEUP, GIO_DIR_INPUT);
     PINCTRL_Pull(PIN_WAKEUP, PINCTRL_PULL_DOWN);
+    GIO_EnableDeepSleepWakeupSource(PIN_WAKEUP, 1, 1, PINCTRL_PULL_DOWN);
+    GIO_EnableDeeperSleepWakeupSourceGroupA(1, 1);
+    GIO_EnableRetentionGroupA(1);
 
     // 配置看门狗
     TMR_WatchDogEnable3(WDT_INTTIME_INTERVAL_16S, 200, 1);
@@ -145,8 +148,6 @@ static void set_reg_bit(volatile uint32_t *reg, uint8_t v, uint8_t bit_offset)
 
 int app_main()
 {
-    platform_32k_rc_auto_tune();
-
     // 加载FLASH保存的数据
     sdk_load_private_flash_data();
     
@@ -173,13 +174,12 @@ int app_main()
     
     // 配置platform全局设置
     platform_config(PLATFORM_CFG_RTOS_ENH_TICK, PLATFORM_CFG_ENABLE);
+    platform_config(PLATFORM_CFG_OSC32K_EN, PLATFORM_CFG_DISABLE);
+    platform_config(PLATFORM_CFG_32K_CLK_ACC, 500);
     
     // 上电打印
     platform_printf("MAIN_OK\r\n");
     
-    
-    // 配置唤醒源
-    GIO_EnableDeepSleepWakeupSource(PIN_WAKEUP, 1, 1, PINCTRL_PULL_DOWN);
     
     // 上电默认进入低功耗
     if (g_power_off_save_data_in_ram.default_info.auto_sleep) {

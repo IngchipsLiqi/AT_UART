@@ -576,6 +576,9 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             {
                 att_set_db(complete->handle, att_db_util_get_address());
             }
+            platform_calibrate_32k();
+            platform_config(PLATFORM_CFG_DEEP_SLEEP_TIME_REDUCTION, 5200);
+            platform_config(PLATFORM_CFG_LL_DELAY_COMPENSATION, 280);
             
             at_on_connection_complete(complete);
             

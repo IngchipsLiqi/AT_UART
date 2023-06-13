@@ -132,7 +132,7 @@ int att_write_input_callback(uint16_t transaction_mode, uint16_t offset, const u
             char at_rsp[20];
             sprintf(at_rsp, "data len:%d\r\n", receive_master_data_len);
             at_send_rsp((char *)at_rsp);
-            
+
             receive_master_data_len = 0;
         }
     }

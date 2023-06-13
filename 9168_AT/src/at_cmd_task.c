@@ -451,7 +451,6 @@ int gap_get_connect_num()
  */
 void at_send_rsp(char *str)
 {
-    uart_put_data_noint(UART0,(uint8_t *)"\r\n", 2);
     uart_put_data_noint(UART0,(uint8_t *)str, strlen(str));
     uart_put_data_noint(UART0,(uint8_t *)"\r\n", 2);
 }
