@@ -300,8 +300,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20005580</StartAddress>
-                <Size>0x2a80</Size>
+                <StartAddress>0x20005588</StartAddress>
+                <Size>0x2a78</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -389,14 +389,14 @@
               <FilePath>.\src\main.c</FilePath>
             </File>
             <File>
-              <FileName>profile.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\profile.c</FilePath>
-            </File>
-            <File>
               <FileName>at_recv_cmd.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\at_recv_cmd.c</FilePath>
+            </File>
+            <File>
+              <FileName>profile.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\profile.c</FilePath>
             </File>
             <File>
               <FileName>at_cmd_task.c</FileName>

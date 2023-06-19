@@ -90,7 +90,7 @@ void setup_peripherals(void)
     // 初始化AT需要的外设
     at_uart_init();
     
-    // 配置唤醒源
+    // 配置唤醒�?
     PINCTRL_SetPadMux(PIN_WAKEUP, IO_SOURCE_GPIO);
     GIO_SetDirection((GIO_Index_t)PIN_WAKEUP, GIO_DIR_INPUT);
     PINCTRL_Pull(PIN_WAKEUP, PINCTRL_PULL_DOWN);
@@ -98,7 +98,7 @@ void setup_peripherals(void)
     GIO_EnableDeeperSleepWakeupSourceGroupA(1, 1);
     GIO_EnableRetentionGroupA(1);
 
-    // 配置看门狗
+    // 配置看门�?
     TMR_WatchDogEnable3(WDT_INTTIME_INTERVAL_16S, 200, 1);
     platform_set_irq_callback(PLATFORM_CB_IRQ_WDT, (f_platform_irq_cb)wdt_isr, NULL);
 }
@@ -107,7 +107,7 @@ uint32_t on_deep_sleep_wakeup(const platform_wakeup_call_info_t *info, void *use
 {
     if (PLATFORM_WAKEUP_REASON_NORMAL == info->reason)
     {
-        setup_peripherals();
+      setup_peripherals();
     }
     else;
         //GIO_EnableRetentionGroupA(0);
@@ -148,13 +148,15 @@ static void set_reg_bit(volatile uint32_t *reg, uint8_t v, uint8_t bit_offset)
 
 int app_main()
 {
-    // 加载FLASH保存的数据
+    platform_32k_rc_auto_tune();
+    
+    // 加载FLASH保存的数�?
     sdk_load_private_flash_data();
     
-    // 外设初始化
+    // 外设初始�?
     setup_peripherals();
     
-    // 看门狗喂狗任务
+    // 看门狗喂狗任�?
     xTaskCreate(watchdog_task,
            "w",
            configMINIMAL_STACK_SIZE,
@@ -179,9 +181,9 @@ int app_main()
     
     // 上电打印
     platform_printf("MAIN_OK\r\n");
+
     
-    
-    // 上电默认进入低功耗
+    // 上电默认进入低功�?
     if (g_power_off_save_data_in_ram.default_info.auto_sleep) {
         platform_config(PLATFORM_CFG_POWER_SAVING, PLATFORM_CFG_ENABLE);
     }

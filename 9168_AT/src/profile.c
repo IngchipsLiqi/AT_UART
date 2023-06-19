@@ -580,6 +580,14 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
             platform_config(PLATFORM_CFG_DEEP_SLEEP_TIME_REDUCTION, 5200);
             platform_config(PLATFORM_CFG_LL_DELAY_COMPENSATION, 280);
             
+            // ING916 ll_set_max_conn_num 设为 >= 5 的值会影响吞吐率
+            static bool ll_set_max_conn_num_gt_5_flag = false;
+            if (gap_get_connect_num() >= LL_MAX_CONN_NUM_DEFAULT && ll_set_max_conn_num_gt_5_flag == false)
+            {
+                ll_set_max_conn_number(LL_MAX_CONN_NUM_TOTAL);
+                ll_set_max_conn_num_gt_5_flag = true;
+            }
+            
             at_on_connection_complete(complete);
             
             if (complete->role == HCI_ROLE_SLAVE) {
@@ -673,6 +681,9 @@ static btstack_packet_callback_registration_t hci_event_callback_registration;
 
 uint32_t setup_profile(void *data, void *user_data)
 {
+    // ING916 ll_set_max_conn_num 设为 < 5 的值，以达到吞吐率跟 typical 上一致
+    ll_set_max_conn_number(LL_MAX_CONN_NUM_DEFAULT);
+    
     LOG_MSG("setup profile\n");
     init_service();
     

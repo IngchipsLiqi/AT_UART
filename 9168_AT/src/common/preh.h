@@ -51,6 +51,9 @@ typedef enum {
 
 #define TOTAL_CONN_NUM              (MAX_CONN_AS_MASTER + MAX_CONN_AS_SLAVE)
 
+#define LL_MAX_CONN_NUM_DEFAULT     4
+#define LL_MAX_CONN_NUM_TOTAL       TOTAL_CONN_NUM
+
 #define BT_PRIVT_OK 0
 #define BT_PRIVT_ERROR -1
 #define BT_PRIVT_ENABLE 1
