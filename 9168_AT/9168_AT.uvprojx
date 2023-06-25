@@ -384,6 +384,11 @@
           <GroupName>APP</GroupName>
           <Files>
             <File>
+              <FileName>at_cmd_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\at_cmd_task.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
@@ -397,11 +402,6 @@
               <FileName>profile.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\profile.c</FilePath>
-            </File>
-            <File>
-              <FileName>at_cmd_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\at_cmd_task.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -15,15 +15,6 @@
 
 #define PIN_WAKEUP GIO_GPIO_0
 
-SemaphoreHandle_t sem_delay = NULL;
-uint8_t  buf[3]={1,2,3};
-
-
-void semaphore_delay(uint32_t millisecond)
-{
-    xSemaphoreTake(sem_delay, pdMS_TO_TICKS(millisecond));
-}
-
 static uint32_t cb_hard_fault(hard_fault_info_t *info, void *_)
 {
     platform_printf("HARDFAULT:\nPC : 0x%08X\nLR : 0x%08X\nPSR: 0x%08X\n"
@@ -89,14 +80,6 @@ void setup_peripherals(void)
                               | (1 << SYSCTRL_ITEM_APB_WDT));
     // 初始化AT需要的外设
     at_uart_init();
-    
-    // 配置唤醒�?
-    PINCTRL_SetPadMux(PIN_WAKEUP, IO_SOURCE_GPIO);
-    GIO_SetDirection((GIO_Index_t)PIN_WAKEUP, GIO_DIR_INPUT);
-    PINCTRL_Pull(PIN_WAKEUP, PINCTRL_PULL_DOWN);
-    GIO_EnableDeepSleepWakeupSource(PIN_WAKEUP, 1, 1, PINCTRL_PULL_DOWN);
-    GIO_EnableDeeperSleepWakeupSourceGroupA(1, 1);
-    GIO_EnableRetentionGroupA(1);
 
     // 配置看门�?
     TMR_WatchDogEnable3(WDT_INTTIME_INTERVAL_16S, 200, 1);
@@ -109,7 +92,7 @@ uint32_t on_deep_sleep_wakeup(const platform_wakeup_call_info_t *info, void *use
     {
       setup_peripherals();
     }
-    else;
+    //else;
         //GIO_EnableRetentionGroupA(0);
     return 1;
 }
@@ -118,8 +101,8 @@ uint32_t query_deep_sleep_allowed(void *dummy, void *user_data)
 {
     (void)(dummy);
     (void)(user_data);
-    if (IS_DEBUGGER_ATTACHED())
-        return 0;
+    //if (IS_DEBUGGER_ATTACHED())
+    //    return 0;
     //GIO_EnableRetentionGroupA(1);
     return PLATFORM_ALLOW_DEEP_SLEEP;
 }
@@ -181,7 +164,17 @@ int app_main()
     
     // 上电打印
     platform_printf("MAIN_OK\r\n");
-
+    
+    uint32_t calibrate = platform_read_info(PLATFORM_INFO_32K_CALI_VALUE);
+    platform_printf("calibrate = %d\n", calibrate);
+    
+    // 配置唤醒�?
+    PINCTRL_SetPadMux(PIN_WAKEUP, IO_SOURCE_GPIO);
+    GIO_SetDirection((GIO_Index_t)PIN_WAKEUP, GIO_DIR_INPUT);
+    PINCTRL_Pull(PIN_WAKEUP, PINCTRL_PULL_DOWN);
+    GIO_EnableDeepSleepWakeupSource(PIN_WAKEUP, 1, 1, PINCTRL_PULL_DOWN);
+    GIO_EnableDeeperSleepWakeupSourceGroupA(1, 1);
+    GIO_EnableRetentionGroupA(1);
     
     // 上电默认进入低功�?
     if (g_power_off_save_data_in_ram.default_info.auto_sleep) {

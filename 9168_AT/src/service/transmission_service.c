@@ -129,9 +129,22 @@ int att_write_input_callback(uint16_t transaction_mode, uint16_t offset, const u
         {
             timer_isr_count = 0;
             
-            char at_rsp[20];
+            char at_rsp[30];
             sprintf(at_rsp, "data len:%d\r\n", receive_master_data_len);
             at_send_rsp((char *)at_rsp);
+            
+            static uint32_t cnt = 0;
+            static uint32_t sum = 0; 
+            cnt++;
+            sum += receive_master_data_len;
+            if (cnt >= 20)
+            {
+                sprintf(at_rsp, "data len avg:%.2f\r\n", (float)sum / cnt);
+                at_send_rsp((char *)at_rsp);
+                
+                sum = 0;
+                cnt = 0;
+            }
 
             receive_master_data_len = 0;
         }
