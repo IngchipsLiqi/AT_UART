@@ -62,6 +62,8 @@ void bt_cmd_data_uart_out(const uint8_t *data, int data_len);
 void timer_start_main_cmd_data(void);
 void timer_stop_main_cmd_data(void);
 
+void bt_cmd_data_process_init(void);
+
 #if defined __cplusplus
     }
 #endif

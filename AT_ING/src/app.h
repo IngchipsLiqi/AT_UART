@@ -90,7 +90,7 @@ void app_setup_peripherals(void);
 void app_setup_peripherals_before_sleep(void);
 void app_start(void);
 void app_low_power_exit_callback(void);
-void print_addr(uint8_t *addr);
+void print_addr(const uint8_t *addr);
 void dump_ram_data_in_char(uint8_t *p_data, uint16_t data_len);
 
 #if defined __cplusplus

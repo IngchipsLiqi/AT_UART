@@ -91,7 +91,7 @@ static void bt_cmd_data_uart_rx_cmd_process()
         {
             out_data_len = str_len;
         }
-        bt_cmd_data_uart_out((char *)cmd_out_buf, out_data_len);
+        bt_cmd_data_uart_out(cmd_out_buf, out_data_len);
         com_buf.buf_index_bottom = 0;
         com_buf.buf_data_bottom_count = 0;
         com_buf.buf_index_top = 0;

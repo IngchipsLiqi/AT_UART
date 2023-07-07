@@ -13,6 +13,7 @@
 #include "project_common.h"
 #include "sdk_private_flash_data.h"
 #include "bt_cmd_data_uart_io_adp.h"
+#include "bt_at_cmd_parse.h"
 
 #if defined __cplusplus
     extern "C" {
@@ -72,7 +73,7 @@ static void app_setup_uart1_isr(void)
 #define DMA_UART    APB_UART1
 #define SIZE 8
 
-uint8_t dma_dst[24]  = {0};
+uint32_t dma_dst[24]  = {0};
 
 DMA_Descriptor test __attribute__((aligned (8)));
 
@@ -143,14 +144,12 @@ static void sdk_config_uart1_com(void)
 
 void app_setup_peripherals(void)
 {
-    uint8_t start_char[] = {'A', 'T'};
     SYSCTRL_ClearClkGateMulti(1 << SYSCTRL_ClkGate_APB_WDT);
     sdk_config_uart1_com();
 
     GIO_EnableRetentionGroupB(0);
     GIO_EnableRetentionGroupA(0);
 
-    bt_cmd_data_uart_out(start_char, sizeof(start_char));
     return;
 }
 
@@ -220,6 +219,7 @@ static void setup_rf_clk_and_sleep_para(void)
 
 static void print_dev_info(void)
 {
+    log_printf("[info]: len%d\r\n", sizeof(g_power_off_save_data_in_ram));
     if (g_power_off_save_data_in_ram.dev_type == BLE_DEV_TYPE_MASTER) {
         log_printf("[info]: i'm master, peer addr:%02x_%02x_%02x_%02x_%02x_%02x",
                    g_power_off_save_data_in_ram.peer_mac_address[0],
@@ -253,11 +253,12 @@ void app_start(void)
     //SYSCTRL_SelectMemoryBlocks(SYSCTRL_RESERVED_MEM_BLOCKS);
 
     print_dev_info();
+    bt_at_power_on_ack();
 
     return;
 }
 
-void print_addr(uint8_t *addr)
+void print_addr(const uint8_t *addr)
 {
     int i;
     log_printf("[app]: addr");

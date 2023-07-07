@@ -12,6 +12,7 @@
 #include "app.h"
 #include "sdk_private_flash_data.h"
 #include "low_power.h"
+#include "bt_at_cmd_parse.h"
 
 #define RAMFUNC __attribute__ ((section (".ramfunc")))
 //#define RAMFUNC
@@ -265,6 +266,7 @@ RAMFUNC static uint32_t m_on_deep_sleep_wakeup(const platform_wakeup_call_info_t
             uint32_t gpio_read_data_l = source.gpio & 0xFFFFFFFF;
             platform_printf("[wk]: gpio:0x%08x%08x\r\n", gpio_read_data_h, gpio_read_data_l);
             low_power_exit_saving(LOW_POWER_EXIT_REASON_COM_RX_DATA);
+            bt_at_power_on_ack();
         } else if ((source.other & SYSCTRL_WAKEUP_SOURCE_COMPARATOR) != 0) {
             //platform_printf("[wk]: comparator\r\n");
         } else {
@@ -380,7 +382,7 @@ int app_main()
     trim_rf_freq();
     low_power_create_timer();
     //while (1) {};
-    
+
     platform_printf("main %d\r\n", ret);
     return 0;
 }

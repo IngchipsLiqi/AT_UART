@@ -13,11 +13,13 @@
 #include "gatt_client.h"
 #include "btstack_defines.h"
 #include "sig_uuid.h"
+#include "att_dispatch.h"
 
 #include "project_common.h"
 #include "throughput_service.h"
 #include "bt_cmd_data_uart_io_adp.h"
 #include "low_power.h"
+#include "bt_at_cmd_parse.h"
 
 #if defined __cplusplus
     extern "C" {
@@ -127,6 +129,7 @@ void throughput_event_disconnect(const event_disconn_complete_t *cmpl)
     throughput_con_handle = INVALID_HANDLE;
     peer_slave.conn_handle = INVALID_HANDLE;
     throughput_notify_enable = 0;
+    bt_at_disconnect_ack();
     return;
 }
 
@@ -269,7 +272,7 @@ static void btstack_callback(uint8_t packet_type, uint16_t channel, const uint8_
         if (gatt_event_query_complete_parse(packet)->status != 0)
             return;
         log_printf("[tpt]: cmpl\r\n");
-        bt_cmd_data_uart_out((uint8_t *)"+CONNECT", sizeof("+CONNECT"));
+        bt_at_connect_ack();
         break;
     }
 }
