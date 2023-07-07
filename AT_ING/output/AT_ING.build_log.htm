@@ -1,0 +1,121 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.36.0.0
+Copyright (C) 2021 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: liqi Administrator, ingchips, LIC=14HV2-9D8UP-SBNEJ-URXU7-EHBEB-388E7
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.36.0.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCLANG\Bin
+C Compiler:      ArmClang.exe V6.16
+Assembler:       Armasm.exe V6.16
+Linker/Locator:  ArmLink.exe V6.16
+Library Manager: ArmAr.exe V6.16
+Hex Converter:   FromElf.exe V6.16
+CPU DLL:         SARMCM3.DLL V5.36.0.0
+Dialog DLL:      DCM.DLL V1.17.3.0
+Target DLL:      Segger\JL2CM3.dll V2.99.40.0
+Dialog DLL:      TCM.DLL V1.53.0.0
+ 
+<h2>Project:</h2>
+D:\work\ING_SDK\sdk\AT_UART\AT_ING\AT_ING.uvprojx
+Project File Date:  07/07/2023
+
+<h2>Output:</h2>
+*** Using Compiler 'V6.16', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
+Rebuild target 'Target 1'
+src/profile.c(359): warning: passing 'const bd_addr_t' (aka 'uint8_t const[6]') to parameter of type 'uint8_t *' (aka 'unsigned char *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]
+            print_addr(cmpl->peer_addr);
+                       ^~~~~~~~~~~~~~~
+./src\app.h(93): note: passing argument to parameter 'addr' here
+void print_addr(uint8_t *addr);
+                         ^
+1 warning generated.
+compiling profile.c...
+src/app.c(108): warning: incompatible pointer types passing 'uint8_t [24]' to parameter of type 'uint32_t *' (aka 'unsigned int *') [-Wincompatible-pointer-types]
+                                dma_dst,
+                                ^~~~~~~
+../../src/FWlib\peripheral_dma.h(63): note: passing argument to parameter 'dst' here
+                            uint32_t *dst, SYSCTRL_DMA src, int size,
+                                      ^
+src/app.c(248): warning: implicit declaration of function 'bt_cmd_data_process_init' is invalid in C99 [-Wimplicit-function-declaration]
+    bt_cmd_data_process_init();
+    ^
+2 warnings generated.
+compiling app.c...
+compiling main.c...
+assembling startup_ing91600.s...
+compiling eflash.c...
+compiling peripheral_gpio.c...
+compiling peripheral_pinctrl.c...
+compiling peripheral_rtc.c...
+compiling peripheral_sysctrl.c...
+compiling peripheral_timer.c...
+compiling peripheral_uart.c...
+compiling att_db_util.c...
+compiling peripheral_dma.c...
+src/project_common/bt_cmd_data_uart_io_adp.c(94): warning: passing 'char *' to parameter of type 'const uint8_t *' (aka 'const unsigned char *') converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+        bt_cmd_data_uart_out((char *)cmd_out_buf, out_data_len);
+                             ^~~~~~~~~~~~~~~~~~~
+src/project_common/bt_cmd_data_uart_io_adp.c(56): note: passing argument to parameter 'data' here
+void bt_cmd_data_uart_out(const uint8_t *data, int data_len)
+                                         ^
+1 warning generated.
+compiling bt_cmd_data_uart_io_adp.c...
+compiling project_common.c...
+compiling project_crc.c...
+compiling crc.c...
+compiling sdk_private_flash_data.c...
+compiling low_power.c...
+src/service/throughput_service.c(197): warning: implicit declaration of function 'att_dispatch_client_request_can_send_now_event' is invalid in C99 [-Wimplicit-function-declaration]
+            att_dispatch_client_request_can_send_now_event(throughput_con_handle);
+            ^
+1 warning generated.
+compiling throughput_service.c...
+src/project_common/bt_at_cmd_parse.c(92): warning: passing 'uint8_t *' (aka 'unsigned char *') to parameter of type 'char *' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+    sprintf(out_buff, "+OK");
+            ^~~~~~~~
+C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h(417): note: passing argument to parameter here
+extern _ARMABI int sprintf(char * __restrict /*s*/, const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+                                                  ^
+src/project_common/bt_at_cmd_parse.c(141): warning: passing 'uint8_t *' (aka 'unsigned char *') to parameter of type 'char *' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+    sprintf(out_buff, "+OK");
+            ^~~~~~~~
+C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h(417): note: passing argument to parameter here
+extern _ARMABI int sprintf(char * __restrict /*s*/, const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+                                                  ^
+2 warnings generated.
+compiling bt_at_cmd_parse.c...
+linking...
+Program Size: Code=19932 RO-data=1900 RW-data=432 ZI-data=2300  
+FromELF: creating hex file...
+After Build - User command #1: fromelf.exe --bin -o AT_ING.bin ./output/AT_ING.axf
+".\output\AT_ING.axf" - 0 Error(s), 7 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.8.0.pack
+                ARM.CMSIS.5.8.0
+                CMSIS (Common Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.5.0
+
+Package Vendor: INGChips
+                http://www.ingchips.com/INGChips.INGCHIPS_DeviceFamilyPack.0.9.0.pack
+                INGChips.INGCHIPS_DeviceFamilyPack.0.9.0
+                INGChips ARM devices Device Family Pack with BSD license.
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\_Target_1
+  C:\Users\Administrator\AppData\Local\Arm\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:5.5.0
+Build Time Elapsed:  00:00:04
+</pre>
+</body>
+</html>

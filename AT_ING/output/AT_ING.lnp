@@ -1,0 +1,27 @@
+--cpu=Cortex-M4.fp.sp
+".\output\main.o"
+".\output\profile.o"
+".\output\app.o"
+".\output\startup_ing91600.o"
+"../..\bundles\typical\ING9168xx\symdefs.m"
+".\output\eflash.o"
+".\output\peripheral_gpio.o"
+".\output\peripheral_pinctrl.o"
+".\output\peripheral_rtc.o"
+".\output\peripheral_sysctrl.o"
+".\output\peripheral_timer.o"
+".\output\peripheral_uart.o"
+".\output\peripheral_dma.o"
+".\output\att_db_util.o"
+".\output\bt_cmd_data_uart_io_adp.o"
+".\output\project_common.o"
+".\output\project_crc.o"
+".\output\crc.o"
+".\output\sdk_private_flash_data.o"
+".\output\low_power.o"
+".\output\throughput_service.o"
+".\output\bt_at_cmd_parse.o"
+--library_type=microlib --strict --scatter ".\output\AT_ING.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\listing\AT_ING.map" -o .\output\AT_ING.axf

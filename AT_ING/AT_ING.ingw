@@ -1,0 +1,90 @@
+{
+ "watchdog": false,
+ "bundle_meta": {
+  "rom": {
+   "size": 153912,
+   "base": 33562624
+  },
+  "ram": {
+   "size": 21556,
+   "base": 536870912
+  },
+  "app": {
+   "base": 33718272
+  },
+  "version": [
+   2,2,27]
+ },
+ "tc_dir": "C:\/Keil_v5\/uv4",
+ "eflash_addr": "0x42000",
+ "ide_ver": "5",
+ "ide_exe": "C:\/Keil_v5\/uv4\/uv4.exe",
+ "use_uart_trace": false,
+ "ota": false,
+ "ide": "keil",
+ "git": false,
+ "use_segger_rtt": true,
+ "trace_port": "seggerrtt",
+ "trace_mask": "",
+ "scan_data": "0\r\n",
+ "priv_addr": "GAP_RANDOM_ADDRESS_OFF",
+ "enable_hci_log": false,
+ "ota_ver_minor": "0",
+ "ota_ver_major": "0",
+ "template": "D:\\work\\ING_SDK\\wizard\\templates\\typical\\peripheral",
+ "coding_adv": false,
+ "key_incode": true,
+ "series": "ING9168xx",
+ "proj_name": "AT_ING",
+ "sdk_release_path": "..\/..",
+ "printf_port": "uart0",
+ "security": false,
+ "legacy_adv": true,
+ "adv_data": "\/\/ 0x01 - \u00abFlags\u00bb\r\n2, 0x01,\r\n0x06, \r\n\r\n\/\/ 0x09 - \u00abComplete Local Name\u00bb\r\n7, 0x09,\r\n0x41, 0x54, 0x5F, 0x49, 0x4E, 0x47, \r\n\r\n\/\/ Total size = 11 bytes\r\n",
+ "use_eflash": false,
+ "wizard_dir": "D:\/work\/ING_SDK\/wizard",
+ "key_addr": "0x44000",
+ "trace_enable": true,
+ "pb_adv": true,
+ "is_sdk_path_rel": true,
+ "pb_gatt": true,
+ "deep_sleep": true,
+ "proj_dir": "D:\\work\\ING_SDK\\sdk\\a_project_in_sdk\\AT_ING",
+ "heap_size": 0,
+ "power_saving": true,
+ "secondary": false,
+ "bundle": "typical",
+ "app_rom_size": "360448",
+ "app_rom_addr": "33718272",
+ "family": "ing916",
+ "vcode": false,
+ "heap_override": false,
+ "trace_mask_nim": "",
+ "gatt_value_offset": {
+  "key": "HANDLE_SERVICE_CHANGED_CLIENT_CHAR_CONFIG_OFFSET",
+  "value": "91"
+ },
+ "io_cap": "IO_CAPABILITY_NO_INPUT_NO_OUTPUT",
+ "role": "peripheral",
+ "noos": false,
+ "mesh": {
+  "lowpower": true,
+  "friend": true,
+  "relay": true,
+  "proxy": true
+ },
+ "keil": true,
+ "cmsis": "",
+ "cube": false,
+ "app_ram_size": 11208,
+ "app_ram_addr": 536892472,
+ "k5_cc_ver": "6",
+ "printf_enable": true,
+ "gatt_handle": {
+  "key": "HANDLE_SERVICE_CHANGED_CLIENT_CHAR_CONFIG",
+  "value": "9"
+ },
+ "ota_ver_patch": "0",
+ "profile_data": "\/\/ Service Generic Access: 1800\r\n0x0A, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x28,\r\n0x00, 0x18, \r\n\/\/ Characteristic Device Name: 2A00\r\n0x0D, 0x00, 0x02, 0x00, 0x02, 0x00, 0x03, 0x28,\r\n0x02, 0x03, 0x00, 0x00, 0x2A, \r\n0x08, 0x00, 0x02, 0x00, 0x03, 0x00, 0x00, 0x2A,\r\n\/\/ Characteristic Appearance: 2A01\r\n0x0D, 0x00, 0x02, 0x00, 0x04, 0x00, 0x03, 0x28,\r\n0x02, 0x05, 0x00, 0x01, 0x2A, \r\n0x08, 0x00, 0x02, 0x00, 0x05, 0x00, 0x01, 0x2A,\r\n\r\n\/\/ Service Generic Attribute: 1801\r\n0x0A, 0x00, 0x02, 0x00, 0x06, 0x00, 0x00, 0x28,\r\n0x01, 0x18, \r\n\/\/ Characteristic Service Changed: 2A05\r\n0x0D, 0x00, 0x02, 0x00, 0x07, 0x00, 0x03, 0x28,\r\n0x20, 0x08, 0x00, 0x05, 0x2A, \r\n0x08, 0x00, 0x20, 0x00, 0x08, 0x00, 0x05, 0x2A,\r\n\/\/ Descriptor Client Characteristic Configuration: 2902\r\n0x0A, 0x00, 0x0A, 0x01, 0x09, 0x00, 0x02, 0x29,\r\n0x00, 0x00, \r\n\r\n0x00,0x00\r\n\/\/ total size = 95\r\n\r\n\/\/ HANDLE_DEVICE_NAME=3\r\n\/\/ HANDLE_APPEARANCE=5\r\n\/\/ HANDLE_SERVICE_CHANGED=8\r\n\/\/ HANDLE_SERVICE_CHANGED_CLIENT_CHAR_CONFIG=9\r\n\r\n\/\/ HANDLE_DEVICE_NAME_OFFSET=31\r\n\/\/ HANDLE_APPEARANCE_OFFSET=52\r\n\/\/ HANDLE_SERVICE_CHANGED_OFFSET=83\r\n\/\/ HANDLE_SERVICE_CHANGED_CLIENT_CHAR_CONFIG_OFFSET=91\r\n",
+ "coding_profile": false
+}
