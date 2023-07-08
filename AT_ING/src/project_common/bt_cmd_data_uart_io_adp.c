@@ -23,6 +23,7 @@
 #include "bt_at_cmd_parse.h"
 #include "app.h"
 #include "low_power.h"
+#include "../service/throughput_service.h"
 
 #if defined __cplusplus
     extern "C" {
@@ -69,7 +70,19 @@ void bt_cmd_data_uart_out(const uint8_t *data, int data_len)
     return;
 }
 
-static void give_sem_send_data_by_ble(void);
+void bt_cmd_data_uart_wait_all_out(void)
+{
+    while (apUART_Check_TXFIFO_EMPTY(COM_PORT) != 1) {};
+    return;
+}
+
+typedef enum
+{
+    SEND_DATA_BY_BLE_REIGHT_NOW,
+    SEND_DATA_BY_BLE_BUF_HELF,
+} when_send_data_by_ble_t;
+
+static void give_sem_send_data_by_ble(when_send_data_by_ble_t when);
 #define CMD_IO_PORT_MAX_CMD_LEN 64
 static uint8_t cmd_out_buf[CMD_IO_PORT_MAX_CMD_LEN] = {0};
 static void bt_cmd_data_uart_rx_cmd_process()
@@ -99,7 +112,7 @@ static void bt_cmd_data_uart_rx_cmd_process()
     } else {
         log_printf("[com]: data pass\r\n");
         bt_cmd_data_print_buf_state();
-        give_sem_send_data_by_ble();
+        give_sem_send_data_by_ble(SEND_DATA_BY_BLE_REIGHT_NOW);
     }
 
 }
@@ -155,6 +168,7 @@ void bt_cmd_data_com_buf_pop_data(uint16_t pop_num)
     if (com_buf.buf_index_top >= CMD_IO_PORT_BUF_LEN_COM_IN) {
         com_buf.buf_index_top -= CMD_IO_PORT_BUF_LEN_COM_IN;
     }
+    log_printf("[com_buf]: %d %d\r\n", com_buf.buf_data_top_count, com_buf.buf_data_bottom_count);
     return;
 }
 
@@ -200,13 +214,29 @@ static void bt_cmd_data_uart_handle_task_send_data(void) // --test
 }
 
 static SemaphoreHandle_t sem_cmd_process = NULL;
-static void give_sem_send_data_by_ble(void)
+static void give_sem_send_data_by_ble(when_send_data_by_ble_t when)
 {
     BaseType_t xHigherPriorityTaskCmdProcess;
+    int data_cnt = com_buf.buf_data_bottom_count - com_buf.buf_data_top_count;
+
+    if (g_throughput_is_sending_data) {
+        return;
+    }
+
+    if (data_cnt == 0) {
+        return;
+    }
+
+    if (when == SEND_DATA_BY_BLE_BUF_HELF) {
+        if (data_cnt < CMD_IO_PORT_BUF_LEN_COM_IN_HELF_THRESHOLD) {
+            return;
+        }
+    }
 
     com_buf.process_state |= (0x1 << CMD_DATA_PORT_PROCESS_START_SEND_BY_BLE);
     xHigherPriorityTaskCmdProcess = pdFALSE;
     xSemaphoreGiveFromISR(sem_cmd_process, &xHigherPriorityTaskCmdProcess);
+
     return;
 }
 
@@ -234,9 +264,10 @@ static void give_sem_process_cmd(void)
 void bt_cmd_data_uart_recv_data(uart_read_trig_source_t trig_source)
 {
     uint8_t rx_fifo_have_data = 0;
-    static uint8_t have_data_no_process = 0;
+    static uint8_t buf_data_can_be_cmd = 0;
     static uart_read_trig_source_t trig_source_last = UART_READ_TRIG_SOURCE_TIMER;
     static uint32_t trig_timer_cnt = 0;
+    when_send_data_by_ble_t when = SEND_DATA_BY_BLE_BUF_HELF;
 
     while (apUART_Check_RXFIFO_EMPTY(COM_PORT) != 1) {
         char c = COM_PORT->DataRead;
@@ -253,26 +284,25 @@ void bt_cmd_data_uart_recv_data(uart_read_trig_source_t trig_source)
     }
 
     if (rx_fifo_have_data) { // trig by isr or timer
-        if (trig_source == UART_READ_TRIG_SOURCE_ISR) {
-            give_sem_send_data_by_ble();
-        } else {
-            if (trig_source_last == UART_READ_TRIG_SOURCE_ISR) {
-                give_sem_send_data_by_ble();
-            } else {
-                have_data_no_process = 1;
+        if (trig_source == UART_READ_TRIG_SOURCE_TIMER) {
+            if (trig_source_last == UART_READ_TRIG_SOURCE_TIMER) {
+                buf_data_can_be_cmd = 1;
             }
         }
     } else { // trig by timer
-        if (have_data_no_process) {
+        if (buf_data_can_be_cmd) {
             if (trig_timer_cnt >= TMR_CLK_1S_COUNT) {
                 give_sem_process_cmd();
             } else {
-                give_sem_send_data_by_ble();
+                when = SEND_DATA_BY_BLE_REIGHT_NOW;
             }
-            have_data_no_process = 0;
+            buf_data_can_be_cmd = 0;
+        } else {
+            when = SEND_DATA_BY_BLE_REIGHT_NOW;
         }
     }
 
+    give_sem_send_data_by_ble(when);
     trig_source_last = trig_source;
 
     return;

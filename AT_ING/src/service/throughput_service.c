@@ -109,6 +109,7 @@ int16_t throughput_att_write_callback(hci_con_handle_t connection_handle, uint16
     } else if (att_handle == (throughput_att_write_notify_handle + 1)) {
         if(*(uint16_t *)buffer == GATT_CLIENT_CHARACTERISTICS_CONFIGURATION_NOTIFICATION) {
             throughput_notify_enable = 1;
+            bt_at_connect_ack();
         } else {
             throughput_notify_enable = 0;
         }
@@ -133,7 +134,8 @@ void throughput_event_disconnect(const event_disconn_complete_t *cmpl)
     return;
 }
 
-void throughput_i_am_slave_send_data(void)
+static uint32_t i_am_slave_send_data_num = 0;
+static uint8_t throughput_i_am_slave_send_data(void)
 {
     uint16_t mtu = 0;
     uint16_t this_time_send_len;
@@ -146,29 +148,29 @@ void throughput_i_am_slave_send_data(void)
     while (1) {
         this_time_send_len = bt_cmd_data_com_buf_pop_num(mtu);
         if (this_time_send_len == 0) {
-            return;
+            return 0;
         }
 
         if (!att_server_can_send_packet_now(throughput_con_handle)) {
             att_server_request_can_send_now_event(throughput_con_handle);
-            return;
+            return 1;
         }
 
         p_data = bt_cmd_data_com_buf_top_pos();
         ret = att_server_notify(throughput_con_handle, throughput_att_write_notify_handle, p_data, this_time_send_len);
         if (ret == 0) {
-            dbg_printf("[tpt]: slv_sd %d\r\n", this_time_send_len);
+            i_am_slave_send_data_num += this_time_send_len;
+            log_printf("[tpt]: slv_sd %d %d\r\n", i_am_slave_send_data_num, this_time_send_len);
             bt_cmd_data_com_buf_pop_data(this_time_send_len);
         } else {
             continue;
         }
 
     }
-    return;
 }
 
 static uint32_t i_am_master_send_data_num = 0;
-void throughput_i_am_master_send_data(void)
+static uint8_t throughput_i_am_master_send_data(void)
 {
     uint16_t mtu = 0;
     uint16_t this_time_send_len;
@@ -181,7 +183,7 @@ void throughput_i_am_master_send_data(void)
     while (1) {
         this_time_send_len = bt_cmd_data_com_buf_pop_num(mtu);
         if (this_time_send_len == 0) {
-            return;
+            return 0;
         }
 
         p_data = bt_cmd_data_com_buf_top_pos();
@@ -193,31 +195,63 @@ void throughput_i_am_master_send_data(void)
             p_data);
         if (ret == 0) {
             i_am_master_send_data_num += this_time_send_len;
-            dbg_printf("[tpt]: mst_sd %d %d\r\n", i_am_master_send_data_num, this_time_send_len);
+            log_printf("[tpt]: mst_sd %d %d\r\n", i_am_master_send_data_num, this_time_send_len);
             dump_ram_data_in_char(p_data, this_time_send_len);
             bt_cmd_data_com_buf_pop_data(this_time_send_len);
         } else {
+            log_printf("[tpt]: mst_sd stop %d\r\n", ret);
             att_dispatch_client_request_can_send_now_event(throughput_con_handle);
-            return;
+            return 1;
         }
     }
-    return;
 }
 
-static void throughput_clear_send_data(void)
+static uint8_t throughput_clear_send_data(void)
 {
     uint16_t mtu = 255;
     uint16_t this_time_send_len;
     while (1) {
         this_time_send_len = bt_cmd_data_com_buf_pop_num(mtu);
         if (this_time_send_len == 0) {
-            return;
+            return 0;
         }
 
         dbg_printf("[tpt]: clr_m%u c%u ", mtu, this_time_send_len);
 
         bt_cmd_data_com_buf_pop_data(this_time_send_len);
     }
+}
+
+uint8_t g_throughput_is_sending_data = 0;
+void throughput_send_data(bt_ble_dev_type_e type)
+{
+    uint8_t ret;
+
+    g_throughput_is_sending_data = 1;
+    switch (type)
+    {
+    case BLE_DEV_TYPE_NO_CONNECTION:
+    {
+        ret = throughput_clear_send_data();
+        break;
+    }
+    case BLE_DEV_TYPE_MASTER:
+    {
+        ret = throughput_i_am_master_send_data();
+        break;
+    }
+    case BLE_DEV_TYPE_SLAVE:
+    {
+        ret = throughput_i_am_slave_send_data();
+        break;
+    }
+    default:
+    {
+        ret = throughput_clear_send_data();
+        break;
+    }
+    }
+    g_throughput_is_sending_data = 0;
     return;
 }
 
@@ -230,11 +264,11 @@ void throughput_user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
     case USER_MSG_ID_UART_RX_TO_BLE_DATA_SERVICE:
     {
         if (throughput_notify_enable) {
-            throughput_i_am_slave_send_data();
+            throughput_send_data(BLE_DEV_TYPE_SLAVE);
         } else if ((peer_slave.conn_handle != INVALID_HANDLE) && (peer_slave.throughput_write_notify_char.value_handle != INVALID_HANDLE)) {
-            throughput_i_am_master_send_data();
+            throughput_send_data(BLE_DEV_TYPE_MASTER);
         } else {
-            throughput_clear_send_data();
+            throughput_send_data(BLE_DEV_TYPE_NO_CONNECTION);
         }
         break;
     }

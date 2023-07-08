@@ -12,6 +12,7 @@
 #include "sdk_private_flash_data.h"
 #include "project_common.h"
 #include "bt_cmd_data_uart_io_adp.h"
+#include "low_power.h"
 
 #if defined __cplusplus
     extern "C" {
@@ -21,6 +22,7 @@ typedef int (*pfunbt_at_cmd_parse)(uint8_t const * in_buff, uint16_t inlength, u
 static int bt_at_handle_cona(uint8_t const *in_buff, uint16_t inlength, uint8_t *out_buff, uint16_t *outlength);
 static int bt_at_handle_role(uint8_t const *in_buff, uint16_t inlength, uint8_t *out_buff, uint16_t *outlength);
 static int bt_at_handle_addr(uint8_t const *in_buff, uint16_t inlength, uint8_t *out_buff, uint16_t *outlength);
+static int bt_at_handle_slep(uint8_t const *in_buff, uint16_t inlength, uint8_t *out_buff, uint16_t *outlength);
 
 #define AT_INSTRUCTION_HEADER_LEN    3 // AT+
 #define AT_INSTRUCTION_BODY_MAX_LEN 10 // CONA
@@ -42,6 +44,7 @@ typedef struct
 #define CMD_AT_STR_CONA  "CONA"
 #define CMD_AT_STR_ROLE  "ROLE"
 #define CMD_AT_STR_ADDR  "LADDR"
+#define CMD_AT_STR_SLEP  "SLEEP"
 
 const static char ack_ok[] = "+OK\r\n";
 const static char ack_power_on[] = "+POWERON\r\n";
@@ -54,6 +57,7 @@ static at_instruction_set_body_t at_set_body[] =
     {CMD_AT_STR_CONA,    sizeof(CMD_AT_STR_CONA) - 1,    bt_at_handle_cona},
     {CMD_AT_STR_ROLE,    sizeof(CMD_AT_STR_ROLE) - 1,    bt_at_handle_role},
     {CMD_AT_STR_ADDR,    sizeof(CMD_AT_STR_ADDR) - 1,    bt_at_handle_addr},
+    {CMD_AT_STR_SLEP,    sizeof(CMD_AT_STR_SLEP) - 1,    bt_at_handle_slep},
 };
 
 const static at_instruction_set_t at_set =
@@ -100,6 +104,7 @@ static int bt_at_handle_cona(uint8_t const *in_buff, uint16_t inlength, uint8_t 
     sprintf((char *)out_buff, ack_ok);
     return BT_PRIVT_OK;
 }
+
 static int bt_at_handle_role(uint8_t const *in_buff, uint16_t inlength, uint8_t *out_buff, uint16_t *outlength)
 {
     const uint8_t *pdu = &in_buff[AT_INSTRUCTION_HEADER_LEN + sizeof(CMD_AT_STR_ROLE) - 1];
@@ -122,6 +127,7 @@ static int bt_at_handle_role(uint8_t const *in_buff, uint16_t inlength, uint8_t 
     sprintf((char *)out_buff, ack_ok);
     return BT_PRIVT_OK;
 }
+
 static int bt_at_handle_addr(uint8_t const *in_buff, uint16_t inlength, uint8_t *out_buff, uint16_t *outlength)
 {
     const uint8_t *pdu = &in_buff[AT_INSTRUCTION_HEADER_LEN + sizeof(CMD_AT_STR_ADDR) - 1];
@@ -163,6 +169,30 @@ static int bt_at_handle_addr(uint8_t const *in_buff, uint16_t inlength, uint8_t 
     sdk_private_data_write_to_flash();
     print_addr(addr);
     btstack_push_user_msg(USER_MSG_ID_START_ADV, NULL, 0);
+    sprintf((char *)out_buff, ack_ok);
+    return BT_PRIVT_OK;
+}
+
+static int bt_at_handle_slep(uint8_t const *in_buff, uint16_t inlength, uint8_t *out_buff, uint16_t *outlength)
+{
+    const uint8_t *pdu = &in_buff[AT_INSTRUCTION_HEADER_LEN + sizeof(CMD_AT_STR_SLEP) - 1];
+    uint8_t para_len = 1;
+    if (inlength < (AT_INSTRUCTION_HEADER_LEN + sizeof(CMD_AT_STR_SLEP) - 1 + para_len)) {
+        return BT_PRIVT_AT_PDU_ERROR;
+    }
+
+    if (pdu[0] == '1') {
+        log_printf("[AT]: sleep state 0x%x\r\n", g_sys_work_status_bits);
+        g_sys_work_status_bits = 0;
+    } else if (pdu[0] == '2') { // deep sleep
+        bt_cmd_data_uart_out((uint8_t *)ack_ok, sizeof(ack_ok));
+        bt_cmd_data_uart_wait_all_out();
+        while (1) {
+            platform_shutdown(0, 0, 0);
+        };
+    } else {
+        return BT_PRIVT_AT_PDU_ERROR;
+    }
     sprintf((char *)out_buff, ack_ok);
     return BT_PRIVT_OK;
 }

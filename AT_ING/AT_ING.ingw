@@ -49,7 +49,7 @@
  "is_sdk_path_rel": true,
  "pb_gatt": true,
  "deep_sleep": true,
- "proj_dir": "D:\\work\\ING_SDK\\sdk\\a_project_in_sdk\\AT_ING",
+ "proj_dir": "D:\\work\\ING_SDK\\sdk\\AT_UART\\AT_ING",
  "heap_size": 0,
  "power_saving": true,
  "secondary": false,

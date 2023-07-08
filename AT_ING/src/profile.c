@@ -35,11 +35,6 @@ const static uint8_t scan_data[] = {
 //    #include "../data/gatt.profile"
 //};
 
-hci_con_handle_t handle_send = 0;
-static uint8_t notify_enable = 0;
-
-extern const char welcome_msg[];
-
 static TimerHandle_t create_conn_timer = 0;
 static uint16_t i_am_master_conn_handle = INVALID_HANDLE;
 static uint16_t i_am_slave_conn_handle = INVALID_HANDLE;
@@ -89,11 +84,6 @@ static void stack_on_first_wake_up(void)
     btstack_push_user_msg(USER_MSG_ID_FIRST_WAKE_UP, NULL, 0);
 }
 
-static void stack_set_latency(int latency)
-{
-    ll_set_conn_latency(handle_send, latency);
-}
-
 const static ext_adv_set_en_t adv_sets_en[1] = {{.handle = 0, .duration = 0, .max_events = 0}};
 
 #define INITIATING_OFF      0xff
@@ -108,10 +98,10 @@ static uint8_t is_scanning = 0;
 
 #define SCAN_INTERVAL 96 // * 0.625ms
 #define SCAN_WINDOW 96 // * 0.625ms
-#define I_AM_MASTER_CON_MIN_INTERVAL 24 // * 1.25ms
-#define I_AM_MASTER_CON_MAX_INTERVAL 24 // * 1.25ms
+#define I_AM_MASTER_CON_MIN_INTERVAL 50 // * 1.25ms
+#define I_AM_MASTER_CON_MAX_INTERVAL 50 // * 1.25ms
 #define I_AM_MASTER_TIMEOUT 400 // * 10ms
-#define I_AM_MASTER_CE_LEN 96
+#define I_AM_MASTER_CE_LEN (I_AM_MASTER_CON_MAX_INTERVAL * 2)
 
 const static initiating_phy_config_t phy_configs[] =
 {
@@ -228,6 +218,10 @@ static void profile_user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
         }
         break;
     }
+    case USER_MSG_ID_START_CONNECTION:
+    {
+        break;
+    }
     default:
         break;
     }
@@ -262,8 +256,6 @@ static void user_msg_handler(uint32_t msg_id, void *data, uint16_t size)
     }
     return;
 }
-
-extern int adv_tx_power;
 
 static void setup_adv()
 {
@@ -325,6 +317,20 @@ static const scan_phy_config_t configs[2] =
     },
 };
 
+static void print_connect_para(const le_meta_event_enh_create_conn_complete_t *cmpl)
+{
+    //log_printf("[bt]: connect int:%d lat:%d\r\n", cmpl->interval, cmpl->latency);
+    print_addr(cmpl->peer_addr);
+    return;
+}
+
+static void hint_ce_len(uint16_t handle, uint16_t interval)
+{
+    uint16_t ce_len = interval << 1;
+    ll_hint_on_ce_len(handle, ce_len, ce_len);
+    log_printf("[bt]: int:%d ce:%d\r\n", interval, ce_len);
+}
+
 static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uint8_t *packet, uint16_t size)
 {
     uint8_t event = hci_event_packet_get_type(packet);
@@ -356,7 +362,7 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
                 break;
             }
             log_printf("[bt]: con\r\n");
-            print_addr(cmpl->peer_addr);
+            print_connect_para(cmpl);
             gatt_client_is_ready(cmpl->handle);
             gap_read_remote_used_features(cmpl->handle);
 
@@ -370,6 +376,13 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
                 i_am_master_connected_slave(cmpl);
             }
             throughput_event_connected(cmpl);
+            hint_ce_len(cmpl->handle, cmpl->interval);
+            break;
+        }
+        case HCI_SUBEVENT_LE_CONNECTION_UPDATE_COMPLETE:
+        {
+            const le_meta_event_conn_update_complete_t *cmpl = decode_hci_le_meta_event(packet, le_meta_event_conn_update_complete_t);
+            hint_ce_len(cmpl->handle, cmpl->interval);
             break;
         }
         default:
@@ -397,11 +410,11 @@ static void user_packet_handler(uint8_t packet_type, uint16_t channel, const uin
     }
 
     case ATT_EVENT_CAN_SEND_NOW:
-        throughput_i_am_slave_send_data();
+        throughput_send_data(BLE_DEV_TYPE_SLAVE);
         break;
 
     case L2CAP_EVENT_CAN_SEND_NOW:
-        throughput_i_am_master_send_data();
+        throughput_send_data(BLE_DEV_TYPE_MASTER);
         break;
 
     case BTSTACK_EVENT_USER_MSG:

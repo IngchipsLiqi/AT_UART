@@ -58,6 +58,7 @@ uint8_t *bt_cmd_data_com_buf_top_pos(void);
 
 void bt_cmd_data_ble_recv_data(const uint8_t *data, int data_len);
 void bt_cmd_data_uart_out(const uint8_t *data, int data_len);
+void bt_cmd_data_uart_wait_all_out(void);
 
 void timer_start_main_cmd_data(void);
 void timer_stop_main_cmd_data(void);

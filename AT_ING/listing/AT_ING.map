@@ -57,18 +57,18 @@ Section Cross References
     profile.o(.text.user_packet_handler) refers to profile.o(.text.hci_event_le_meta_get_subevent_code) for hci_event_le_meta_get_subevent_code
     profile.o(.text.user_packet_handler) refers to profile.o(.text.auto_connect) for auto_connect
     profile.o(.text.user_packet_handler) refers to profile.o(.rodata.str1.1) for .L.str.2
-    profile.o(.text.user_packet_handler) refers to app.o(.text.print_addr) for print_addr
+    profile.o(.text.user_packet_handler) refers to profile.o(.text.print_connect_para) for print_connect_para
     profile.o(.text.user_packet_handler) refers to att_db_util.o(.text.att_db_util_get_address) for att_db_util_get_address
     profile.o(.text.user_packet_handler) refers to profile.o(.text.i_am_slave_connected_master) for i_am_slave_connected_master
     profile.o(.text.user_packet_handler) refers to profile.o(.text.i_am_master_connected_slave) for i_am_master_connected_slave
     profile.o(.text.user_packet_handler) refers to throughput_service.o(.text.throughput_event_connected) for throughput_event_connected
+    profile.o(.text.user_packet_handler) refers to profile.o(.text.hint_ce_len) for hint_ce_len
     profile.o(.text.user_packet_handler) refers to profile.o(.data.i_am_master_conn_handle) for i_am_master_conn_handle
     profile.o(.text.user_packet_handler) refers to profile.o(.text.i_am_master_disconnected_slave) for i_am_master_disconnected_slave
     profile.o(.text.user_packet_handler) refers to profile.o(.data.i_am_slave_conn_handle) for i_am_slave_conn_handle
     profile.o(.text.user_packet_handler) refers to profile.o(.text.i_am_slave_disconnected_master) for i_am_slave_disconnected_master
     profile.o(.text.user_packet_handler) refers to throughput_service.o(.text.throughput_event_disconnect) for throughput_event_disconnect
-    profile.o(.text.user_packet_handler) refers to throughput_service.o(.text.throughput_i_am_slave_send_data) for throughput_i_am_slave_send_data
-    profile.o(.text.user_packet_handler) refers to throughput_service.o(.text.throughput_i_am_master_send_data) for throughput_i_am_master_send_data
+    profile.o(.text.user_packet_handler) refers to throughput_service.o(.text.throughput_send_data) for throughput_send_data
     profile.o(.text.user_packet_handler) refers to profile.o(.text.hci_event_packet_get_user_msg) for hci_event_packet_get_user_msg
     profile.o(.text.user_packet_handler) refers to profile.o(.text.user_msg_handler) for user_msg_handler
     profile.o(.ARM.exidx.text.user_packet_handler) refers to profile.o(.text.user_packet_handler) for [Anonymous Symbol]
@@ -81,12 +81,16 @@ Section Cross References
     profile.o(.text.auto_connect) refers to profile.o(.data.i_am_master_conn_handle) for i_am_master_conn_handle
     profile.o(.text.auto_connect) refers to profile.o(.text.initiating) for initiating
     profile.o(.ARM.exidx.text.auto_connect) refers to profile.o(.text.auto_connect) for [Anonymous Symbol]
+    profile.o(.text.print_connect_para) refers to app.o(.text.print_addr) for print_addr
+    profile.o(.ARM.exidx.text.print_connect_para) refers to profile.o(.text.print_connect_para) for [Anonymous Symbol]
     profile.o(.text.i_am_slave_connected_master) refers to profile.o(.data.i_am_slave_conn_handle) for i_am_slave_conn_handle
     profile.o(.ARM.exidx.text.i_am_slave_connected_master) refers to profile.o(.text.i_am_slave_connected_master) for [Anonymous Symbol]
     profile.o(.text.i_am_master_connected_slave) refers to profile.o(.data.i_am_master_conn_handle) for i_am_master_conn_handle
     profile.o(.text.i_am_master_connected_slave) refers to profile.o(.bss.create_conn_timer) for create_conn_timer
     profile.o(.text.i_am_master_connected_slave) refers to throughput_service.o(.text.throughput_discover_services) for throughput_discover_services
     profile.o(.ARM.exidx.text.i_am_master_connected_slave) refers to profile.o(.text.i_am_master_connected_slave) for [Anonymous Symbol]
+    profile.o(.text.hint_ce_len) refers to profile.o(.rodata.str1.1) for .L.str.5
+    profile.o(.ARM.exidx.text.hint_ce_len) refers to profile.o(.text.hint_ce_len) for [Anonymous Symbol]
     profile.o(.text.i_am_master_disconnected_slave) refers to profile.o(.data.i_am_master_conn_handle) for i_am_master_conn_handle
     profile.o(.text.i_am_master_disconnected_slave) refers to profile.o(.text.auto_connect) for auto_connect
     profile.o(.ARM.exidx.text.i_am_master_disconnected_slave) refers to profile.o(.text.i_am_master_disconnected_slave) for [Anonymous Symbol]
@@ -111,7 +115,7 @@ Section Cross References
     profile.o(.ARM.exidx.text.initiating) refers to profile.o(.text.initiating) for [Anonymous Symbol]
     profile.o(.text.profile_user_msg_handler) refers to sdk_private_flash_data.o(.data.g_power_off_save_data_in_ram) for g_power_off_save_data_in_ram
     profile.o(.text.profile_user_msg_handler) refers to profile.o(.text.auto_connect) for auto_connect
-    profile.o(.text.profile_user_msg_handler) refers to profile.o(.rodata.str1.1) for .L.str.5
+    profile.o(.text.profile_user_msg_handler) refers to profile.o(.rodata.str1.1) for .L.str.6
     profile.o(.text.profile_user_msg_handler) refers to profile.o(.rodata.adv_sets_en) for adv_sets_en
     profile.o(.text.profile_user_msg_handler) refers to low_power.o(.text.low_power_exit_saving) for low_power_exit_saving
     profile.o(.text.profile_user_msg_handler) refers to profile.o(.data.initiating_id) for initiating_id
@@ -607,11 +611,14 @@ Section Cross References
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out) refers to peripheral_uart.o(.text.apUART_Check_TXFIFO_FULL) for apUART_Check_TXFIFO_FULL
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out) refers to peripheral_uart.o(.text.UART_SendData) for UART_SendData
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_out) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out) for [Anonymous Symbol]
+    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_wait_all_out) refers to peripheral_uart.o(.text.apUART_Check_TXFIFO_EMPTY) for apUART_Check_TXFIFO_EMPTY
+    bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_wait_all_out) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_wait_all_out) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_com_buf_pop_num) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_com_buf_top_pos) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
+    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) refers to bt_cmd_data_uart_io_adp.o(.rodata.str1.1) for .L.str
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_com_buf_pop_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data) refers to bt_cmd_data_uart_io_adp.o(.bss.ble_buf) for ble_buf
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data) refers to memcpya.o(.text) for __aeabi_memcpy
@@ -623,19 +630,20 @@ Section Cross References
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to peripheral_uart.o(.text.apUART_Check_RXFIFO_EMPTY) for apUART_Check_RXFIFO_EMPTY
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_data_fun) for bt_cmd_data_uart_rx_data_fun
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.trig_timer_cnt) for bt_cmd_data_uart_recv_data.trig_timer_cnt
-    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) for give_sem_send_data_by_ble
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.data.bt_cmd_data_uart_recv_data.trig_source_last) for bt_cmd_data_uart_recv_data.trig_source_last
-    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.have_data_no_process) for bt_cmd_data_uart_recv_data.have_data_no_process
+    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.buf_data_can_be_cmd) for bt_cmd_data_uart_recv_data.buf_data_can_be_cmd
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd) for give_sem_process_cmd
+    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) for give_sem_send_data_by_ble
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_recv_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_data_fun) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_rx_data_fun) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_data_fun) for [Anonymous Symbol]
-    bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
-    bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) refers to bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process) for sem_cmd_process
-    bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.give_sem_send_data_by_ble) refers to bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
     bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd) refers to bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process) for sem_cmd_process
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.give_sem_process_cmd) refers to bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd) for [Anonymous Symbol]
+    bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
+    bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) refers to throughput_service.o(.bss.g_throughput_is_sending_data) for g_throughput_is_sending_data
+    bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) refers to bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process) for sem_cmd_process
+    bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.give_sem_send_data_by_ble) refers to bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.timer_start_main_cmd_data) refers to bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer_state) for m_main_cmd_data_timer_state
     bt_cmd_data_uart_io_adp.o(.text.timer_start_main_cmd_data) refers to bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer) for m_main_cmd_data_timer
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.timer_start_main_cmd_data) refers to bt_cmd_data_uart_io_adp.o(.text.timer_start_main_cmd_data) for [Anonymous Symbol]
@@ -643,7 +651,7 @@ Section Cross References
     bt_cmd_data_uart_io_adp.o(.text.timer_stop_main_cmd_data) refers to bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer) for m_main_cmd_data_timer
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.timer_stop_main_cmd_data) refers to bt_cmd_data_uart_io_adp.o(.text.timer_stop_main_cmd_data) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init) refers to bt_cmd_data_uart_io_adp.o(.text.main_cmd_data_timer_task) for main_cmd_data_timer_task
-    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init) refers to bt_cmd_data_uart_io_adp.o(.rodata.str1.1) for .L.str
+    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init) refers to bt_cmd_data_uart_io_adp.o(.rodata.str1.1) for .L.str.1
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init) refers to bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer) for m_main_cmd_data_timer
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init) refers to bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process) for sem_cmd_process
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init) refers to bt_cmd_data_uart_io_adp.o(.text.cmd_process_task) for cmd_process_task
@@ -674,12 +682,12 @@ Section Cross References
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) refers to bt_at_cmd_parse.o(.text.baec_msg_handle) for baec_msg_handle
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) refers to strlen.o(.text) for strlen
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out) for bt_cmd_data_uart_out
-    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) refers to bt_cmd_data_uart_io_adp.o(.rodata.str1.1) for .L.str.2
+    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) refers to bt_cmd_data_uart_io_adp.o(.rodata.str1.1) for .L.str.3
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state) for bt_cmd_data_print_buf_state
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) refers to bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble) for give_sem_send_data_by_ble
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_rx_cmd_process) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process) for [Anonymous Symbol]
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state) refers to bt_cmd_data_uart_io_adp.o(.bss.com_buf) for com_buf
-    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state) refers to bt_cmd_data_uart_io_adp.o(.rodata.str1.1) for .L.str.3
+    bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state) refers to bt_cmd_data_uart_io_adp.o(.rodata.str1.1) for .L.str.4
     bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state) refers to bt_cmd_data_uart_io_adp.o(.bss.ble_buf) for ble_buf
     bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_print_buf_state) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state) for [Anonymous Symbol]
     project_common.o(.ARM.exidx.text.wake_up_by_ext_int) refers to project_common.o(.text.wake_up_by_ext_int) for [Anonymous Symbol]
@@ -754,6 +762,7 @@ Section Cross References
     throughput_service.o(.text.throughput_att_write_callback) refers to low_power.o(.text.low_power_exit_saving) for low_power_exit_saving
     throughput_service.o(.text.throughput_att_write_callback) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data) for bt_cmd_data_ble_recv_data
     throughput_service.o(.text.throughput_att_write_callback) refers to throughput_service.o(.bss.throughput_notify_enable) for throughput_notify_enable
+    throughput_service.o(.text.throughput_att_write_callback) refers to bt_at_cmd_parse.o(.text.bt_at_connect_ack) for bt_at_connect_ack
     throughput_service.o(.ARM.exidx.text.throughput_att_write_callback) refers to throughput_service.o(.text.throughput_att_write_callback) for [Anonymous Symbol]
     throughput_service.o(.text.throughput_event_connected) refers to throughput_service.o(.data.throughput_con_handle) for throughput_con_handle
     throughput_service.o(.ARM.exidx.text.throughput_event_connected) refers to throughput_service.o(.text.throughput_event_connected) for [Anonymous Symbol]
@@ -762,29 +771,35 @@ Section Cross References
     throughput_service.o(.text.throughput_event_disconnect) refers to throughput_service.o(.bss.throughput_notify_enable) for throughput_notify_enable
     throughput_service.o(.text.throughput_event_disconnect) refers to bt_at_cmd_parse.o(.text.bt_at_disconnect_ack) for bt_at_disconnect_ack
     throughput_service.o(.ARM.exidx.text.throughput_event_disconnect) refers to throughput_service.o(.text.throughput_event_disconnect) for [Anonymous Symbol]
-    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.data.throughput_con_handle) for throughput_con_handle
-    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num) for bt_cmd_data_com_buf_pop_num
-    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos) for bt_cmd_data_com_buf_top_pos
-    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.data.throughput_att_write_notify_handle) for throughput_att_write_notify_handle
-    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) for bt_cmd_data_com_buf_pop_data
-    throughput_service.o(.ARM.exidx.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.text.throughput_i_am_slave_send_data) for [Anonymous Symbol]
+    throughput_service.o(.text.throughput_send_data) refers to throughput_service.o(.bss.g_throughput_is_sending_data) for g_throughput_is_sending_data
+    throughput_service.o(.text.throughput_send_data) refers to throughput_service.o(.text.throughput_clear_send_data) for throughput_clear_send_data
+    throughput_service.o(.text.throughput_send_data) refers to throughput_service.o(.text.throughput_i_am_master_send_data) for throughput_i_am_master_send_data
+    throughput_service.o(.text.throughput_send_data) refers to throughput_service.o(.text.throughput_i_am_slave_send_data) for throughput_i_am_slave_send_data
+    throughput_service.o(.ARM.exidx.text.throughput_send_data) refers to throughput_service.o(.text.throughput_send_data) for [Anonymous Symbol]
+    throughput_service.o(.text.throughput_clear_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num) for bt_cmd_data_com_buf_pop_num
+    throughput_service.o(.text.throughput_clear_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) for bt_cmd_data_com_buf_pop_data
+    throughput_service.o(.ARM.exidx.text.throughput_clear_send_data) refers to throughput_service.o(.text.throughput_clear_send_data) for [Anonymous Symbol]
     throughput_service.o(.text.throughput_i_am_master_send_data) refers to throughput_service.o(.data.throughput_con_handle) for throughput_con_handle
     throughput_service.o(.text.throughput_i_am_master_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num) for bt_cmd_data_com_buf_pop_num
     throughput_service.o(.text.throughput_i_am_master_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos) for bt_cmd_data_com_buf_top_pos
     throughput_service.o(.text.throughput_i_am_master_send_data) refers to throughput_service.o(.data.peer_slave) for peer_slave
     throughput_service.o(.text.throughput_i_am_master_send_data) refers to throughput_service.o(.bss.i_am_master_send_data_num) for i_am_master_send_data_num
+    throughput_service.o(.text.throughput_i_am_master_send_data) refers to throughput_service.o(.rodata.str1.1) for .L.str.1
     throughput_service.o(.text.throughput_i_am_master_send_data) refers to app.o(.text.dump_ram_data_in_char) for dump_ram_data_in_char
     throughput_service.o(.text.throughput_i_am_master_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) for bt_cmd_data_com_buf_pop_data
     throughput_service.o(.ARM.exidx.text.throughput_i_am_master_send_data) refers to throughput_service.o(.text.throughput_i_am_master_send_data) for [Anonymous Symbol]
+    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.data.throughput_con_handle) for throughput_con_handle
+    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num) for bt_cmd_data_com_buf_pop_num
+    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos) for bt_cmd_data_com_buf_top_pos
+    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.data.throughput_att_write_notify_handle) for throughput_att_write_notify_handle
+    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.bss.i_am_slave_send_data_num) for i_am_slave_send_data_num
+    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.rodata.str1.1) for .L.str.3
+    throughput_service.o(.text.throughput_i_am_slave_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) for bt_cmd_data_com_buf_pop_data
+    throughput_service.o(.ARM.exidx.text.throughput_i_am_slave_send_data) refers to throughput_service.o(.text.throughput_i_am_slave_send_data) for [Anonymous Symbol]
     throughput_service.o(.text.throughput_user_msg_handler) refers to throughput_service.o(.bss.throughput_notify_enable) for throughput_notify_enable
-    throughput_service.o(.text.throughput_user_msg_handler) refers to throughput_service.o(.text.throughput_i_am_slave_send_data) for throughput_i_am_slave_send_data
+    throughput_service.o(.text.throughput_user_msg_handler) refers to throughput_service.o(.text.throughput_send_data) for throughput_send_data
     throughput_service.o(.text.throughput_user_msg_handler) refers to throughput_service.o(.data.peer_slave) for peer_slave
-    throughput_service.o(.text.throughput_user_msg_handler) refers to throughput_service.o(.text.throughput_i_am_master_send_data) for throughput_i_am_master_send_data
-    throughput_service.o(.text.throughput_user_msg_handler) refers to throughput_service.o(.text.throughput_clear_send_data) for throughput_clear_send_data
     throughput_service.o(.ARM.exidx.text.throughput_user_msg_handler) refers to throughput_service.o(.text.throughput_user_msg_handler) for [Anonymous Symbol]
-    throughput_service.o(.text.throughput_clear_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num) for bt_cmd_data_com_buf_pop_num
-    throughput_service.o(.text.throughput_clear_send_data) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data) for bt_cmd_data_com_buf_pop_data
-    throughput_service.o(.ARM.exidx.text.throughput_clear_send_data) refers to throughput_service.o(.text.throughput_clear_send_data) for [Anonymous Symbol]
     throughput_service.o(.text.throughput_discover_services) refers to throughput_service.o(.data.peer_slave) for peer_slave
     throughput_service.o(.text.throughput_discover_services) refers to throughput_service.o(.text.throughput_service_discovery_callback) for throughput_service_discovery_callback
     throughput_service.o(.text.throughput_discover_services) refers to throughput_service.o(.rodata.throughput_service_uuid128) for throughput_service_uuid128
@@ -792,7 +807,7 @@ Section Cross References
     throughput_service.o(.text.throughput_service_discovery_callback) refers to throughput_service.o(.text.gatt_event_service_query_result_parse) for gatt_event_service_query_result_parse
     throughput_service.o(.text.throughput_service_discovery_callback) refers to throughput_service.o(.data.peer_slave) for peer_slave
     throughput_service.o(.text.throughput_service_discovery_callback) refers to memcpya.o(.text) for __aeabi_memcpy
-    throughput_service.o(.text.throughput_service_discovery_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.1
+    throughput_service.o(.text.throughput_service_discovery_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.4
     throughput_service.o(.text.throughput_service_discovery_callback) refers to throughput_service.o(.text.gatt_event_query_complete_parse) for gatt_event_query_complete_parse
     throughput_service.o(.text.throughput_service_discovery_callback) refers to throughput_service.o(.text.throughput_characteristic_discovery_callback) for throughput_characteristic_discovery_callback
     throughput_service.o(.ARM.exidx.text.throughput_service_discovery_callback) refers to throughput_service.o(.text.throughput_service_discovery_callback) for [Anonymous Symbol]
@@ -803,7 +818,7 @@ Section Cross References
     throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to memcmp.o(.text) for memcmp
     throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to throughput_service.o(.data.peer_slave) for peer_slave
     throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to memcpya.o(.text) for __aeabi_memcpy
-    throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.3
+    throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.6
     throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to throughput_service.o(.rodata.throughput_char_io_uuid128) for throughput_char_io_uuid128
     throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to throughput_service.o(.text.gatt_event_query_complete_parse) for gatt_event_query_complete_parse
     throughput_service.o(.text.throughput_characteristic_discovery_callback) refers to throughput_service.o(.text.throughput_descriptor_discovery_callback) for throughput_descriptor_discovery_callback
@@ -813,7 +828,7 @@ Section Cross References
     throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to throughput_service.o(.text.get_sig_short_uuid) for get_sig_short_uuid
     throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to throughput_service.o(.data.peer_slave) for peer_slave
     throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to memcpya.o(.text) for __aeabi_memcpy
-    throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.6
+    throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.9
     throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to throughput_service.o(.text.gatt_event_query_complete_parse) for gatt_event_query_complete_parse
     throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to throughput_service.o(.text.throughput_notification_listen_handler) for throughput_notification_listen_handler
     throughput_service.o(.text.throughput_descriptor_discovery_callback) refers to throughput_service.o(.data.char_config_notification) for char_config_notification
@@ -826,7 +841,7 @@ Section Cross References
     throughput_service.o(.text.throughput_notification_listen_handler) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data) for bt_cmd_data_ble_recv_data
     throughput_service.o(.ARM.exidx.text.throughput_notification_listen_handler) refers to throughput_service.o(.text.throughput_notification_listen_handler) for [Anonymous Symbol]
     throughput_service.o(.text.btstack_callback) refers to throughput_service.o(.text.gatt_event_query_complete_parse) for gatt_event_query_complete_parse
-    throughput_service.o(.text.btstack_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.7
+    throughput_service.o(.text.btstack_callback) refers to throughput_service.o(.rodata.str1.1) for .L.str.10
     throughput_service.o(.text.btstack_callback) refers to bt_at_cmd_parse.o(.text.bt_at_connect_ack) for bt_at_connect_ack
     throughput_service.o(.ARM.exidx.text.btstack_callback) refers to throughput_service.o(.text.btstack_callback) for [Anonymous Symbol]
     throughput_service.o(.ARM.exidx.text.gatt_event_notification_parse) refers to throughput_service.o(.text.gatt_event_notification_parse) for [Anonymous Symbol]
@@ -864,10 +879,18 @@ Section Cross References
     bt_at_cmd_parse.o(.text.bt_at_handle_addr) refers to sdk_private_flash_data.o(.text.sdk_private_data_write_to_flash) for sdk_private_data_write_to_flash
     bt_at_cmd_parse.o(.text.bt_at_handle_addr) refers to bt_at_cmd_parse.o(.rodata.ack_ok) for ack_ok
     bt_at_cmd_parse.o(.ARM.exidx.text.bt_at_handle_addr) refers to bt_at_cmd_parse.o(.text.bt_at_handle_addr) for [Anonymous Symbol]
+    bt_at_cmd_parse.o(.text.bt_at_handle_slep) refers to low_power.o(.bss.g_sys_work_status_bits) for g_sys_work_status_bits
+    bt_at_cmd_parse.o(.text.bt_at_handle_slep) refers to bt_at_cmd_parse.o(.rodata.str1.1) for .L.str.1
+    bt_at_cmd_parse.o(.text.bt_at_handle_slep) refers to bt_at_cmd_parse.o(.rodata.ack_ok) for ack_ok
+    bt_at_cmd_parse.o(.text.bt_at_handle_slep) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out) for bt_cmd_data_uart_out
+    bt_at_cmd_parse.o(.text.bt_at_handle_slep) refers to bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_wait_all_out) for bt_cmd_data_uart_wait_all_out
+    bt_at_cmd_parse.o(.text.bt_at_handle_slep) refers to printfa.o(i.__0sprintf) for sprintf
+    bt_at_cmd_parse.o(.ARM.exidx.text.bt_at_handle_slep) refers to bt_at_cmd_parse.o(.text.bt_at_handle_slep) for [Anonymous Symbol]
     bt_at_cmd_parse.o(.rodata.at_set) refers to bt_at_cmd_parse.o(.data.at_set_body) for [Anonymous Symbol]
     bt_at_cmd_parse.o(.data.at_set_body) refers to bt_at_cmd_parse.o(.text.bt_at_handle_cona) for bt_at_handle_cona
     bt_at_cmd_parse.o(.data.at_set_body) refers to bt_at_cmd_parse.o(.text.bt_at_handle_role) for bt_at_handle_role
     bt_at_cmd_parse.o(.data.at_set_body) refers to bt_at_cmd_parse.o(.text.bt_at_handle_addr) for bt_at_handle_addr
+    bt_at_cmd_parse.o(.data.at_set_body) refers to bt_at_cmd_parse.o(.text.bt_at_handle_slep) for bt_at_handle_slep
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry10a.o(.ARM.Collect$$$$0000000D) for __rt_final_cpp
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry11a.o(.ARM.Collect$$$$0000000F) for __rt_final_exit
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry7b.o(.ARM.Collect$$$$00000008) for _main_clock
@@ -972,8 +995,10 @@ Removing Unused input sections from the image.
     Removing profile.o(.ARM.exidx.text.stack_on_first_wake_up), (8 bytes).
     Removing profile.o(.ARM.exidx.text.hci_event_le_meta_get_subevent_code), (8 bytes).
     Removing profile.o(.ARM.exidx.text.auto_connect), (8 bytes).
+    Removing profile.o(.ARM.exidx.text.print_connect_para), (8 bytes).
     Removing profile.o(.ARM.exidx.text.i_am_slave_connected_master), (8 bytes).
     Removing profile.o(.ARM.exidx.text.i_am_master_connected_slave), (8 bytes).
+    Removing profile.o(.ARM.exidx.text.hint_ce_len), (8 bytes).
     Removing profile.o(.ARM.exidx.text.i_am_master_disconnected_slave), (8 bytes).
     Removing profile.o(.ARM.exidx.text.i_am_slave_disconnected_master), (8 bytes).
     Removing profile.o(.ARM.exidx.text.hci_event_packet_get_user_msg), (8 bytes).
@@ -983,7 +1008,6 @@ Removing Unused input sections from the image.
     Removing profile.o(.ARM.exidx.text.profile_user_msg_handler), (8 bytes).
     Removing profile.o(.ARM.exidx.text.adv_user_msg_handler), (8 bytes).
     Removing profile.o(.ARM.exidx.text.cancel_initiating), (8 bytes).
-    Removing profile.o(.bss.handle_send), (2 bytes).
     Removing app.o(.text), (0 bytes).
     Removing app.o(.ARM.exidx.text.app_setup_peripherals), (8 bytes).
     Removing app.o(.ARM.exidx.text.sdk_config_uart1_com), (8 bytes).
@@ -1408,6 +1432,7 @@ Removing Unused input sections from the image.
     Removing att_db_util.o(.rodata.str1.1), (85 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.text), (0 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_out), (8 bytes).
+    Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_wait_all_out), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_com_buf_pop_num), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_com_buf_top_pos), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_com_buf_pop_data), (8 bytes).
@@ -1415,8 +1440,8 @@ Removing Unused input sections from the image.
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.give_sem_send_data_by_com), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_recv_data), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.bt_cmd_data_uart_rx_data_fun), (8 bytes).
-    Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.give_sem_send_data_by_ble), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.give_sem_process_cmd), (8 bytes).
+    Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.give_sem_send_data_by_ble), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.timer_start_main_cmd_data), (8 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.text.timer_stop_main_cmd_data), (66 bytes).
     Removing bt_cmd_data_uart_io_adp.o(.ARM.exidx.text.timer_stop_main_cmd_data), (8 bytes).
@@ -1462,10 +1487,11 @@ Removing Unused input sections from the image.
     Removing throughput_service.o(.ARM.exidx.text.throughput_att_write_callback), (8 bytes).
     Removing throughput_service.o(.ARM.exidx.text.throughput_event_connected), (8 bytes).
     Removing throughput_service.o(.ARM.exidx.text.throughput_event_disconnect), (8 bytes).
-    Removing throughput_service.o(.ARM.exidx.text.throughput_i_am_slave_send_data), (8 bytes).
-    Removing throughput_service.o(.ARM.exidx.text.throughput_i_am_master_send_data), (8 bytes).
-    Removing throughput_service.o(.ARM.exidx.text.throughput_user_msg_handler), (8 bytes).
+    Removing throughput_service.o(.ARM.exidx.text.throughput_send_data), (8 bytes).
     Removing throughput_service.o(.ARM.exidx.text.throughput_clear_send_data), (8 bytes).
+    Removing throughput_service.o(.ARM.exidx.text.throughput_i_am_master_send_data), (8 bytes).
+    Removing throughput_service.o(.ARM.exidx.text.throughput_i_am_slave_send_data), (8 bytes).
+    Removing throughput_service.o(.ARM.exidx.text.throughput_user_msg_handler), (8 bytes).
     Removing throughput_service.o(.ARM.exidx.text.throughput_discover_services), (8 bytes).
     Removing throughput_service.o(.ARM.exidx.text.throughput_service_discovery_callback), (8 bytes).
     Removing throughput_service.o(.ARM.exidx.text.gatt_event_service_query_result_parse), (8 bytes).
@@ -1488,12 +1514,13 @@ Removing Unused input sections from the image.
     Removing bt_at_cmd_parse.o(.ARM.exidx.text.bt_at_handle_cona), (8 bytes).
     Removing bt_at_cmd_parse.o(.ARM.exidx.text.bt_at_handle_role), (8 bytes).
     Removing bt_at_cmd_parse.o(.ARM.exidx.text.bt_at_handle_addr), (8 bytes).
+    Removing bt_at_cmd_parse.o(.ARM.exidx.text.bt_at_handle_slep), (8 bytes).
     Removing bt_at_cmd_parse.o(.rodata.ack_wake_up), (6 bytes).
     Removing dfltui.o(.text), (26 bytes).
     Removing d2f.o(.text), (56 bytes).
     Removing fepilogue.o(.text), (110 bytes).
 
-538 unused section(s) (total 19691 bytes) removed from the image.
+542 unused section(s) (total 19729 bytes) removed from the image.
 
 ==============================================================================
 
@@ -1673,328 +1700,301 @@ Image Symbol Table
     [Anonymous Symbol]                       0x02029d88   Section        0  bt_at_cmd_parse.o(.text.bt_at_handle_cona)
     bt_at_handle_role                        0x02029ed5   Thumb Code   168  bt_at_cmd_parse.o(.text.bt_at_handle_role)
     [Anonymous Symbol]                       0x02029ed4   Section        0  bt_at_cmd_parse.o(.text.bt_at_handle_role)
-    [Anonymous Symbol]                       0x02029f7c   Section        0  bt_at_cmd_parse.o(.text.bt_at_power_on_ack)
-    [Anonymous Symbol]                       0x02029f90   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data)
-    [Anonymous Symbol]                       0x0202a06c   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data)
-    [Anonymous Symbol]                       0x0202a0b0   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num)
-    [Anonymous Symbol]                       0x0202a114   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos)
-    bt_cmd_data_port_check_buf_into_lowpower 0x0202a125   Thumb Code   102  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_port_check_buf_into_lowpower)
-    [Anonymous Symbol]                       0x0202a124   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_port_check_buf_into_lowpower)
-    bt_cmd_data_print_buf_state              0x0202a18d   Thumb Code    76  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state)
-    [Anonymous Symbol]                       0x0202a18c   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state)
-    [Anonymous Symbol]                       0x0202a1d8   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init)
-    bt_cmd_data_uart1_isr                    0x0202a25d   Thumb Code    70  app.o(.text.bt_cmd_data_uart1_isr)
-    [Anonymous Symbol]                       0x0202a25c   Section        0  app.o(.text.bt_cmd_data_uart1_isr)
-    bt_cmd_data_uart_handle_task_send_data   0x0202a2a5   Thumb Code   122  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_handle_task_send_data)
-    [Anonymous Symbol]                       0x0202a2a4   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_handle_task_send_data)
-    [Anonymous Symbol]                       0x0202a320   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out)
-    [Anonymous Symbol]                       0x0202a378   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data)
-    bt_cmd_data_uart_rx_cmd_process          0x0202a47d   Thumb Code   164  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process)
-    [Anonymous Symbol]                       0x0202a47c   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process)
-    bt_cmd_data_uart_rx_data_fun             0x0202a521   Thumb Code   122  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_data_fun)
-    [Anonymous Symbol]                       0x0202a520   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_data_fun)
-    btstack_callback                         0x0202a59d   Thumb Code    64  throughput_service.o(.text.btstack_callback)
-    [Anonymous Symbol]                       0x0202a59c   Section        0  throughput_service.o(.text.btstack_callback)
-    btstack_event_state_get_state            0x0202a5dd   Thumb Code    12  profile.o(.text.btstack_event_state_get_state)
-    [Anonymous Symbol]                       0x0202a5dc   Section        0  profile.o(.text.btstack_event_state_get_state)
-    cancel_initiating                        0x0202a5e9   Thumb Code    86  profile.o(.text.cancel_initiating)
-    [Anonymous Symbol]                       0x0202a5e8   Section        0  profile.o(.text.cancel_initiating)
-    cb_assertion                             0x0202a641   Thumb Code    30  main.o(.text.cb_assertion)
-    [Anonymous Symbol]                       0x0202a640   Section        0  main.o(.text.cb_assertion)
-    cb_hard_fault                            0x0202a661   Thumb Code    86  main.o(.text.cb_hard_fault)
-    [Anonymous Symbol]                       0x0202a660   Section        0  main.o(.text.cb_hard_fault)
-    cb_heap_out_of_mem                       0x0202a6b9   Thumb Code    26  main.o(.text.cb_heap_out_of_mem)
-    [Anonymous Symbol]                       0x0202a6b8   Section        0  main.o(.text.cb_heap_out_of_mem)
-    cmd_process_task                         0x0202a6d5   Thumb Code   200  bt_cmd_data_uart_io_adp.o(.text.cmd_process_task)
-    [Anonymous Symbol]                       0x0202a6d4   Section        0  bt_cmd_data_uart_io_adp.o(.text.cmd_process_task)
-    conn_timer_callback                      0x0202a79d   Thumb Code    20  profile.o(.text.conn_timer_callback)
-    [Anonymous Symbol]                       0x0202a79c   Section        0  profile.o(.text.conn_timer_callback)
-    copy_security_data                       0x0202a7b1   Thumb Code   122  eflash.o(.text.copy_security_data)
-    [Anonymous Symbol]                       0x0202a7b0   Section        0  eflash.o(.text.copy_security_data)
-    [Anonymous Symbol]                       0x0202a82c   Section        0  app.o(.text.dump_ram_data_in_char)
-    enter_low_power_timer_callback           0x0202a839   Thumb Code    18  low_power.o(.text.enter_low_power_timer_callback)
-    [Anonymous Symbol]                       0x0202a838   Section        0  low_power.o(.text.enter_low_power_timer_callback)
-    [Anonymous Symbol]                       0x0202a84c   Section        0  eflash.o(.text.erase_flash_sector)
-    [Anonymous Symbol]                       0x0202a868   Section        0  eflash.o(.text.flash_get_factory_calib_data)
-    [Anonymous Symbol]                       0x0202a88c   Section        0  eflash.o(.text.flash_prepare_factory_data)
-    gatt_event_all_characteristic_descriptors_query_result_parse 0x0202a929   Thumb Code    12  throughput_service.o(.text.gatt_event_all_characteristic_descriptors_query_result_parse)
-    [Anonymous Symbol]                       0x0202a928   Section        0  throughput_service.o(.text.gatt_event_all_characteristic_descriptors_query_result_parse)
-    gatt_event_characteristic_query_result_parse 0x0202a935   Thumb Code    12  throughput_service.o(.text.gatt_event_characteristic_query_result_parse)
-    [Anonymous Symbol]                       0x0202a934   Section        0  throughput_service.o(.text.gatt_event_characteristic_query_result_parse)
-    gatt_event_notification_parse            0x0202a941   Thumb Code    28  throughput_service.o(.text.gatt_event_notification_parse)
-    [Anonymous Symbol]                       0x0202a940   Section        0  throughput_service.o(.text.gatt_event_notification_parse)
-    gatt_event_query_complete_parse          0x0202a95d   Thumb Code    12  throughput_service.o(.text.gatt_event_query_complete_parse)
-    [Anonymous Symbol]                       0x0202a95c   Section        0  throughput_service.o(.text.gatt_event_query_complete_parse)
-    gatt_event_service_query_result_parse    0x0202a969   Thumb Code    12  throughput_service.o(.text.gatt_event_service_query_result_parse)
-    [Anonymous Symbol]                       0x0202a968   Section        0  throughput_service.o(.text.gatt_event_service_query_result_parse)
-    get_sig_short_uuid                       0x0202a975   Thumb Code    40  throughput_service.o(.text.get_sig_short_uuid)
-    [Anonymous Symbol]                       0x0202a974   Section        0  throughput_service.o(.text.get_sig_short_uuid)
-    give_sem_process_cmd                     0x0202a99d   Thumb Code    44  bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd)
-    [Anonymous Symbol]                       0x0202a99c   Section        0  bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd)
-    give_sem_send_data_by_ble                0x0202a9c9   Thumb Code    44  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble)
-    [Anonymous Symbol]                       0x0202a9c8   Section        0  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble)
-    give_sem_send_data_by_com                0x0202a9f5   Thumb Code    44  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_com)
-    [Anonymous Symbol]                       0x0202a9f4   Section        0  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_com)
-    hci_event_le_meta_get_subevent_code      0x0202aa21   Thumb Code    12  profile.o(.text.hci_event_le_meta_get_subevent_code)
-    [Anonymous Symbol]                       0x0202aa20   Section        0  profile.o(.text.hci_event_le_meta_get_subevent_code)
-    hci_event_packet_get_type                0x0202aa2d   Thumb Code    12  profile.o(.text.hci_event_packet_get_type)
-    [Anonymous Symbol]                       0x0202aa2c   Section        0  profile.o(.text.hci_event_packet_get_type)
-    hci_event_packet_get_user_msg            0x0202aa39   Thumb Code    12  profile.o(.text.hci_event_packet_get_user_msg)
-    [Anonymous Symbol]                       0x0202aa38   Section        0  profile.o(.text.hci_event_packet_get_user_msg)
-    i_am_master_connected_slave              0x0202aa45   Thumb Code    60  profile.o(.text.i_am_master_connected_slave)
-    [Anonymous Symbol]                       0x0202aa44   Section        0  profile.o(.text.i_am_master_connected_slave)
-    i_am_master_disconnected_slave           0x0202aa81   Thumb Code    28  profile.o(.text.i_am_master_disconnected_slave)
-    [Anonymous Symbol]                       0x0202aa80   Section        0  profile.o(.text.i_am_master_disconnected_slave)
-    i_am_slave_connected_master              0x0202aa9d   Thumb Code    24  profile.o(.text.i_am_slave_connected_master)
-    [Anonymous Symbol]                       0x0202aa9c   Section        0  profile.o(.text.i_am_slave_connected_master)
-    i_am_slave_disconnected_master           0x0202aab5   Thumb Code    44  profile.o(.text.i_am_slave_disconnected_master)
-    [Anonymous Symbol]                       0x0202aab4   Section        0  profile.o(.text.i_am_slave_disconnected_master)
-    initiating                               0x0202aae1   Thumb Code   168  profile.o(.text.initiating)
-    [Anonymous Symbol]                       0x0202aae0   Section        0  profile.o(.text.initiating)
-    is_data_ready                            0x0202ab89   Thumb Code    66  eflash.o(.text.is_data_ready)
-    [Anonymous Symbol]                       0x0202ab88   Section        0  eflash.o(.text.is_data_ready)
-    [Anonymous Symbol]                       0x0202abcc   Section        0  low_power.o(.text.low_power_create_timer)
-    low_power_enter_saving                   0x0202ac41   Thumb Code    48  low_power.o(.text.low_power_enter_saving)
-    [Anonymous Symbol]                       0x0202ac40   Section        0  low_power.o(.text.low_power_enter_saving)
-    [Anonymous Symbol]                       0x0202ac70   Section        0  low_power.o(.text.low_power_exit_saving)
-    low_power_start_timer                    0x0202ad0d   Thumb Code    78  low_power.o(.text.low_power_start_timer)
-    [Anonymous Symbol]                       0x0202ad0c   Section        0  low_power.o(.text.low_power_start_timer)
-    low_power_task                           0x0202ad5d   Thumb Code    68  low_power.o(.text.low_power_task)
-    [Anonymous Symbol]                       0x0202ad5c   Section        0  low_power.o(.text.low_power_task)
-    main_cmd_data_timer_task                 0x0202ada1   Thumb Code    16  bt_cmd_data_uart_io_adp.o(.text.main_cmd_data_timer_task)
-    [Anonymous Symbol]                       0x0202ada0   Section        0  bt_cmd_data_uart_io_adp.o(.text.main_cmd_data_timer_task)
-    map_int_mode                             0x0202adb1   Thumb Code   142  peripheral_gpio.o(.text.map_int_mode)
-    [Anonymous Symbol]                       0x0202adb0   Section        0  peripheral_gpio.o(.text.map_int_mode)
-    pin_id_for_input_source                  0x0202ae41   Thumb Code   158  peripheral_pinctrl.o(.text.pin_id_for_input_source)
-    [Anonymous Symbol]                       0x0202ae40   Section        0  peripheral_pinctrl.o(.text.pin_id_for_input_source)
-    [Anonymous Symbol]                       0x0202aee0   Section        0  app.o(.text.print_addr)
-    print_dev_info                           0x0202af2d   Thumb Code   204  app.o(.text.print_dev_info)
-    [Anonymous Symbol]                       0x0202af2c   Section        0  app.o(.text.print_dev_info)
-    profile_user_msg_handler                 0x0202aff9   Thumb Code   182  profile.o(.text.profile_user_msg_handler)
-    [Anonymous Symbol]                       0x0202aff8   Section        0  profile.o(.text.profile_user_msg_handler)
-    [Anonymous Symbol]                       0x0202b0b0   Section        0  eflash.o(.text.program_flash)
-    [Anonymous Symbol]                       0x0202b0cc   Section        0  eflash.o(.text.read_flash_security)
-    sdk_config_uart                          0x0202b101   Thumb Code    86  app.o(.text.sdk_config_uart)
-    [Anonymous Symbol]                       0x0202b100   Section        0  app.o(.text.sdk_config_uart)
-    sdk_config_uart1_com                     0x0202b159   Thumb Code    82  app.o(.text.sdk_config_uart1_com)
-    [Anonymous Symbol]                       0x0202b158   Section        0  app.o(.text.sdk_config_uart1_com)
-    [Anonymous Symbol]                       0x0202b1ac   Section        0  sdk_private_flash_data.o(.text.sdk_load_private_flash_data)
-    [Anonymous Symbol]                       0x0202b2b0   Section        0  sdk_private_flash_data.o(.text.sdk_private_data_write_to_flash)
-    security_page_read                       0x0202b2cd   Thumb Code     6  eflash.o(.text.security_page_read)
-    [Anonymous Symbol]                       0x0202b2cc   Section        0  eflash.o(.text.security_page_read)
-    set_reg_bit                              0x0202b2d5   Thumb Code    50  peripheral_sysctrl.o(.text.set_reg_bit)
-    [Anonymous Symbol]                       0x0202b2d4   Section        0  peripheral_sysctrl.o(.text.set_reg_bit)
-    set_reg_bits                             0x0202b309   Thumb Code    68  peripheral_pinctrl.o(.text.set_reg_bits)
-    [Anonymous Symbol]                       0x0202b308   Section        0  peripheral_pinctrl.o(.text.set_reg_bits)
-    set_reg_bits                             0x0202b34d   Thumb Code    58  peripheral_sysctrl.o(.text.set_reg_bits)
-    [Anonymous Symbol]                       0x0202b34c   Section        0  peripheral_sysctrl.o(.text.set_reg_bits)
-    setup_adv                                0x0202b389   Thumb Code   106  profile.o(.text.setup_adv)
-    [Anonymous Symbol]                       0x0202b388   Section        0  profile.o(.text.setup_adv)
-    setup_pll_clk_and_sleep_para             0x0202b3f5   Thumb Code    64  app.o(.text.setup_pll_clk_and_sleep_para)
-    [Anonymous Symbol]                       0x0202b3f4   Section        0  app.o(.text.setup_pll_clk_and_sleep_para)
-    [Anonymous Symbol]                       0x0202b434   Section        0  profile.o(.text.setup_profile)
-    source_id_on_pin                         0x0202b4c5   Thumb Code   160  peripheral_pinctrl.o(.text.source_id_on_pin)
-    [Anonymous Symbol]                       0x0202b4c4   Section        0  peripheral_pinctrl.o(.text.source_id_on_pin)
-    stack_on_first_wake_up                   0x0202b565   Thumb Code    14  profile.o(.text.stack_on_first_wake_up)
-    [Anonymous Symbol]                       0x0202b564   Section        0  profile.o(.text.stack_on_first_wake_up)
-    [Anonymous Symbol]                       0x0202b574   Section        0  throughput_service.o(.text.throughput_att_read_callback)
-    [Anonymous Symbol]                       0x0202b610   Section        0  throughput_service.o(.text.throughput_att_write_callback)
-    throughput_characteristic_discovery_callback 0x0202b6b5   Thumb Code   276  throughput_service.o(.text.throughput_characteristic_discovery_callback)
-    [Anonymous Symbol]                       0x0202b6b4   Section        0  throughput_service.o(.text.throughput_characteristic_discovery_callback)
-    throughput_clear_send_data               0x0202b7c9   Thumb Code    46  throughput_service.o(.text.throughput_clear_send_data)
-    [Anonymous Symbol]                       0x0202b7c8   Section        0  throughput_service.o(.text.throughput_clear_send_data)
-    throughput_descriptor_discovery_callback 0x0202b7f9   Thumb Code   212  throughput_service.o(.text.throughput_descriptor_discovery_callback)
-    [Anonymous Symbol]                       0x0202b7f8   Section        0  throughput_service.o(.text.throughput_descriptor_discovery_callback)
-    [Anonymous Symbol]                       0x0202b8cc   Section        0  throughput_service.o(.text.throughput_discover_services)
-    [Anonymous Symbol]                       0x0202b900   Section        0  throughput_service.o(.text.throughput_event_connected)
-    [Anonymous Symbol]                       0x0202b918   Section        0  throughput_service.o(.text.throughput_event_disconnect)
-    [Anonymous Symbol]                       0x0202b94c   Section        0  throughput_service.o(.text.throughput_i_am_master_send_data)
-    [Anonymous Symbol]                       0x0202b9f4   Section        0  throughput_service.o(.text.throughput_i_am_slave_send_data)
-    throughput_notification_listen_handler   0x0202ba95   Thumb Code    68  throughput_service.o(.text.throughput_notification_listen_handler)
-    [Anonymous Symbol]                       0x0202ba94   Section        0  throughput_service.o(.text.throughput_notification_listen_handler)
-    throughput_service_discovery_callback    0x0202bad9   Thumb Code   184  throughput_service.o(.text.throughput_service_discovery_callback)
-    [Anonymous Symbol]                       0x0202bad8   Section        0  throughput_service.o(.text.throughput_service_discovery_callback)
-    [Anonymous Symbol]                       0x0202bb90   Section        0  throughput_service.o(.text.throughput_service_init)
-    [Anonymous Symbol]                       0x0202bc14   Section        0  throughput_service.o(.text.throughput_user_msg_handler)
-    [Anonymous Symbol]                       0x0202bc88   Section        0  bt_cmd_data_uart_io_adp.o(.text.timer_start_main_cmd_data)
-    trim_rf_freq                             0x0202bcd5   Thumb Code    18  main.o(.text.trim_rf_freq)
-    [Anonymous Symbol]                       0x0202bcd4   Section        0  main.o(.text.trim_rf_freq)
-    user_msg_handler                         0x0202bce9   Thumb Code   112  profile.o(.text.user_msg_handler)
-    [Anonymous Symbol]                       0x0202bce8   Section        0  profile.o(.text.user_msg_handler)
-    user_packet_handler                      0x0202bd59   Thumb Code   484  profile.o(.text.user_packet_handler)
-    [Anonymous Symbol]                       0x0202bd58   Section        0  profile.o(.text.user_packet_handler)
-    [Anonymous Symbol]                       0x0202bf3c   Section        0  eflash.o(.text.write_flash)
-    Long Thumb to Thumb Veneer to m_setup_peripherals 0x0202bfbb   Thumb Code    10  anon$$obj.o(Veneer$$Code)
-    i.__0sprintf                             0x0202bfc4   Section        0  printfa.o(i.__0sprintf)
-    i.__scatterload_copy                     0x0202bfec   Section       14  handlers.o(i.__scatterload_copy)
-    i.__scatterload_null                     0x0202bffa   Section        2  handlers.o(i.__scatterload_null)
-    i.__scatterload_zeroinit                 0x0202bffc   Section       14  handlers.o(i.__scatterload_zeroinit)
-    _fp_digits                               0x0202c00d   Thumb Code   366  printfa.o(i._fp_digits)
-    i._fp_digits                             0x0202c00c   Section        0  printfa.o(i._fp_digits)
-    _printf_core                             0x0202c191   Thumb Code  1744  printfa.o(i._printf_core)
-    i._printf_core                           0x0202c190   Section        0  printfa.o(i._printf_core)
-    _printf_post_padding                     0x0202c86d   Thumb Code    36  printfa.o(i._printf_post_padding)
-    i._printf_post_padding                   0x0202c86c   Section        0  printfa.o(i._printf_post_padding)
-    _printf_pre_padding                      0x0202c891   Thumb Code    46  printfa.o(i._printf_pre_padding)
-    i._printf_pre_padding                    0x0202c890   Section        0  printfa.o(i._printf_pre_padding)
-    _sputc                                   0x0202c8bf   Thumb Code    10  printfa.o(i._sputc)
-    i._sputc                                 0x0202c8be   Section        0  printfa.o(i._sputc)
-    ack_connect                              0x0202c8c8   Data          11  bt_at_cmd_parse.o(.rodata.ack_connect)
-    [Anonymous Symbol]                       0x0202c8c8   Section        0  bt_at_cmd_parse.o(.rodata.ack_connect)
-    ack_disconnect                           0x0202c8d3   Data          14  bt_at_cmd_parse.o(.rodata.ack_disconnect)
-    [Anonymous Symbol]                       0x0202c8d3   Section        0  bt_at_cmd_parse.o(.rodata.ack_disconnect)
-    ack_ok                                   0x0202c8e1   Data           6  bt_at_cmd_parse.o(.rodata.ack_ok)
-    [Anonymous Symbol]                       0x0202c8e1   Section        0  bt_at_cmd_parse.o(.rodata.ack_ok)
-    ack_power_on                             0x0202c8e7   Data          11  bt_at_cmd_parse.o(.rodata.ack_power_on)
-    [Anonymous Symbol]                       0x0202c8e7   Section        0  bt_at_cmd_parse.o(.rodata.ack_power_on)
-    adv_data                                 0x0202c8f2   Data          11  profile.o(.rodata.adv_data)
-    [Anonymous Symbol]                       0x0202c8f2   Section        0  profile.o(.rodata.adv_data)
-    adv_sets_en                              0x0202c8fe   Data           6  profile.o(.rodata.adv_sets_en)
-    [Anonymous Symbol]                       0x0202c8fe   Section        0  profile.o(.rodata.adv_sets_en)
-    at_set                                   0x0202c904   Data           8  bt_at_cmd_parse.o(.rodata.at_set)
-    [Anonymous Symbol]                       0x0202c904   Section        0  bt_at_cmd_parse.o(.rodata.at_set)
-    configs                                  0x0202c90c   Data          12  profile.o(.rodata.configs)
-    [Anonymous Symbol]                       0x0202c90c   Section        0  profile.o(.rodata.configs)
-    phy_configs                              0x0202cc36   Data          18  profile.o(.rodata.phy_configs)
-    [Anonymous Symbol]                       0x0202cc36   Section        0  profile.o(.rodata.phy_configs)
-    prog_security_page_read                  0x0202cc48   Data          72  eflash.o(.rodata.prog_security_page_read)
-    [Anonymous Symbol]                       0x0202cc48   Section        0  eflash.o(.rodata.prog_security_page_read)
-    scan_data                                0x0202cc90   Data           1  profile.o(.rodata.scan_data)
-    [Anonymous Symbol]                       0x0202cc90   Section        0  profile.o(.rodata.scan_data)
-    .L.str                                   0x0202cc91   Data          10  main.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202cc91   Section        0  main.o(.rodata.str1.1)
-    .L.str.1                                 0x0202cc9b   Data          24  main.o(.rodata.str1.1)
-    .L.str.2                                 0x0202ccb0   Data           3  main.o(.rodata.str1.1)
-    .L.str.2                                 0x0202ccb3   Data         108  main.o(.rodata.str1.1)
-    .L.str.4                                 0x0202cd1f   Data          12  main.o(.rodata.str1.1)
-    .L.str.3                                 0x0202cd2b   Data          21  main.o(.rodata.str1.1)
-    .L.str.4                                 0x0202cd40   Data          21  profile.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202cd40   Section        0  profile.o(.rodata.str1.1)
-    .L.str.2                                 0x0202cd55   Data          12  profile.o(.rodata.str1.1)
-    .L.str.3                                 0x0202cd61   Data          15  profile.o(.rodata.str1.1)
-    .L.str.5                                 0x0202cd70   Data          22  profile.o(.rodata.str1.1)
-    .L.str.6                                 0x0202cd86   Data          18  profile.o(.rodata.str1.1)
-    .L.str                                   0x0202cd98   Data          15  profile.o(.rodata.str1.1)
-    .L.str.7                                 0x0202cda7   Data          21  profile.o(.rodata.str1.1)
-    .L.str.1                                 0x0202cdbc   Data           2  profile.o(.rodata.str1.1)
-    .L.str.6                                 0x0202cdbe   Data          24  app.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202cdbe   Section        0  app.o(.rodata.str1.1)
-    .L.str.3                                 0x0202cdd6   Data          16  app.o(.rodata.str1.1)
-    .L.str                                   0x0202cde6   Data          12  app.o(.rodata.str1.1)
-    .L.str.1                                 0x0202cdf2   Data           6  app.o(.rodata.str1.1)
-    .L.str.4                                 0x0202cdf8   Data          60  app.o(.rodata.str1.1)
-    .L.str.5                                 0x0202ce34   Data          57  app.o(.rodata.str1.1)
-    .L.str.2                                 0x0202ce6d   Data          19  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202ce6d   Section        0  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
-    .L.str.4                                 0x0202ce80   Data          31  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
-    .L.str.3                                 0x0202ce9f   Data          31  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
-    .L.str.1                                 0x0202cebe   Data           2  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
-    .L.str                                   0x0202cec0   Data          19  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
-    .L.str                                   0x0202ced3   Data          13  sdk_private_flash_data.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202ced3   Section        0  sdk_private_flash_data.o(.rodata.str1.1)
-    .L.str.3                                 0x0202cee0   Data          13  low_power.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202cee0   Section        0  low_power.o(.rodata.str1.1)
-    .L.str.2                                 0x0202ceed   Data          21  low_power.o(.rodata.str1.1)
-    .L.str                                   0x0202cf02   Data          16  low_power.o(.rodata.str1.1)
-    .L.str.1                                 0x0202cf12   Data           4  low_power.o(.rodata.str1.1)
-    .L.str.3                                 0x0202cf16   Data          19  throughput_service.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202cf16   Section        0  throughput_service.o(.rodata.str1.1)
-    .L.str                                   0x0202cf29   Data          37  throughput_service.o(.rodata.str1.1)
-    .L.str.7                                 0x0202cf4e   Data          14  throughput_service.o(.rodata.str1.1)
-    .L.str.5                                 0x0202cf5c   Data          31  throughput_service.o(.rodata.str1.1)
-    .L.str.2                                 0x0202cf7b   Data          24  throughput_service.o(.rodata.str1.1)
-    .L.str.6                                 0x0202cf93   Data          16  throughput_service.o(.rodata.str1.1)
-    .L.str.4                                 0x0202cfa3   Data          14  throughput_service.o(.rodata.str1.1)
-    .L.str.1                                 0x0202cfb1   Data          22  throughput_service.o(.rodata.str1.1)
-    .L.str                                   0x0202cfc7   Data          32  bt_at_cmd_parse.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x0202cfc7   Section        0  bt_at_cmd_parse.o(.rodata.str1.1)
-    throughput_char_info_uuid128             0x0202cfe7   Data          16  throughput_service.o(.rodata.throughput_char_info_uuid128)
-    [Anonymous Symbol]                       0x0202cfe7   Section        0  throughput_service.o(.rodata.throughput_char_info_uuid128)
-    throughput_char_io_uuid128               0x0202cff7   Data          16  throughput_service.o(.rodata.throughput_char_io_uuid128)
-    [Anonymous Symbol]                       0x0202cff7   Section        0  throughput_service.o(.rodata.throughput_char_io_uuid128)
-    throughput_char_write_notify_uuid128     0x0202d007   Data          16  throughput_service.o(.rodata.throughput_char_write_notify_uuid128)
-    [Anonymous Symbol]                       0x0202d007   Section        0  throughput_service.o(.rodata.throughput_char_write_notify_uuid128)
-    throughput_service_uuid128               0x0202d017   Data          16  throughput_service.o(.rodata.throughput_service_uuid128)
-    [Anonymous Symbol]                       0x0202d017   Section        0  throughput_service.o(.rodata.throughput_service_uuid128)
-    at_set_body                              0x20005438   Data          48  bt_at_cmd_parse.o(.data.at_set_body)
+    bt_at_handle_slep                        0x02029f7d   Thumb Code   168  bt_at_cmd_parse.o(.text.bt_at_handle_slep)
+    [Anonymous Symbol]                       0x02029f7c   Section        0  bt_at_cmd_parse.o(.text.bt_at_handle_slep)
+    [Anonymous Symbol]                       0x0202a024   Section        0  bt_at_cmd_parse.o(.text.bt_at_power_on_ack)
+    [Anonymous Symbol]                       0x0202a038   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data)
+    [Anonymous Symbol]                       0x0202a114   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data)
+    [Anonymous Symbol]                       0x0202a170   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num)
+    [Anonymous Symbol]                       0x0202a1d4   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos)
+    bt_cmd_data_port_check_buf_into_lowpower 0x0202a1e5   Thumb Code   102  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_port_check_buf_into_lowpower)
+    [Anonymous Symbol]                       0x0202a1e4   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_port_check_buf_into_lowpower)
+    bt_cmd_data_print_buf_state              0x0202a24d   Thumb Code    76  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state)
+    [Anonymous Symbol]                       0x0202a24c   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_print_buf_state)
+    [Anonymous Symbol]                       0x0202a298   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init)
+    bt_cmd_data_uart1_isr                    0x0202a31d   Thumb Code    70  app.o(.text.bt_cmd_data_uart1_isr)
+    [Anonymous Symbol]                       0x0202a31c   Section        0  app.o(.text.bt_cmd_data_uart1_isr)
+    bt_cmd_data_uart_handle_task_send_data   0x0202a365   Thumb Code   122  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_handle_task_send_data)
+    [Anonymous Symbol]                       0x0202a364   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_handle_task_send_data)
+    [Anonymous Symbol]                       0x0202a3e0   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out)
+    [Anonymous Symbol]                       0x0202a438   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data)
+    bt_cmd_data_uart_rx_cmd_process          0x0202a54d   Thumb Code   166  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process)
+    [Anonymous Symbol]                       0x0202a54c   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_cmd_process)
+    bt_cmd_data_uart_rx_data_fun             0x0202a5f5   Thumb Code   122  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_data_fun)
+    [Anonymous Symbol]                       0x0202a5f4   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_rx_data_fun)
+    [Anonymous Symbol]                       0x0202a670   Section        0  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_wait_all_out)
+    btstack_callback                         0x0202a68d   Thumb Code    64  throughput_service.o(.text.btstack_callback)
+    [Anonymous Symbol]                       0x0202a68c   Section        0  throughput_service.o(.text.btstack_callback)
+    btstack_event_state_get_state            0x0202a6cd   Thumb Code    12  profile.o(.text.btstack_event_state_get_state)
+    [Anonymous Symbol]                       0x0202a6cc   Section        0  profile.o(.text.btstack_event_state_get_state)
+    cancel_initiating                        0x0202a6d9   Thumb Code    86  profile.o(.text.cancel_initiating)
+    [Anonymous Symbol]                       0x0202a6d8   Section        0  profile.o(.text.cancel_initiating)
+    cb_assertion                             0x0202a731   Thumb Code    30  main.o(.text.cb_assertion)
+    [Anonymous Symbol]                       0x0202a730   Section        0  main.o(.text.cb_assertion)
+    cb_hard_fault                            0x0202a751   Thumb Code    86  main.o(.text.cb_hard_fault)
+    [Anonymous Symbol]                       0x0202a750   Section        0  main.o(.text.cb_hard_fault)
+    cb_heap_out_of_mem                       0x0202a7a9   Thumb Code    26  main.o(.text.cb_heap_out_of_mem)
+    [Anonymous Symbol]                       0x0202a7a8   Section        0  main.o(.text.cb_heap_out_of_mem)
+    cmd_process_task                         0x0202a7c5   Thumb Code   200  bt_cmd_data_uart_io_adp.o(.text.cmd_process_task)
+    [Anonymous Symbol]                       0x0202a7c4   Section        0  bt_cmd_data_uart_io_adp.o(.text.cmd_process_task)
+    conn_timer_callback                      0x0202a88d   Thumb Code    20  profile.o(.text.conn_timer_callback)
+    [Anonymous Symbol]                       0x0202a88c   Section        0  profile.o(.text.conn_timer_callback)
+    copy_security_data                       0x0202a8a1   Thumb Code   122  eflash.o(.text.copy_security_data)
+    [Anonymous Symbol]                       0x0202a8a0   Section        0  eflash.o(.text.copy_security_data)
+    [Anonymous Symbol]                       0x0202a91c   Section        0  app.o(.text.dump_ram_data_in_char)
+    enter_low_power_timer_callback           0x0202a929   Thumb Code    18  low_power.o(.text.enter_low_power_timer_callback)
+    [Anonymous Symbol]                       0x0202a928   Section        0  low_power.o(.text.enter_low_power_timer_callback)
+    [Anonymous Symbol]                       0x0202a93c   Section        0  eflash.o(.text.erase_flash_sector)
+    [Anonymous Symbol]                       0x0202a958   Section        0  eflash.o(.text.flash_get_factory_calib_data)
+    [Anonymous Symbol]                       0x0202a97c   Section        0  eflash.o(.text.flash_prepare_factory_data)
+    gatt_event_all_characteristic_descriptors_query_result_parse 0x0202aa19   Thumb Code    12  throughput_service.o(.text.gatt_event_all_characteristic_descriptors_query_result_parse)
+    [Anonymous Symbol]                       0x0202aa18   Section        0  throughput_service.o(.text.gatt_event_all_characteristic_descriptors_query_result_parse)
+    gatt_event_characteristic_query_result_parse 0x0202aa25   Thumb Code    12  throughput_service.o(.text.gatt_event_characteristic_query_result_parse)
+    [Anonymous Symbol]                       0x0202aa24   Section        0  throughput_service.o(.text.gatt_event_characteristic_query_result_parse)
+    gatt_event_notification_parse            0x0202aa31   Thumb Code    28  throughput_service.o(.text.gatt_event_notification_parse)
+    [Anonymous Symbol]                       0x0202aa30   Section        0  throughput_service.o(.text.gatt_event_notification_parse)
+    gatt_event_query_complete_parse          0x0202aa4d   Thumb Code    12  throughput_service.o(.text.gatt_event_query_complete_parse)
+    [Anonymous Symbol]                       0x0202aa4c   Section        0  throughput_service.o(.text.gatt_event_query_complete_parse)
+    gatt_event_service_query_result_parse    0x0202aa59   Thumb Code    12  throughput_service.o(.text.gatt_event_service_query_result_parse)
+    [Anonymous Symbol]                       0x0202aa58   Section        0  throughput_service.o(.text.gatt_event_service_query_result_parse)
+    get_sig_short_uuid                       0x0202aa65   Thumb Code    40  throughput_service.o(.text.get_sig_short_uuid)
+    [Anonymous Symbol]                       0x0202aa64   Section        0  throughput_service.o(.text.get_sig_short_uuid)
+    give_sem_process_cmd                     0x0202aa8d   Thumb Code    44  bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd)
+    [Anonymous Symbol]                       0x0202aa8c   Section        0  bt_cmd_data_uart_io_adp.o(.text.give_sem_process_cmd)
+    give_sem_send_data_by_ble                0x0202aab9   Thumb Code   114  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble)
+    [Anonymous Symbol]                       0x0202aab8   Section        0  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_ble)
+    give_sem_send_data_by_com                0x0202ab2d   Thumb Code    44  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_com)
+    [Anonymous Symbol]                       0x0202ab2c   Section        0  bt_cmd_data_uart_io_adp.o(.text.give_sem_send_data_by_com)
+    hci_event_le_meta_get_subevent_code      0x0202ab59   Thumb Code    12  profile.o(.text.hci_event_le_meta_get_subevent_code)
+    [Anonymous Symbol]                       0x0202ab58   Section        0  profile.o(.text.hci_event_le_meta_get_subevent_code)
+    hci_event_packet_get_type                0x0202ab65   Thumb Code    12  profile.o(.text.hci_event_packet_get_type)
+    [Anonymous Symbol]                       0x0202ab64   Section        0  profile.o(.text.hci_event_packet_get_type)
+    hci_event_packet_get_user_msg            0x0202ab71   Thumb Code    12  profile.o(.text.hci_event_packet_get_user_msg)
+    [Anonymous Symbol]                       0x0202ab70   Section        0  profile.o(.text.hci_event_packet_get_user_msg)
+    hint_ce_len                              0x0202ab7d   Thumb Code    60  profile.o(.text.hint_ce_len)
+    [Anonymous Symbol]                       0x0202ab7c   Section        0  profile.o(.text.hint_ce_len)
+    i_am_master_connected_slave              0x0202abb9   Thumb Code    60  profile.o(.text.i_am_master_connected_slave)
+    [Anonymous Symbol]                       0x0202abb8   Section        0  profile.o(.text.i_am_master_connected_slave)
+    i_am_master_disconnected_slave           0x0202abf5   Thumb Code    28  profile.o(.text.i_am_master_disconnected_slave)
+    [Anonymous Symbol]                       0x0202abf4   Section        0  profile.o(.text.i_am_master_disconnected_slave)
+    i_am_slave_connected_master              0x0202ac11   Thumb Code    24  profile.o(.text.i_am_slave_connected_master)
+    [Anonymous Symbol]                       0x0202ac10   Section        0  profile.o(.text.i_am_slave_connected_master)
+    i_am_slave_disconnected_master           0x0202ac29   Thumb Code    44  profile.o(.text.i_am_slave_disconnected_master)
+    [Anonymous Symbol]                       0x0202ac28   Section        0  profile.o(.text.i_am_slave_disconnected_master)
+    initiating                               0x0202ac55   Thumb Code   168  profile.o(.text.initiating)
+    [Anonymous Symbol]                       0x0202ac54   Section        0  profile.o(.text.initiating)
+    is_data_ready                            0x0202acfd   Thumb Code    66  eflash.o(.text.is_data_ready)
+    [Anonymous Symbol]                       0x0202acfc   Section        0  eflash.o(.text.is_data_ready)
+    [Anonymous Symbol]                       0x0202ad40   Section        0  low_power.o(.text.low_power_create_timer)
+    low_power_enter_saving                   0x0202adb5   Thumb Code    48  low_power.o(.text.low_power_enter_saving)
+    [Anonymous Symbol]                       0x0202adb4   Section        0  low_power.o(.text.low_power_enter_saving)
+    [Anonymous Symbol]                       0x0202ade4   Section        0  low_power.o(.text.low_power_exit_saving)
+    low_power_start_timer                    0x0202ae81   Thumb Code    78  low_power.o(.text.low_power_start_timer)
+    [Anonymous Symbol]                       0x0202ae80   Section        0  low_power.o(.text.low_power_start_timer)
+    low_power_task                           0x0202aed1   Thumb Code    68  low_power.o(.text.low_power_task)
+    [Anonymous Symbol]                       0x0202aed0   Section        0  low_power.o(.text.low_power_task)
+    main_cmd_data_timer_task                 0x0202af15   Thumb Code    16  bt_cmd_data_uart_io_adp.o(.text.main_cmd_data_timer_task)
+    [Anonymous Symbol]                       0x0202af14   Section        0  bt_cmd_data_uart_io_adp.o(.text.main_cmd_data_timer_task)
+    map_int_mode                             0x0202af25   Thumb Code   142  peripheral_gpio.o(.text.map_int_mode)
+    [Anonymous Symbol]                       0x0202af24   Section        0  peripheral_gpio.o(.text.map_int_mode)
+    pin_id_for_input_source                  0x0202afb5   Thumb Code   158  peripheral_pinctrl.o(.text.pin_id_for_input_source)
+    [Anonymous Symbol]                       0x0202afb4   Section        0  peripheral_pinctrl.o(.text.pin_id_for_input_source)
+    [Anonymous Symbol]                       0x0202b054   Section        0  app.o(.text.print_addr)
+    print_connect_para                       0x0202b0a1   Thumb Code    18  profile.o(.text.print_connect_para)
+    [Anonymous Symbol]                       0x0202b0a0   Section        0  profile.o(.text.print_connect_para)
+    print_dev_info                           0x0202b0b5   Thumb Code   204  app.o(.text.print_dev_info)
+    [Anonymous Symbol]                       0x0202b0b4   Section        0  app.o(.text.print_dev_info)
+    profile_user_msg_handler                 0x0202b181   Thumb Code   192  profile.o(.text.profile_user_msg_handler)
+    [Anonymous Symbol]                       0x0202b180   Section        0  profile.o(.text.profile_user_msg_handler)
+    [Anonymous Symbol]                       0x0202b240   Section        0  eflash.o(.text.program_flash)
+    [Anonymous Symbol]                       0x0202b25c   Section        0  eflash.o(.text.read_flash_security)
+    sdk_config_uart                          0x0202b291   Thumb Code    86  app.o(.text.sdk_config_uart)
+    [Anonymous Symbol]                       0x0202b290   Section        0  app.o(.text.sdk_config_uart)
+    sdk_config_uart1_com                     0x0202b2e9   Thumb Code    82  app.o(.text.sdk_config_uart1_com)
+    [Anonymous Symbol]                       0x0202b2e8   Section        0  app.o(.text.sdk_config_uart1_com)
+    [Anonymous Symbol]                       0x0202b33c   Section        0  sdk_private_flash_data.o(.text.sdk_load_private_flash_data)
+    [Anonymous Symbol]                       0x0202b440   Section        0  sdk_private_flash_data.o(.text.sdk_private_data_write_to_flash)
+    security_page_read                       0x0202b45d   Thumb Code     6  eflash.o(.text.security_page_read)
+    [Anonymous Symbol]                       0x0202b45c   Section        0  eflash.o(.text.security_page_read)
+    set_reg_bit                              0x0202b465   Thumb Code    50  peripheral_sysctrl.o(.text.set_reg_bit)
+    [Anonymous Symbol]                       0x0202b464   Section        0  peripheral_sysctrl.o(.text.set_reg_bit)
+    set_reg_bits                             0x0202b499   Thumb Code    68  peripheral_pinctrl.o(.text.set_reg_bits)
+    [Anonymous Symbol]                       0x0202b498   Section        0  peripheral_pinctrl.o(.text.set_reg_bits)
+    set_reg_bits                             0x0202b4dd   Thumb Code    58  peripheral_sysctrl.o(.text.set_reg_bits)
+    [Anonymous Symbol]                       0x0202b4dc   Section        0  peripheral_sysctrl.o(.text.set_reg_bits)
+    setup_adv                                0x0202b519   Thumb Code   106  profile.o(.text.setup_adv)
+    [Anonymous Symbol]                       0x0202b518   Section        0  profile.o(.text.setup_adv)
+    setup_pll_clk_and_sleep_para             0x0202b585   Thumb Code    64  app.o(.text.setup_pll_clk_and_sleep_para)
+    [Anonymous Symbol]                       0x0202b584   Section        0  app.o(.text.setup_pll_clk_and_sleep_para)
+    [Anonymous Symbol]                       0x0202b5c4   Section        0  profile.o(.text.setup_profile)
+    source_id_on_pin                         0x0202b655   Thumb Code   160  peripheral_pinctrl.o(.text.source_id_on_pin)
+    [Anonymous Symbol]                       0x0202b654   Section        0  peripheral_pinctrl.o(.text.source_id_on_pin)
+    stack_on_first_wake_up                   0x0202b6f5   Thumb Code    14  profile.o(.text.stack_on_first_wake_up)
+    [Anonymous Symbol]                       0x0202b6f4   Section        0  profile.o(.text.stack_on_first_wake_up)
+    [Anonymous Symbol]                       0x0202b704   Section        0  throughput_service.o(.text.throughput_att_read_callback)
+    [Anonymous Symbol]                       0x0202b7a0   Section        0  throughput_service.o(.text.throughput_att_write_callback)
+    throughput_characteristic_discovery_callback 0x0202b849   Thumb Code   276  throughput_service.o(.text.throughput_characteristic_discovery_callback)
+    [Anonymous Symbol]                       0x0202b848   Section        0  throughput_service.o(.text.throughput_characteristic_discovery_callback)
+    throughput_clear_send_data               0x0202b95d   Thumb Code    48  throughput_service.o(.text.throughput_clear_send_data)
+    [Anonymous Symbol]                       0x0202b95c   Section        0  throughput_service.o(.text.throughput_clear_send_data)
+    throughput_descriptor_discovery_callback 0x0202b98d   Thumb Code   212  throughput_service.o(.text.throughput_descriptor_discovery_callback)
+    [Anonymous Symbol]                       0x0202b98c   Section        0  throughput_service.o(.text.throughput_descriptor_discovery_callback)
+    [Anonymous Symbol]                       0x0202ba60   Section        0  throughput_service.o(.text.throughput_discover_services)
+    [Anonymous Symbol]                       0x0202ba94   Section        0  throughput_service.o(.text.throughput_event_connected)
+    [Anonymous Symbol]                       0x0202baac   Section        0  throughput_service.o(.text.throughput_event_disconnect)
+    throughput_i_am_master_send_data         0x0202bae1   Thumb Code   214  throughput_service.o(.text.throughput_i_am_master_send_data)
+    [Anonymous Symbol]                       0x0202bae0   Section        0  throughput_service.o(.text.throughput_i_am_master_send_data)
+    throughput_i_am_slave_send_data          0x0202bbb9   Thumb Code   212  throughput_service.o(.text.throughput_i_am_slave_send_data)
+    [Anonymous Symbol]                       0x0202bbb8   Section        0  throughput_service.o(.text.throughput_i_am_slave_send_data)
+    throughput_notification_listen_handler   0x0202bc8d   Thumb Code    68  throughput_service.o(.text.throughput_notification_listen_handler)
+    [Anonymous Symbol]                       0x0202bc8c   Section        0  throughput_service.o(.text.throughput_notification_listen_handler)
+    [Anonymous Symbol]                       0x0202bcd0   Section        0  throughput_service.o(.text.throughput_send_data)
+    throughput_service_discovery_callback    0x0202bd39   Thumb Code   184  throughput_service.o(.text.throughput_service_discovery_callback)
+    [Anonymous Symbol]                       0x0202bd38   Section        0  throughput_service.o(.text.throughput_service_discovery_callback)
+    [Anonymous Symbol]                       0x0202bdf0   Section        0  throughput_service.o(.text.throughput_service_init)
+    [Anonymous Symbol]                       0x0202be74   Section        0  throughput_service.o(.text.throughput_user_msg_handler)
+    [Anonymous Symbol]                       0x0202beec   Section        0  bt_cmd_data_uart_io_adp.o(.text.timer_start_main_cmd_data)
+    trim_rf_freq                             0x0202bf39   Thumb Code    18  main.o(.text.trim_rf_freq)
+    [Anonymous Symbol]                       0x0202bf38   Section        0  main.o(.text.trim_rf_freq)
+    user_msg_handler                         0x0202bf4d   Thumb Code   112  profile.o(.text.user_msg_handler)
+    [Anonymous Symbol]                       0x0202bf4c   Section        0  profile.o(.text.user_msg_handler)
+    user_packet_handler                      0x0202bfbd   Thumb Code   534  profile.o(.text.user_packet_handler)
+    [Anonymous Symbol]                       0x0202bfbc   Section        0  profile.o(.text.user_packet_handler)
+    [Anonymous Symbol]                       0x0202c1d4   Section        0  eflash.o(.text.write_flash)
+    Long Thumb to Thumb Veneer to m_setup_peripherals 0x0202c253   Thumb Code    10  anon$$obj.o(Veneer$$Code)
+    i.__0sprintf                             0x0202c25c   Section        0  printfa.o(i.__0sprintf)
+    i.__scatterload_copy                     0x0202c284   Section       14  handlers.o(i.__scatterload_copy)
+    i.__scatterload_null                     0x0202c292   Section        2  handlers.o(i.__scatterload_null)
+    i.__scatterload_zeroinit                 0x0202c294   Section       14  handlers.o(i.__scatterload_zeroinit)
+    _fp_digits                               0x0202c2a5   Thumb Code   366  printfa.o(i._fp_digits)
+    i._fp_digits                             0x0202c2a4   Section        0  printfa.o(i._fp_digits)
+    _printf_core                             0x0202c429   Thumb Code  1744  printfa.o(i._printf_core)
+    i._printf_core                           0x0202c428   Section        0  printfa.o(i._printf_core)
+    _printf_post_padding                     0x0202cb05   Thumb Code    36  printfa.o(i._printf_post_padding)
+    i._printf_post_padding                   0x0202cb04   Section        0  printfa.o(i._printf_post_padding)
+    _printf_pre_padding                      0x0202cb29   Thumb Code    46  printfa.o(i._printf_pre_padding)
+    i._printf_pre_padding                    0x0202cb28   Section        0  printfa.o(i._printf_pre_padding)
+    _sputc                                   0x0202cb57   Thumb Code    10  printfa.o(i._sputc)
+    i._sputc                                 0x0202cb56   Section        0  printfa.o(i._sputc)
+    ack_connect                              0x0202cb60   Data          11  bt_at_cmd_parse.o(.rodata.ack_connect)
+    [Anonymous Symbol]                       0x0202cb60   Section        0  bt_at_cmd_parse.o(.rodata.ack_connect)
+    ack_disconnect                           0x0202cb6b   Data          14  bt_at_cmd_parse.o(.rodata.ack_disconnect)
+    [Anonymous Symbol]                       0x0202cb6b   Section        0  bt_at_cmd_parse.o(.rodata.ack_disconnect)
+    ack_ok                                   0x0202cb79   Data           6  bt_at_cmd_parse.o(.rodata.ack_ok)
+    [Anonymous Symbol]                       0x0202cb79   Section        0  bt_at_cmd_parse.o(.rodata.ack_ok)
+    ack_power_on                             0x0202cb7f   Data          11  bt_at_cmd_parse.o(.rodata.ack_power_on)
+    [Anonymous Symbol]                       0x0202cb7f   Section        0  bt_at_cmd_parse.o(.rodata.ack_power_on)
+    adv_data                                 0x0202cb8a   Data          11  profile.o(.rodata.adv_data)
+    [Anonymous Symbol]                       0x0202cb8a   Section        0  profile.o(.rodata.adv_data)
+    adv_sets_en                              0x0202cb96   Data           6  profile.o(.rodata.adv_sets_en)
+    [Anonymous Symbol]                       0x0202cb96   Section        0  profile.o(.rodata.adv_sets_en)
+    at_set                                   0x0202cb9c   Data           8  bt_at_cmd_parse.o(.rodata.at_set)
+    [Anonymous Symbol]                       0x0202cb9c   Section        0  bt_at_cmd_parse.o(.rodata.at_set)
+    configs                                  0x0202cba4   Data          12  profile.o(.rodata.configs)
+    [Anonymous Symbol]                       0x0202cba4   Section        0  profile.o(.rodata.configs)
+    phy_configs                              0x0202cece   Data          18  profile.o(.rodata.phy_configs)
+    [Anonymous Symbol]                       0x0202cece   Section        0  profile.o(.rodata.phy_configs)
+    prog_security_page_read                  0x0202cee0   Data          72  eflash.o(.rodata.prog_security_page_read)
+    [Anonymous Symbol]                       0x0202cee0   Section        0  eflash.o(.rodata.prog_security_page_read)
+    scan_data                                0x0202cf28   Data           1  profile.o(.rodata.scan_data)
+    [Anonymous Symbol]                       0x0202cf28   Section        0  profile.o(.rodata.scan_data)
+    .L.str                                   0x0202cf29   Data          10  main.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202cf29   Section        0  main.o(.rodata.str1.1)
+    .L.str.1                                 0x0202cf33   Data          24  main.o(.rodata.str1.1)
+    .L.str.2                                 0x0202cf48   Data           3  main.o(.rodata.str1.1)
+    .L.str.2                                 0x0202cf4b   Data         108  main.o(.rodata.str1.1)
+    .L.str.4                                 0x0202cfb7   Data          12  main.o(.rodata.str1.1)
+    .L.str.3                                 0x0202cfc3   Data          21  main.o(.rodata.str1.1)
+    .L.str.5                                 0x0202cfd8   Data          21  profile.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202cfd8   Section        0  profile.o(.rodata.str1.1)
+    .L.str.4                                 0x0202cfed   Data          21  profile.o(.rodata.str1.1)
+    .L.str.2                                 0x0202d002   Data          12  profile.o(.rodata.str1.1)
+    .L.str.3                                 0x0202d00e   Data          15  profile.o(.rodata.str1.1)
+    .L.str.6                                 0x0202d01d   Data          22  profile.o(.rodata.str1.1)
+    .L.str.7                                 0x0202d033   Data          18  profile.o(.rodata.str1.1)
+    .L.str                                   0x0202d045   Data          15  profile.o(.rodata.str1.1)
+    .L.str.8                                 0x0202d054   Data          21  profile.o(.rodata.str1.1)
+    .L.str.1                                 0x0202d069   Data           2  profile.o(.rodata.str1.1)
+    .L.str.6                                 0x0202d06b   Data          24  app.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202d06b   Section        0  app.o(.rodata.str1.1)
+    .L.str.3                                 0x0202d083   Data          16  app.o(.rodata.str1.1)
+    .L.str                                   0x0202d093   Data          12  app.o(.rodata.str1.1)
+    .L.str.1                                 0x0202d09f   Data           6  app.o(.rodata.str1.1)
+    .L.str.4                                 0x0202d0a5   Data          60  app.o(.rodata.str1.1)
+    .L.str.5                                 0x0202d0e1   Data          57  app.o(.rodata.str1.1)
+    .L.str                                   0x0202d11a   Data          19  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202d11a   Section        0  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
+    .L.str.3                                 0x0202d12d   Data          19  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
+    .L.str.5                                 0x0202d140   Data          31  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
+    .L.str.4                                 0x0202d15f   Data          31  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
+    .L.str.2                                 0x0202d17e   Data           2  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
+    .L.str.1                                 0x0202d180   Data          19  bt_cmd_data_uart_io_adp.o(.rodata.str1.1)
+    .L.str                                   0x0202d193   Data          13  sdk_private_flash_data.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202d193   Section        0  sdk_private_flash_data.o(.rodata.str1.1)
+    .L.str.3                                 0x0202d1a0   Data          13  low_power.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202d1a0   Section        0  low_power.o(.rodata.str1.1)
+    .L.str.2                                 0x0202d1ad   Data          21  low_power.o(.rodata.str1.1)
+    .L.str                                   0x0202d1c2   Data          16  low_power.o(.rodata.str1.1)
+    .L.str.1                                 0x0202d1d2   Data           4  low_power.o(.rodata.str1.1)
+    .L.str.6                                 0x0202d1d6   Data          19  throughput_service.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202d1d6   Section        0  throughput_service.o(.rodata.str1.1)
+    .L.str.1                                 0x0202d1e9   Data          22  throughput_service.o(.rodata.str1.1)
+    .L.str.3                                 0x0202d1ff   Data          22  throughput_service.o(.rodata.str1.1)
+    .L.str.2                                 0x0202d215   Data          24  throughput_service.o(.rodata.str1.1)
+    .L.str                                   0x0202d22d   Data          37  throughput_service.o(.rodata.str1.1)
+    .L.str.10                                0x0202d252   Data          14  throughput_service.o(.rodata.str1.1)
+    .L.str.8                                 0x0202d260   Data          31  throughput_service.o(.rodata.str1.1)
+    .L.str.5                                 0x0202d27f   Data          24  throughput_service.o(.rodata.str1.1)
+    .L.str.9                                 0x0202d297   Data          16  throughput_service.o(.rodata.str1.1)
+    .L.str.7                                 0x0202d2a7   Data          14  throughput_service.o(.rodata.str1.1)
+    .L.str.4                                 0x0202d2b5   Data          22  throughput_service.o(.rodata.str1.1)
+    .L.str.1                                 0x0202d2cb   Data          25  bt_at_cmd_parse.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x0202d2cb   Section        0  bt_at_cmd_parse.o(.rodata.str1.1)
+    .L.str                                   0x0202d2e4   Data          32  bt_at_cmd_parse.o(.rodata.str1.1)
+    throughput_char_info_uuid128             0x0202d304   Data          16  throughput_service.o(.rodata.throughput_char_info_uuid128)
+    [Anonymous Symbol]                       0x0202d304   Section        0  throughput_service.o(.rodata.throughput_char_info_uuid128)
+    throughput_char_io_uuid128               0x0202d314   Data          16  throughput_service.o(.rodata.throughput_char_io_uuid128)
+    [Anonymous Symbol]                       0x0202d314   Section        0  throughput_service.o(.rodata.throughput_char_io_uuid128)
+    throughput_char_write_notify_uuid128     0x0202d324   Data          16  throughput_service.o(.rodata.throughput_char_write_notify_uuid128)
+    [Anonymous Symbol]                       0x0202d324   Section        0  throughput_service.o(.rodata.throughput_char_write_notify_uuid128)
+    throughput_service_uuid128               0x0202d334   Data          16  throughput_service.o(.rodata.throughput_service_uuid128)
+    [Anonymous Symbol]                       0x0202d334   Section        0  throughput_service.o(.rodata.throughput_service_uuid128)
+    at_set_body                              0x20005438   Data          64  bt_at_cmd_parse.o(.data.at_set_body)
     [Anonymous Symbol]                       0x20005438   Section        0  bt_at_cmd_parse.o(.data.at_set_body)
-    at_set_num                               0x20005468   Data           4  bt_at_cmd_parse.o(.data.at_set_num)
-    [Anonymous Symbol]                       0x20005468   Section        0  bt_at_cmd_parse.o(.data.at_set_num)
-    bt_cmd_data_uart_recv_data.trig_source_last 0x2000546c   Data           1  bt_cmd_data_uart_io_adp.o(.data.bt_cmd_data_uart_recv_data.trig_source_last)
-    [Anonymous Symbol]                       0x2000546c   Section        0  bt_cmd_data_uart_io_adp.o(.data.bt_cmd_data_uart_recv_data.trig_source_last)
-    char_config_notification                 0x2000546e   Data           2  throughput_service.o(.data.char_config_notification)
-    [Anonymous Symbol]                       0x2000546e   Section        0  throughput_service.o(.data.char_config_notification)
-    evt_cb_table                             0x20005470   Data          88  main.o(.data.evt_cb_table)
-    [Anonymous Symbol]                       0x20005470   Section        0  main.o(.data.evt_cb_table)
-    i_am_master_conn_handle                  0x20005570   Data           2  profile.o(.data.i_am_master_conn_handle)
-    [Anonymous Symbol]                       0x20005570   Section        0  profile.o(.data.i_am_master_conn_handle)
-    i_am_slave_conn_handle                   0x20005572   Data           2  profile.o(.data.i_am_slave_conn_handle)
-    [Anonymous Symbol]                       0x20005572   Section        0  profile.o(.data.i_am_slave_conn_handle)
-    initiating_id                            0x20005574   Data           1  profile.o(.data.initiating_id)
-    [Anonymous Symbol]                       0x20005574   Section        0  profile.o(.data.initiating_id)
-    low_power_exit_saving.last_reason        0x20005575   Data           1  low_power.o(.data.low_power_exit_saving.last_reason)
-    [Anonymous Symbol]                       0x20005575   Section        0  low_power.o(.data.low_power_exit_saving.last_reason)
-    p_power_off_save_data_in_flash           0x20005578   Data           4  sdk_private_flash_data.o(.data.p_power_off_save_data_in_flash)
-    [Anonymous Symbol]                       0x20005578   Section        0  sdk_private_flash_data.o(.data.p_power_off_save_data_in_flash)
-    throughput_att_io_handle                 0x200055e0   Data           2  throughput_service.o(.data.throughput_att_io_handle)
-    [Anonymous Symbol]                       0x200055e0   Section        0  throughput_service.o(.data.throughput_att_io_handle)
-    throughput_att_write_notify_handle       0x200055e2   Data           2  throughput_service.o(.data.throughput_att_write_notify_handle)
-    [Anonymous Symbol]                       0x200055e2   Section        0  throughput_service.o(.data.throughput_att_write_notify_handle)
-    throughput_char_info_data                0x200055e4   Data           1  throughput_service.o(.data.throughput_char_info_data)
-    [Anonymous Symbol]                       0x200055e4   Section        0  throughput_service.o(.data.throughput_char_info_data)
-    throughput_con_handle                    0x200055e6   Data           2  throughput_service.o(.data.throughput_con_handle)
-    [Anonymous Symbol]                       0x200055e6   Section        0  throughput_service.o(.data.throughput_con_handle)
-    att_db                                   0x200055e8   Data           4  att_db_util.o(.bss.att_db)
-    [Anonymous Symbol]                       0x200055e8   Section        0  att_db_util.o(.bss.att_db)
-    att_db_max_size                          0x200055ec   Data           2  att_db_util.o(.bss.att_db_max_size)
-    [Anonymous Symbol]                       0x200055ec   Section        0  att_db_util.o(.bss.att_db_max_size)
-    att_db_next_handle                       0x200055ee   Data           2  att_db_util.o(.bss.att_db_next_handle)
-    [Anonymous Symbol]                       0x200055ee   Section        0  att_db_util.o(.bss.att_db_next_handle)
-    att_db_size                              0x200055f0   Data           2  att_db_util.o(.bss.att_db_size)
-    [Anonymous Symbol]                       0x200055f0   Section        0  att_db_util.o(.bss.att_db_size)
-    att_db_storage                           0x200055f2   Data         500  profile.o(.bss.att_db_storage)
-    [Anonymous Symbol]                       0x200055f2   Section        0  profile.o(.bss.att_db_storage)
-    ble_buf                                  0x200057e8   Data         824  bt_cmd_data_uart_io_adp.o(.bss.ble_buf)
-    [Anonymous Symbol]                       0x200057e8   Section        0  bt_cmd_data_uart_io_adp.o(.bss.ble_buf)
-    bt_cmd_data_uart_recv_data.have_data_no_process 0x20005b20   Data           1  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.have_data_no_process)
-    [Anonymous Symbol]                       0x20005b20   Section        0  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.have_data_no_process)
-    bt_cmd_data_uart_recv_data.trig_timer_cnt 0x20005b24   Data           4  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.trig_timer_cnt)
-    [Anonymous Symbol]                       0x20005b24   Section        0  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.trig_timer_cnt)
-    cmd_out_buf                              0x20005b28   Data          64  bt_cmd_data_uart_io_adp.o(.bss.cmd_out_buf)
-    [Anonymous Symbol]                       0x20005b28   Section        0  bt_cmd_data_uart_io_adp.o(.bss.cmd_out_buf)
-    com_buf                                  0x20005b68   Data         824  bt_cmd_data_uart_io_adp.o(.bss.com_buf)
-    [Anonymous Symbol]                       0x20005b68   Section        0  bt_cmd_data_uart_io_adp.o(.bss.com_buf)
-    create_conn_timer                        0x20005ea0   Data           4  profile.o(.bss.create_conn_timer)
-    [Anonymous Symbol]                       0x20005ea0   Section        0  profile.o(.bss.create_conn_timer)
-    enter_low_power_timer                    0x20005ea4   Data           4  low_power.o(.bss.enter_low_power_timer)
-    [Anonymous Symbol]                       0x20005ea4   Section        0  low_power.o(.bss.enter_low_power_timer)
-    exit_saving                              0x20005ea8   Data           1  low_power.o(.bss.exit_saving)
-    [Anonymous Symbol]                       0x20005ea8   Section        0  low_power.o(.bss.exit_saving)
-    gap_is_connection_cancel                 0x20005eac   Data           4  profile.o(.bss.gap_is_connection_cancel)
-    [Anonymous Symbol]                       0x20005eac   Section        0  profile.o(.bss.gap_is_connection_cancel)
-    hci_event_callback_registration          0x20005eb0   Data           8  profile.o(.bss.hci_event_callback_registration)
-    [Anonymous Symbol]                       0x20005eb0   Section        0  profile.o(.bss.hci_event_callback_registration)
-    i_am_master_send_data_num                0x20005eb8   Data           4  throughput_service.o(.bss.i_am_master_send_data_num)
-    [Anonymous Symbol]                       0x20005eb8   Section        0  throughput_service.o(.bss.i_am_master_send_data_num)
-    is_scanning                              0x20005ebc   Data           1  profile.o(.bss.is_scanning)
-    [Anonymous Symbol]                       0x20005ebc   Section        0  profile.o(.bss.is_scanning)
-    low_power_task_BinarySemaphore           0x20005ec0   Data           4  low_power.o(.bss.low_power_task_BinarySemaphore)
-    [Anonymous Symbol]                       0x20005ec0   Section        0  low_power.o(.bss.low_power_task_BinarySemaphore)
-    low_power_task_handler                   0x20005ec4   Data           4  low_power.o(.bss.low_power_task_handler)
-    [Anonymous Symbol]                       0x20005ec4   Section        0  low_power.o(.bss.low_power_task_handler)
-    low_power_timer_is_run                   0x20005ec8   Data           1  low_power.o(.bss.low_power_timer_is_run)
-    [Anonymous Symbol]                       0x20005ec8   Section        0  low_power.o(.bss.low_power_timer_is_run)
-    m_main_cmd_data_timer                    0x20005ecc   Data           4  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer)
-    [Anonymous Symbol]                       0x20005ecc   Section        0  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer)
-    m_main_cmd_data_timer_state              0x20005ed0   Data           4  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer_state)
-    [Anonymous Symbol]                       0x20005ed0   Section        0  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer_state)
-    sem_cmd_process                          0x20005ed4   Data           4  bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process)
-    [Anonymous Symbol]                       0x20005ed4   Section        0  bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process)
-    throughput_notify_enable                 0x20005ed8   Data           1  throughput_service.o(.bss.throughput_notify_enable)
-    [Anonymous Symbol]                       0x20005ed8   Section        0  throughput_service.o(.bss.throughput_notify_enable)
-    xHigherPriorityTaskWoken                 0x20005edc   Data           4  low_power.o(.bss.xHigherPriorityTaskWoken)
-    [Anonymous Symbol]                       0x20005edc   Section        0  low_power.o(.bss.xHigherPriorityTaskWoken)
-    STACK                                    0x20005ee0   Section        4  startup_ing91600.o(STACK)
+    at_set_num                               0x20005478   Data           4  bt_at_cmd_parse.o(.data.at_set_num)
+    [Anonymous Symbol]                       0x20005478   Section        0  bt_at_cmd_parse.o(.data.at_set_num)
+    char_config_notification                 0x2000547c   Data           2  throughput_service.o(.data.char_config_notification)
+    [Anonymous Symbol]                       0x2000547c   Section        0  throughput_service.o(.data.char_config_notification)
+    evt_cb_table                             0x20005480   Data          88  main.o(.data.evt_cb_table)
+    [Anonymous Symbol]                       0x20005480   Section        0  main.o(.data.evt_cb_table)
+    i_am_slave_conn_handle                   0x20005580   Data           2  profile.o(.data.i_am_slave_conn_handle)
+    [Anonymous Symbol]                       0x20005580   Section        0  profile.o(.data.i_am_slave_conn_handle)
+    low_power_exit_saving.last_reason        0x20005582   Data           1  low_power.o(.data.low_power_exit_saving.last_reason)
+    [Anonymous Symbol]                       0x20005582   Section        0  low_power.o(.data.low_power_exit_saving.last_reason)
+    throughput_att_io_handle                 0x20005584   Data           2  throughput_service.o(.data.throughput_att_io_handle)
+    [Anonymous Symbol]                       0x20005584   Section        0  throughput_service.o(.data.throughput_att_io_handle)
+    att_db_size                              0x20005588   Data           2  att_db_util.o(.bss.att_db_size)
+    [Anonymous Symbol]                       0x20005588   Section        0  att_db_util.o(.bss.att_db_size)
+    ble_buf                                  0x2000558c   Data         824  bt_cmd_data_uart_io_adp.o(.bss.ble_buf)
+    [Anonymous Symbol]                       0x2000558c   Section        0  bt_cmd_data_uart_io_adp.o(.bss.ble_buf)
+    bt_cmd_data_uart_recv_data.buf_data_can_be_cmd 0x200058c4   Data           1  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.buf_data_can_be_cmd)
+    [Anonymous Symbol]                       0x200058c4   Section        0  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.buf_data_can_be_cmd)
+    com_buf                                  0x200058c8   Data        4024  bt_cmd_data_uart_io_adp.o(.bss.com_buf)
+    [Anonymous Symbol]                       0x200058c8   Section        0  bt_cmd_data_uart_io_adp.o(.bss.com_buf)
+    i_am_master_send_data_num                0x20006884   Data           4  throughput_service.o(.bss.i_am_master_send_data_num)
+    [Anonymous Symbol]                       0x20006884   Section        0  throughput_service.o(.bss.i_am_master_send_data_num)
+    low_power_task_BinarySemaphore           0x20006888   Data           4  low_power.o(.bss.low_power_task_BinarySemaphore)
+    [Anonymous Symbol]                       0x20006888   Section        0  low_power.o(.bss.low_power_task_BinarySemaphore)
+    low_power_task_handler                   0x2000688c   Data           4  low_power.o(.bss.low_power_task_handler)
+    [Anonymous Symbol]                       0x2000688c   Section        0  low_power.o(.bss.low_power_task_handler)
+    low_power_timer_is_run                   0x20006890   Data           1  low_power.o(.bss.low_power_timer_is_run)
+    [Anonymous Symbol]                       0x20006890   Section        0  low_power.o(.bss.low_power_timer_is_run)
+    m_main_cmd_data_timer_state              0x20006894   Data           4  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer_state)
+    [Anonymous Symbol]                       0x20006894   Section        0  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer_state)
+    sem_cmd_process                          0x20006898   Data           4  bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process)
+    [Anonymous Symbol]                       0x20006898   Section        0  bt_cmd_data_uart_io_adp.o(.bss.sem_cmd_process)
+    throughput_notify_enable                 0x2000689c   Data           1  throughput_service.o(.bss.throughput_notify_enable)
+    [Anonymous Symbol]                       0x2000689c   Section        0  throughput_service.o(.bss.throughput_notify_enable)
     [Anonymous Symbol]                       0x20007000   Section        0  main.o(.ramfunc)
     m_set_reg_bit                            0x200071d5   Thumb Code    50  main.o(.ramfunc)
     m_setup_peripherals                      0x20007209   Thumb Code   132  main.o(.ramfunc)
@@ -2006,6 +2006,51 @@ Image Symbol Table
     m_GIO_EnableRetentionGroupB              0x20007491   Thumb Code   184  main.o(.ramfunc)
     m_GIO_EnableRetentionGroupA              0x20007549   Thumb Code    58  main.o(.ramfunc)
     m_GIO_MaskedWrite                        0x20007585   Thumb Code    50  main.o(.ramfunc)
+    bt_cmd_data_uart_recv_data.trig_source_last 0x200075f4   Data           1  bt_cmd_data_uart_io_adp.o(.data.bt_cmd_data_uart_recv_data.trig_source_last)
+    [Anonymous Symbol]                       0x200075f4   Section        0  bt_cmd_data_uart_io_adp.o(.data.bt_cmd_data_uart_recv_data.trig_source_last)
+    i_am_master_conn_handle                  0x200075f6   Data           2  profile.o(.data.i_am_master_conn_handle)
+    [Anonymous Symbol]                       0x200075f6   Section        0  profile.o(.data.i_am_master_conn_handle)
+    initiating_id                            0x200075f8   Data           1  profile.o(.data.initiating_id)
+    [Anonymous Symbol]                       0x200075f8   Section        0  profile.o(.data.initiating_id)
+    p_power_off_save_data_in_flash           0x200075fc   Data           4  sdk_private_flash_data.o(.data.p_power_off_save_data_in_flash)
+    [Anonymous Symbol]                       0x200075fc   Section        0  sdk_private_flash_data.o(.data.p_power_off_save_data_in_flash)
+    throughput_att_write_notify_handle       0x20007664   Data           2  throughput_service.o(.data.throughput_att_write_notify_handle)
+    [Anonymous Symbol]                       0x20007664   Section        0  throughput_service.o(.data.throughput_att_write_notify_handle)
+    throughput_char_info_data                0x20007666   Data           1  throughput_service.o(.data.throughput_char_info_data)
+    [Anonymous Symbol]                       0x20007666   Section        0  throughput_service.o(.data.throughput_char_info_data)
+    throughput_con_handle                    0x20007668   Data           2  throughput_service.o(.data.throughput_con_handle)
+    [Anonymous Symbol]                       0x20007668   Section        0  throughput_service.o(.data.throughput_con_handle)
+    att_db                                   0x20007670   Data           4  att_db_util.o(.bss.att_db)
+    [Anonymous Symbol]                       0x20007670   Section        0  att_db_util.o(.bss.att_db)
+    att_db_max_size                          0x20007674   Data           2  att_db_util.o(.bss.att_db_max_size)
+    [Anonymous Symbol]                       0x20007674   Section        0  att_db_util.o(.bss.att_db_max_size)
+    att_db_next_handle                       0x20007676   Data           2  att_db_util.o(.bss.att_db_next_handle)
+    [Anonymous Symbol]                       0x20007676   Section        0  att_db_util.o(.bss.att_db_next_handle)
+    att_db_storage                           0x20007678   Data         500  profile.o(.bss.att_db_storage)
+    [Anonymous Symbol]                       0x20007678   Section        0  profile.o(.bss.att_db_storage)
+    bt_cmd_data_uart_recv_data.trig_timer_cnt 0x2000786c   Data           4  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.trig_timer_cnt)
+    [Anonymous Symbol]                       0x2000786c   Section        0  bt_cmd_data_uart_io_adp.o(.bss.bt_cmd_data_uart_recv_data.trig_timer_cnt)
+    cmd_out_buf                              0x20007870   Data          64  bt_cmd_data_uart_io_adp.o(.bss.cmd_out_buf)
+    [Anonymous Symbol]                       0x20007870   Section        0  bt_cmd_data_uart_io_adp.o(.bss.cmd_out_buf)
+    create_conn_timer                        0x200078b0   Data           4  profile.o(.bss.create_conn_timer)
+    [Anonymous Symbol]                       0x200078b0   Section        0  profile.o(.bss.create_conn_timer)
+    enter_low_power_timer                    0x200078b4   Data           4  low_power.o(.bss.enter_low_power_timer)
+    [Anonymous Symbol]                       0x200078b4   Section        0  low_power.o(.bss.enter_low_power_timer)
+    exit_saving                              0x200078b8   Data           1  low_power.o(.bss.exit_saving)
+    [Anonymous Symbol]                       0x200078b8   Section        0  low_power.o(.bss.exit_saving)
+    gap_is_connection_cancel                 0x200078bc   Data           4  profile.o(.bss.gap_is_connection_cancel)
+    [Anonymous Symbol]                       0x200078bc   Section        0  profile.o(.bss.gap_is_connection_cancel)
+    hci_event_callback_registration          0x200078c0   Data           8  profile.o(.bss.hci_event_callback_registration)
+    [Anonymous Symbol]                       0x200078c0   Section        0  profile.o(.bss.hci_event_callback_registration)
+    i_am_slave_send_data_num                 0x200078c8   Data           4  throughput_service.o(.bss.i_am_slave_send_data_num)
+    [Anonymous Symbol]                       0x200078c8   Section        0  throughput_service.o(.bss.i_am_slave_send_data_num)
+    is_scanning                              0x200078cc   Data           1  profile.o(.bss.is_scanning)
+    [Anonymous Symbol]                       0x200078cc   Section        0  profile.o(.bss.is_scanning)
+    m_main_cmd_data_timer                    0x200078d0   Data           4  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer)
+    [Anonymous Symbol]                       0x200078d0   Section        0  bt_cmd_data_uart_io_adp.o(.bss.m_main_cmd_data_timer)
+    xHigherPriorityTaskWoken                 0x200078d4   Data           4  low_power.o(.bss.xHigherPriorityTaskWoken)
+    [Anonymous Symbol]                       0x200078d4   Section        0  low_power.o(.bss.xHigherPriorityTaskWoken)
+    STACK                                    0x200078d8   Section        4  startup_ing91600.o(STACK)
 
     Global Symbols
 
@@ -2424,52 +2469,50 @@ Image Symbol Table
     baec_msg_handle                          0x02029b15   Thumb Code   188  bt_at_cmd_parse.o(.text.baec_msg_handle)
     bt_at_connect_ack                        0x02029bd1   Thumb Code    18  bt_at_cmd_parse.o(.text.bt_at_connect_ack)
     bt_at_disconnect_ack                     0x02029be5   Thumb Code    18  bt_at_cmd_parse.o(.text.bt_at_disconnect_ack)
-    bt_at_power_on_ack                       0x02029f7d   Thumb Code    18  bt_at_cmd_parse.o(.text.bt_at_power_on_ack)
-    bt_cmd_data_ble_recv_data                0x02029f91   Thumb Code   218  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data)
-    bt_cmd_data_com_buf_pop_data             0x0202a06d   Thumb Code    66  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data)
-    bt_cmd_data_com_buf_pop_num              0x0202a0b1   Thumb Code   100  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num)
-    bt_cmd_data_com_buf_top_pos              0x0202a115   Thumb Code    16  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos)
-    bt_cmd_data_process_init                 0x0202a1d9   Thumb Code   132  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init)
-    bt_cmd_data_uart_out                     0x0202a321   Thumb Code    88  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out)
-    bt_cmd_data_uart_recv_data               0x0202a379   Thumb Code   260  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data)
-    dump_ram_data_in_char                    0x0202a82d   Thumb Code    12  app.o(.text.dump_ram_data_in_char)
-    erase_flash_sector                       0x0202a84d   Thumb Code    26  eflash.o(.text.erase_flash_sector)
-    flash_get_factory_calib_data             0x0202a869   Thumb Code    36  eflash.o(.text.flash_get_factory_calib_data)
-    flash_prepare_factory_data               0x0202a88d   Thumb Code   156  eflash.o(.text.flash_prepare_factory_data)
-    low_power_create_timer                   0x0202abcd   Thumb Code   116  low_power.o(.text.low_power_create_timer)
-    low_power_exit_saving                    0x0202ac71   Thumb Code   154  low_power.o(.text.low_power_exit_saving)
-    print_addr                               0x0202aee1   Thumb Code    76  app.o(.text.print_addr)
-    program_flash                            0x0202b0b1   Thumb Code    26  eflash.o(.text.program_flash)
-    read_flash_security                      0x0202b0cd   Thumb Code    52  eflash.o(.text.read_flash_security)
-    sdk_load_private_flash_data              0x0202b1ad   Thumb Code   260  sdk_private_flash_data.o(.text.sdk_load_private_flash_data)
-    sdk_private_data_write_to_flash          0x0202b2b1   Thumb Code    28  sdk_private_flash_data.o(.text.sdk_private_data_write_to_flash)
-    setup_profile                            0x0202b435   Thumb Code   144  profile.o(.text.setup_profile)
-    throughput_att_read_callback             0x0202b575   Thumb Code   154  throughput_service.o(.text.throughput_att_read_callback)
-    throughput_att_write_callback            0x0202b611   Thumb Code   162  throughput_service.o(.text.throughput_att_write_callback)
-    throughput_discover_services             0x0202b8cd   Thumb Code    52  throughput_service.o(.text.throughput_discover_services)
-    throughput_event_connected               0x0202b901   Thumb Code    24  throughput_service.o(.text.throughput_event_connected)
-    throughput_event_disconnect              0x0202b919   Thumb Code    50  throughput_service.o(.text.throughput_event_disconnect)
-    throughput_i_am_master_send_data         0x0202b94d   Thumb Code   168  throughput_service.o(.text.throughput_i_am_master_send_data)
-    throughput_i_am_slave_send_data          0x0202b9f5   Thumb Code   160  throughput_service.o(.text.throughput_i_am_slave_send_data)
-    throughput_service_init                  0x0202bb91   Thumb Code   130  throughput_service.o(.text.throughput_service_init)
-    throughput_user_msg_handler              0x0202bc15   Thumb Code   114  throughput_service.o(.text.throughput_user_msg_handler)
-    timer_start_main_cmd_data                0x0202bc89   Thumb Code    76  bt_cmd_data_uart_io_adp.o(.text.timer_start_main_cmd_data)
-    write_flash                              0x0202bf3d   Thumb Code   126  eflash.o(.text.write_flash)
-    __0sprintf                               0x0202bfc5   Thumb Code    34  printfa.o(i.__0sprintf)
-    __1sprintf                               0x0202bfc5   Thumb Code     0  printfa.o(i.__0sprintf)
-    __2sprintf                               0x0202bfc5   Thumb Code     0  printfa.o(i.__0sprintf)
-    __c89sprintf                             0x0202bfc5   Thumb Code     0  printfa.o(i.__0sprintf)
-    sprintf                                  0x0202bfc5   Thumb Code     0  printfa.o(i.__0sprintf)
-    __scatterload_copy                       0x0202bfed   Thumb Code    14  handlers.o(i.__scatterload_copy)
-    __scatterload_null                       0x0202bffb   Thumb Code     2  handlers.o(i.__scatterload_null)
-    __scatterload_zeroinit                   0x0202bffd   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
-    io_output_source_map                     0x0202c918   Data         798  peripheral_pinctrl.o(.rodata.io_output_source_map)
-    Region$$Table$$Base                      0x0202d028   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x0202d058   Number         0  anon$$obj.o(Region$$Table)
-    g_power_off_save_data_in_ram             0x200054c8   Data         168  sdk_private_flash_data.o(.data.g_power_off_save_data_in_ram)
-    peer_slave                               0x2000557c   Data         100  throughput_service.o(.data.peer_slave)
-    g_sys_work_status_bits                   0x20005eaa   Data           2  low_power.o(.bss.g_sys_work_status_bits)
-    __initial_sp                             0x20005ee4   Data           0  startup_ing91600.o(STACK)
+    bt_at_power_on_ack                       0x0202a025   Thumb Code    18  bt_at_cmd_parse.o(.text.bt_at_power_on_ack)
+    bt_cmd_data_ble_recv_data                0x0202a039   Thumb Code   218  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_ble_recv_data)
+    bt_cmd_data_com_buf_pop_data             0x0202a115   Thumb Code    92  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_data)
+    bt_cmd_data_com_buf_pop_num              0x0202a171   Thumb Code   100  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_pop_num)
+    bt_cmd_data_com_buf_top_pos              0x0202a1d5   Thumb Code    16  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_com_buf_top_pos)
+    bt_cmd_data_process_init                 0x0202a299   Thumb Code   132  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_process_init)
+    bt_cmd_data_uart_out                     0x0202a3e1   Thumb Code    88  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_out)
+    bt_cmd_data_uart_recv_data               0x0202a439   Thumb Code   276  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_recv_data)
+    bt_cmd_data_uart_wait_all_out            0x0202a671   Thumb Code    26  bt_cmd_data_uart_io_adp.o(.text.bt_cmd_data_uart_wait_all_out)
+    dump_ram_data_in_char                    0x0202a91d   Thumb Code    12  app.o(.text.dump_ram_data_in_char)
+    erase_flash_sector                       0x0202a93d   Thumb Code    26  eflash.o(.text.erase_flash_sector)
+    flash_get_factory_calib_data             0x0202a959   Thumb Code    36  eflash.o(.text.flash_get_factory_calib_data)
+    flash_prepare_factory_data               0x0202a97d   Thumb Code   156  eflash.o(.text.flash_prepare_factory_data)
+    low_power_create_timer                   0x0202ad41   Thumb Code   116  low_power.o(.text.low_power_create_timer)
+    low_power_exit_saving                    0x0202ade5   Thumb Code   154  low_power.o(.text.low_power_exit_saving)
+    print_addr                               0x0202b055   Thumb Code    76  app.o(.text.print_addr)
+    program_flash                            0x0202b241   Thumb Code    26  eflash.o(.text.program_flash)
+    read_flash_security                      0x0202b25d   Thumb Code    52  eflash.o(.text.read_flash_security)
+    sdk_load_private_flash_data              0x0202b33d   Thumb Code   260  sdk_private_flash_data.o(.text.sdk_load_private_flash_data)
+    sdk_private_data_write_to_flash          0x0202b441   Thumb Code    28  sdk_private_flash_data.o(.text.sdk_private_data_write_to_flash)
+    setup_profile                            0x0202b5c5   Thumb Code   144  profile.o(.text.setup_profile)
+    throughput_att_read_callback             0x0202b705   Thumb Code   154  throughput_service.o(.text.throughput_att_read_callback)
+    throughput_att_write_callback            0x0202b7a1   Thumb Code   166  throughput_service.o(.text.throughput_att_write_callback)
+    throughput_discover_services             0x0202ba61   Thumb Code    52  throughput_service.o(.text.throughput_discover_services)
+    throughput_event_connected               0x0202ba95   Thumb Code    24  throughput_service.o(.text.throughput_event_connected)
+    throughput_event_disconnect              0x0202baad   Thumb Code    50  throughput_service.o(.text.throughput_event_disconnect)
+    throughput_send_data                     0x0202bcd1   Thumb Code   104  throughput_service.o(.text.throughput_send_data)
+    throughput_service_init                  0x0202bdf1   Thumb Code   130  throughput_service.o(.text.throughput_service_init)
+    throughput_user_msg_handler              0x0202be75   Thumb Code   120  throughput_service.o(.text.throughput_user_msg_handler)
+    timer_start_main_cmd_data                0x0202beed   Thumb Code    76  bt_cmd_data_uart_io_adp.o(.text.timer_start_main_cmd_data)
+    write_flash                              0x0202c1d5   Thumb Code   126  eflash.o(.text.write_flash)
+    __0sprintf                               0x0202c25d   Thumb Code    34  printfa.o(i.__0sprintf)
+    __1sprintf                               0x0202c25d   Thumb Code     0  printfa.o(i.__0sprintf)
+    __2sprintf                               0x0202c25d   Thumb Code     0  printfa.o(i.__0sprintf)
+    __c89sprintf                             0x0202c25d   Thumb Code     0  printfa.o(i.__0sprintf)
+    sprintf                                  0x0202c25d   Thumb Code     0  printfa.o(i.__0sprintf)
+    __scatterload_copy                       0x0202c285   Thumb Code    14  handlers.o(i.__scatterload_copy)
+    __scatterload_null                       0x0202c293   Thumb Code     2  handlers.o(i.__scatterload_null)
+    __scatterload_zeroinit                   0x0202c295   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
+    io_output_source_map                     0x0202cbb0   Data         798  peripheral_pinctrl.o(.rodata.io_output_source_map)
+    Region$$Table$$Base                      0x0202d344   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x0202d394   Number         0  anon$$obj.o(Region$$Table)
+    g_power_off_save_data_in_ram             0x200054d8   Data         168  sdk_private_flash_data.o(.data.g_power_off_save_data_in_ram)
+    g_sys_work_status_bits                   0x20006880   Data           2  low_power.o(.bss.g_sys_work_status_bits)
     cb_putc                                  0x20007001   Thumb Code    52  main.o(.ramfunc)
     fputc                                    0x20007035   Thumb Code    22  main.o(.ramfunc)
     m_send_char                              0x2000704d   Thumb Code    46  main.o(.ramfunc)
@@ -2481,6 +2524,9 @@ Image Symbol Table
     Long Thumb to Thumb Veneer to low_power_exit_saving 0x200075d5   Thumb Code    10  anon$$obj.o(Veneer$$Code)
     Long Thumb to Thumb Veneer to bt_at_power_on_ack 0x200075df   Thumb Code    10  anon$$obj.o(Veneer$$Code)
     Long Thumb to Thumb Veneer to app_setup_peripherals_before_sleep 0x200075e9   Thumb Code    10  anon$$obj.o(Veneer$$Code)
+    peer_slave                               0x20007600   Data         100  throughput_service.o(.data.peer_slave)
+    g_throughput_is_sending_data             0x200078b9   Data           1  throughput_service.o(.bss.g_throughput_is_sending_data)
+    __initial_sp                             0x200078dc   Data           0  startup_ing91600.o(STACK)
 
 
 
@@ -2490,353 +2536,366 @@ Memory Map of the image
 
   Image Entry point : 0x02028009
 
-  Load Region LR_IROM1 (Base: 0x02028000, Size: 0x000057fc, Max: 0x00058000, ABSOLUTE, COMPRESSED[0x0000571c])
+  Load Region LR_IROM1 (Base: 0x02028000, Size: 0x00005b58, Max: 0x00058000, ABSOLUTE, COMPRESSED[0x00005ad4])
 
-    Execution Region ER_IROM1 (Exec base: 0x02028000, Load base: 0x02028000, Size: 0x00005058, Max: 0x00058000, ABSOLUTE)
+    Execution Region ER_IROM1 (Exec base: 0x02028000, Load base: 0x02028000, Size: 0x00005394, Max: 0x00058000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x02028000   0x02028000   0x00000008   Data   RO          122    RESET               startup_ing91600.o
-    0x02028008   0x02028008   0x00000000   Code   RO          871  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
-    0x02028008   0x02028008   0x00000004   Code   RO          922    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
-    0x0202800c   0x0202800c   0x00000004   Code   RO          925    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
-    0x02028010   0x02028010   0x00000000   Code   RO          927    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
-    0x02028010   0x02028010   0x00000000   Code   RO          929    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
-    0x02028010   0x02028010   0x00000008   Code   RO          930    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
-    0x02028018   0x02028018   0x00000000   Code   RO          932    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
-    0x02028018   0x02028018   0x00000000   Code   RO          934    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
-    0x02028018   0x02028018   0x00000004   Code   RO          923    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
-    0x0202801c   0x0202801c   0x00000028   Code   RO          123    .text               startup_ing91600.o
-    0x02028044   0x02028044   0x00000024   Code   RO          872    .text               mc_w.l(init.o)
-    0x02028068   0x02028068   0x00000024   Code   RO          876    .text               mc_w.l(memcpya.o)
-    0x0202808c   0x0202808c   0x00000018   Code   RO          878    .text               mc_w.l(strncpy.o)
-    0x020280a4   0x020280a4   0x0000000e   Code   RO          880    .text               mc_w.l(strlen.o)
-    0x020280b2   0x020280b2   0x0000001a   Code   RO          882    .text               mc_w.l(memcmp.o)
-    0x020280cc   0x020280cc   0x0000014e   Code   RO          914    .text               mf_w.l(dadd.o)
-    0x0202821a   0x0202821a   0x000000de   Code   RO          916    .text               mf_w.l(ddiv.o)
-    0x020282f8   0x020282f8   0x0000002c   Code   RO          946    .text               mc_w.l(uidiv.o)
-    0x02028324   0x02028324   0x00000062   Code   RO          948    .text               mc_w.l(uldiv.o)
-    0x02028386   0x02028386   0x0000001e   Code   RO          950    .text               mc_w.l(llshl.o)
-    0x020283a4   0x020283a4   0x00000024   Code   RO          952    .text               mc_w.l(llsshr.o)
-    0x020283c8   0x020283c8   0x00000000   Code   RO          954    .text               mc_w.l(iusefp.o)
-    0x020283c8   0x020283c8   0x000000ba   Code   RO          957    .text               mf_w.l(depilogue.o)
-    0x02028482   0x02028482   0x000000e4   Code   RO          959    .text               mf_w.l(dmul.o)
-    0x02028566   0x02028566   0x00000030   Code   RO          961    .text               mf_w.l(dfixul.o)
+    0x02028000   0x02028000   0x00000008   Data   RO          125    RESET               startup_ing91600.o
+    0x02028008   0x02028008   0x00000000   Code   RO          882  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x02028008   0x02028008   0x00000004   Code   RO          933    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x0202800c   0x0202800c   0x00000004   Code   RO          936    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x02028010   0x02028010   0x00000000   Code   RO          938    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x02028010   0x02028010   0x00000000   Code   RO          940    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x02028010   0x02028010   0x00000008   Code   RO          941    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x02028018   0x02028018   0x00000000   Code   RO          943    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
+    0x02028018   0x02028018   0x00000000   Code   RO          945    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
+    0x02028018   0x02028018   0x00000004   Code   RO          934    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x0202801c   0x0202801c   0x00000028   Code   RO          126    .text               startup_ing91600.o
+    0x02028044   0x02028044   0x00000024   Code   RO          883    .text               mc_w.l(init.o)
+    0x02028068   0x02028068   0x00000024   Code   RO          887    .text               mc_w.l(memcpya.o)
+    0x0202808c   0x0202808c   0x00000018   Code   RO          889    .text               mc_w.l(strncpy.o)
+    0x020280a4   0x020280a4   0x0000000e   Code   RO          891    .text               mc_w.l(strlen.o)
+    0x020280b2   0x020280b2   0x0000001a   Code   RO          893    .text               mc_w.l(memcmp.o)
+    0x020280cc   0x020280cc   0x0000014e   Code   RO          925    .text               mf_w.l(dadd.o)
+    0x0202821a   0x0202821a   0x000000de   Code   RO          927    .text               mf_w.l(ddiv.o)
+    0x020282f8   0x020282f8   0x0000002c   Code   RO          957    .text               mc_w.l(uidiv.o)
+    0x02028324   0x02028324   0x00000062   Code   RO          959    .text               mc_w.l(uldiv.o)
+    0x02028386   0x02028386   0x0000001e   Code   RO          961    .text               mc_w.l(llshl.o)
+    0x020283a4   0x020283a4   0x00000024   Code   RO          963    .text               mc_w.l(llsshr.o)
+    0x020283c8   0x020283c8   0x00000000   Code   RO          965    .text               mc_w.l(iusefp.o)
+    0x020283c8   0x020283c8   0x000000ba   Code   RO          968    .text               mf_w.l(depilogue.o)
+    0x02028482   0x02028482   0x000000e4   Code   RO          970    .text               mf_w.l(dmul.o)
+    0x02028566   0x02028566   0x00000030   Code   RO          972    .text               mf_w.l(dfixul.o)
     0x02028596   0x02028596   0x00000002   PAD
-    0x02028598   0x02028598   0x00000030   Code   RO          963    .text               mf_w.l(cdrcmple.o)
-    0x020285c8   0x020285c8   0x00000020   Code   RO          965    .text               mc_w.l(llushr.o)
-    0x020285e8   0x020285e8   0x0000003a   Code   RO          975    .text               mc_w.l(__dczerorl.o)
+    0x02028598   0x02028598   0x00000030   Code   RO          974    .text               mf_w.l(cdrcmple.o)
+    0x020285c8   0x020285c8   0x00000020   Code   RO          976    .text               mc_w.l(llushr.o)
+    0x020285e8   0x020285e8   0x0000003a   Code   RO          986    .text               mc_w.l(__dczerorl.o)
     0x02028622   0x02028622   0x00000002   PAD
-    0x02028624   0x02028624   0x000000ca   Code   RO          174    .text.GIO_ConfigIntSource  peripheral_gpio.o
+    0x02028624   0x02028624   0x000000ca   Code   RO          177    .text.GIO_ConfigIntSource  peripheral_gpio.o
     0x020286ee   0x020286ee   0x00000002   PAD
-    0x020286f0   0x020286f0   0x000001d2   Code   RO          200    .text.GIO_EnableDeepSleepWakeupSource  peripheral_gpio.o
+    0x020286f0   0x020286f0   0x000001d2   Code   RO          203    .text.GIO_EnableDeepSleepWakeupSource  peripheral_gpio.o
     0x020288c2   0x020288c2   0x00000002   PAD
-    0x020288c4   0x020288c4   0x0000003a   Code   RO          194    .text.GIO_EnableRetentionGroupA  peripheral_gpio.o
+    0x020288c4   0x020288c4   0x0000003a   Code   RO          197    .text.GIO_EnableRetentionGroupA  peripheral_gpio.o
     0x020288fe   0x020288fe   0x00000002   PAD
-    0x02028900   0x02028900   0x000000b8   Code   RO          196    .text.GIO_EnableRetentionGroupB  peripheral_gpio.o
-    0x020289b8   0x020289b8   0x00000032   Code   RO          164    .text.GIO_MaskedWrite  peripheral_gpio.o
+    0x02028900   0x02028900   0x000000b8   Code   RO          199    .text.GIO_EnableRetentionGroupB  peripheral_gpio.o
+    0x020289b8   0x020289b8   0x00000032   Code   RO          167    .text.GIO_MaskedWrite  peripheral_gpio.o
     0x020289ea   0x020289ea   0x00000002   PAD
-    0x020289ec   0x020289ec   0x000000a2   Code   RO          162    .text.GIO_SetDirection  peripheral_gpio.o
+    0x020289ec   0x020289ec   0x000000a2   Code   RO          165    .text.GIO_SetDirection  peripheral_gpio.o
     0x02028a8e   0x02028a8e   0x00000002   PAD
-    0x02028a90   0x02028a90   0x00000074   Code   RO          168    .text.GIO_WriteValue  peripheral_gpio.o
-    0x02028b04   0x02028b04   0x00000090   Code   RO          237    .text.PINCTRL_Pull  peripheral_pinctrl.o
-    0x02028b94   0x02028b94   0x00000090   Code   RO          219    .text.PINCTRL_SelInput  peripheral_pinctrl.o
-    0x02028c24   0x02028c24   0x00000052   Code   RO          231    .text.PINCTRL_SelUartRxdIn  peripheral_pinctrl.o
+    0x02028a90   0x02028a90   0x00000074   Code   RO          171    .text.GIO_WriteValue  peripheral_gpio.o
+    0x02028b04   0x02028b04   0x00000090   Code   RO          240    .text.PINCTRL_Pull  peripheral_pinctrl.o
+    0x02028b94   0x02028b94   0x00000090   Code   RO          222    .text.PINCTRL_SelInput  peripheral_pinctrl.o
+    0x02028c24   0x02028c24   0x00000052   Code   RO          234    .text.PINCTRL_SelUartRxdIn  peripheral_pinctrl.o
     0x02028c76   0x02028c76   0x00000002   PAD
-    0x02028c78   0x02028c78   0x000001a6   Code   RO          221    .text.PINCTRL_SetPadMux  peripheral_pinctrl.o
+    0x02028c78   0x02028c78   0x000001a6   Code   RO          224    .text.PINCTRL_SetPadMux  peripheral_pinctrl.o
     0x02028e1e   0x02028e1e   0x00000002   PAD
-    0x02028e20   0x02028e20   0x00000016   Code   RO          331    .text.SYSCTRL_ClearClkGate  peripheral_sysctrl.o
+    0x02028e20   0x02028e20   0x00000016   Code   RO          334    .text.SYSCTRL_ClearClkGate  peripheral_sysctrl.o
     0x02028e36   0x02028e36   0x00000002   PAD
-    0x02028e38   0x02028e38   0x00000042   Code   RO          335    .text.SYSCTRL_ClearClkGateMulti  peripheral_sysctrl.o
+    0x02028e38   0x02028e38   0x00000042   Code   RO          338    .text.SYSCTRL_ClearClkGateMulti  peripheral_sysctrl.o
     0x02028e7a   0x02028e7a   0x00000002   PAD
-    0x02028e7c   0x02028e7c   0x00000386   Code   RO          329    .text.SYSCTRL_ClkGateCtrl  peripheral_sysctrl.o
+    0x02028e7c   0x02028e7c   0x00000386   Code   RO          332    .text.SYSCTRL_ClkGateCtrl  peripheral_sysctrl.o
     0x02029202   0x02029202   0x00000002   PAD
-    0x02029204   0x02029204   0x00000072   Code   RO          397    .text.SYSCTRL_EnableConfigClocksAfterWakeup  peripheral_sysctrl.o
+    0x02029204   0x02029204   0x00000072   Code   RO          400    .text.SYSCTRL_EnableConfigClocksAfterWakeup  peripheral_sysctrl.o
     0x02029276   0x02029276   0x00000002   PAD
-    0x02029278   0x02029278   0x00000060   Code   RO          373    .text.SYSCTRL_EnableSlowRC  peripheral_sysctrl.o
-    0x020292d8   0x020292d8   0x000000ca   Code   RO          463    .text.SYSCTRL_Init  peripheral_sysctrl.o
+    0x02029278   0x02029278   0x00000060   Code   RO          376    .text.SYSCTRL_EnableSlowRC  peripheral_sysctrl.o
+    0x020292d8   0x020292d8   0x000000ca   Code   RO          466    .text.SYSCTRL_Init  peripheral_sysctrl.o
     0x020293a2   0x020293a2   0x00000002   PAD
-    0x020293a4   0x020293a4   0x00000024   Code   RO          437    .text.SYSCTRL_SetLDOOutput  peripheral_sysctrl.o
-    0x020293c8   0x020293c8   0x0000001e   Code   RO          496    .text.TMR_WatchDogRestart  peripheral_timer.o
+    0x020293a4   0x020293a4   0x00000024   Code   RO          440    .text.SYSCTRL_SetLDOOutput  peripheral_sysctrl.o
+    0x020293c8   0x020293c8   0x0000001e   Code   RO          499    .text.TMR_WatchDogRestart  peripheral_timer.o
     0x020293e6   0x020293e6   0x00000002   PAD
-    0x020293e8   0x020293e8   0x00000014   Code   RO          553    .text.UART_SendData  peripheral_uart.o
-    0x020293fc   0x020293fc   0x0000001a   Code   RO           61    .text.adv_user_msg_handler  profile.o
+    0x020293e8   0x020293e8   0x00000014   Code   RO          556    .text.UART_SendData  peripheral_uart.o
+    0x020293fc   0x020293fc   0x0000001a   Code   RO           65    .text.adv_user_msg_handler  profile.o
     0x02029416   0x02029416   0x00000002   PAD
-    0x02029418   0x02029418   0x00000074   Code   RO          507    .text.apUART_BaudRateSet  peripheral_uart.o
-    0x0202948c   0x0202948c   0x00000010   Code   RO          513    .text.apUART_Check_RXFIFO_EMPTY  peripheral_uart.o
-    0x0202949c   0x0202949c   0x00000010   Code   RO          517    .text.apUART_Check_TXFIFO_EMPTY  peripheral_uart.o
-    0x020294ac   0x020294ac   0x00000010   Code   RO          519    .text.apUART_Check_TXFIFO_FULL  peripheral_uart.o
-    0x020294bc   0x020294bc   0x0000000c   Code   RO          537    .text.apUART_Get_all_raw_int_stat  peripheral_uart.o
-    0x020294c8   0x020294c8   0x00000098   Code   RO          551    .text.apUART_Initialize  peripheral_uart.o
-    0x02029560   0x02029560   0x00000008   Code   RO           91    .text.app_low_power_exit_callback  app.o
+    0x02029418   0x02029418   0x00000074   Code   RO          510    .text.apUART_BaudRateSet  peripheral_uart.o
+    0x0202948c   0x0202948c   0x00000010   Code   RO          516    .text.apUART_Check_RXFIFO_EMPTY  peripheral_uart.o
+    0x0202949c   0x0202949c   0x00000010   Code   RO          520    .text.apUART_Check_TXFIFO_EMPTY  peripheral_uart.o
+    0x020294ac   0x020294ac   0x00000010   Code   RO          522    .text.apUART_Check_TXFIFO_FULL  peripheral_uart.o
+    0x020294bc   0x020294bc   0x0000000c   Code   RO          540    .text.apUART_Get_all_raw_int_stat  peripheral_uart.o
+    0x020294c8   0x020294c8   0x00000098   Code   RO          554    .text.apUART_Initialize  peripheral_uart.o
+    0x02029560   0x02029560   0x00000008   Code   RO           94    .text.app_low_power_exit_callback  app.o
     0x02029568   0x02029568   0x0000004e   Code   RO            4    .text.app_main      main.o
     0x020295b6   0x020295b6   0x00000002   PAD
-    0x020295b8   0x020295b8   0x00000020   Code   RO           87    .text.app_setup_peripherals  app.o
-    0x020295d8   0x020295d8   0x0000008e   Code   RO           93    .text.app_setup_peripherals_before_sleep  app.o
+    0x020295b8   0x020295b8   0x00000020   Code   RO           90    .text.app_setup_peripherals  app.o
+    0x020295d8   0x020295d8   0x0000008e   Code   RO           96    .text.app_setup_peripherals_before_sleep  app.o
     0x02029666   0x02029666   0x00000002   PAD
-    0x02029668   0x02029668   0x00000014   Code   RO          107    .text.app_setup_uart1_isr  app.o
-    0x0202967c   0x0202967c   0x00000020   Code   RO           95    .text.app_start     app.o
-    0x0202969c   0x0202969c   0x000000ca   Code   RO          623    .text.att_db_util_add_attribute_uuid128  att_db_util.o
+    0x02029668   0x02029668   0x00000014   Code   RO          110    .text.app_setup_uart1_isr  app.o
+    0x0202967c   0x0202967c   0x00000020   Code   RO           98    .text.app_start     app.o
+    0x0202969c   0x0202969c   0x000000ca   Code   RO          626    .text.att_db_util_add_attribute_uuid128  att_db_util.o
     0x02029766   0x02029766   0x00000002   PAD
-    0x02029768   0x02029768   0x000000d4   Code   RO          609    .text.att_db_util_add_attribute_uuid16  att_db_util.o
-    0x0202983c   0x0202983c   0x000000b8   Code   RO          621    .text.att_db_util_add_characteristic_uuid128  att_db_util.o
-    0x020298f4   0x020298f4   0x00000022   Code   RO          617    .text.att_db_util_add_service_uuid128  att_db_util.o
+    0x02029768   0x02029768   0x000000d4   Code   RO          612    .text.att_db_util_add_attribute_uuid16  att_db_util.o
+    0x0202983c   0x0202983c   0x000000b8   Code   RO          624    .text.att_db_util_add_characteristic_uuid128  att_db_util.o
+    0x020298f4   0x020298f4   0x00000022   Code   RO          620    .text.att_db_util_add_service_uuid128  att_db_util.o
     0x02029916   0x02029916   0x00000002   PAD
-    0x02029918   0x02029918   0x0000003a   Code   RO          611    .text.att_db_util_assert_space  att_db_util.o
+    0x02029918   0x02029918   0x0000003a   Code   RO          614    .text.att_db_util_assert_space  att_db_util.o
     0x02029952   0x02029952   0x00000002   PAD
-    0x02029954   0x02029954   0x0000000c   Code   RO          625    .text.att_db_util_get_address  att_db_util.o
-    0x02029960   0x02029960   0x00000044   Code   RO          605    .text.att_db_util_init  att_db_util.o
-    0x020299a4   0x020299a4   0x00000026   Code   RO          607    .text.att_db_util_set_end_tag  att_db_util.o
+    0x02029954   0x02029954   0x0000000c   Code   RO          628    .text.att_db_util_get_address  att_db_util.o
+    0x02029960   0x02029960   0x00000044   Code   RO          608    .text.att_db_util_init  att_db_util.o
+    0x020299a4   0x020299a4   0x00000026   Code   RO          610    .text.att_db_util_set_end_tag  att_db_util.o
     0x020299ca   0x020299ca   0x00000002   PAD
     0x020299cc   0x020299cc   0x0000005e   Code   RO           27    .text.att_read_callback  profile.o
     0x02029a2a   0x02029a2a   0x00000002   PAD
     0x02029a2c   0x02029a2c   0x00000068   Code   RO           29    .text.att_write_callback  profile.o
     0x02029a94   0x02029a94   0x0000007e   Code   RO           41    .text.auto_connect  profile.o
     0x02029b12   0x02029b12   0x00000002   PAD
-    0x02029b14   0x02029b14   0x000000bc   Code   RO          848    .text.baec_msg_handle  bt_at_cmd_parse.o
-    0x02029bd0   0x02029bd0   0x00000012   Code   RO          844    .text.bt_at_connect_ack  bt_at_cmd_parse.o
+    0x02029b14   0x02029b14   0x000000bc   Code   RO          857    .text.baec_msg_handle  bt_at_cmd_parse.o
+    0x02029bd0   0x02029bd0   0x00000012   Code   RO          853    .text.bt_at_connect_ack  bt_at_cmd_parse.o
     0x02029be2   0x02029be2   0x00000002   PAD
-    0x02029be4   0x02029be4   0x00000012   Code   RO          846    .text.bt_at_disconnect_ack  bt_at_cmd_parse.o
+    0x02029be4   0x02029be4   0x00000012   Code   RO          855    .text.bt_at_disconnect_ack  bt_at_cmd_parse.o
     0x02029bf6   0x02029bf6   0x00000002   PAD
-    0x02029bf8   0x02029bf8   0x00000190   Code   RO          854    .text.bt_at_handle_addr  bt_at_cmd_parse.o
-    0x02029d88   0x02029d88   0x0000014a   Code   RO          850    .text.bt_at_handle_cona  bt_at_cmd_parse.o
+    0x02029bf8   0x02029bf8   0x00000190   Code   RO          863    .text.bt_at_handle_addr  bt_at_cmd_parse.o
+    0x02029d88   0x02029d88   0x0000014a   Code   RO          859    .text.bt_at_handle_cona  bt_at_cmd_parse.o
     0x02029ed2   0x02029ed2   0x00000002   PAD
-    0x02029ed4   0x02029ed4   0x000000a8   Code   RO          852    .text.bt_at_handle_role  bt_at_cmd_parse.o
-    0x02029f7c   0x02029f7c   0x00000012   Code   RO          840    .text.bt_at_power_on_ack  bt_at_cmd_parse.o
-    0x02029f8e   0x02029f8e   0x00000002   PAD
-    0x02029f90   0x02029f90   0x000000da   Code   RO          653    .text.bt_cmd_data_ble_recv_data  bt_cmd_data_uart_io_adp.o
-    0x0202a06a   0x0202a06a   0x00000002   PAD
-    0x0202a06c   0x0202a06c   0x00000042   Code   RO          651    .text.bt_cmd_data_com_buf_pop_data  bt_cmd_data_uart_io_adp.o
-    0x0202a0ae   0x0202a0ae   0x00000002   PAD
-    0x0202a0b0   0x0202a0b0   0x00000064   Code   RO          647    .text.bt_cmd_data_com_buf_pop_num  bt_cmd_data_uart_io_adp.o
-    0x0202a114   0x0202a114   0x00000010   Code   RO          649    .text.bt_cmd_data_com_buf_top_pos  bt_cmd_data_uart_io_adp.o
-    0x0202a124   0x0202a124   0x00000066   Code   RO          675    .text.bt_cmd_data_port_check_buf_into_lowpower  bt_cmd_data_uart_io_adp.o
-    0x0202a18a   0x0202a18a   0x00000002   PAD
-    0x0202a18c   0x0202a18c   0x0000004c   Code   RO          681    .text.bt_cmd_data_print_buf_state  bt_cmd_data_uart_io_adp.o
-    0x0202a1d8   0x0202a1d8   0x00000084   Code   RO          669    .text.bt_cmd_data_process_init  bt_cmd_data_uart_io_adp.o
-    0x0202a25c   0x0202a25c   0x00000046   Code   RO          109    .text.bt_cmd_data_uart1_isr  app.o
-    0x0202a2a2   0x0202a2a2   0x00000002   PAD
-    0x0202a2a4   0x0202a2a4   0x0000007a   Code   RO          677    .text.bt_cmd_data_uart_handle_task_send_data  bt_cmd_data_uart_io_adp.o
-    0x0202a31e   0x0202a31e   0x00000002   PAD
-    0x0202a320   0x0202a320   0x00000058   Code   RO          645    .text.bt_cmd_data_uart_out  bt_cmd_data_uart_io_adp.o
-    0x0202a378   0x0202a378   0x00000104   Code   RO          657    .text.bt_cmd_data_uart_recv_data  bt_cmd_data_uart_io_adp.o
-    0x0202a47c   0x0202a47c   0x000000a4   Code   RO          679    .text.bt_cmd_data_uart_rx_cmd_process  bt_cmd_data_uart_io_adp.o
-    0x0202a520   0x0202a520   0x0000007a   Code   RO          659    .text.bt_cmd_data_uart_rx_data_fun  bt_cmd_data_uart_io_adp.o
-    0x0202a59a   0x0202a59a   0x00000002   PAD
-    0x0202a59c   0x0202a59c   0x00000040   Code   RO          816    .text.btstack_callback  throughput_service.o
-    0x0202a5dc   0x0202a5dc   0x0000000c   Code   RO           35    .text.btstack_event_state_get_state  profile.o
-    0x0202a5e8   0x0202a5e8   0x00000056   Code   RO           63    .text.cancel_initiating  profile.o
-    0x0202a63e   0x0202a63e   0x00000002   PAD
-    0x0202a640   0x0202a640   0x0000001e   Code   RO           10    .text.cb_assertion  main.o
-    0x0202a65e   0x0202a65e   0x00000002   PAD
-    0x0202a660   0x0202a660   0x00000056   Code   RO            8    .text.cb_hard_fault  main.o
-    0x0202a6b6   0x0202a6b6   0x00000002   PAD
-    0x0202a6b8   0x0202a6b8   0x0000001a   Code   RO           12    .text.cb_heap_out_of_mem  main.o
-    0x0202a6d2   0x0202a6d2   0x00000002   PAD
-    0x0202a6d4   0x0202a6d4   0x000000c8   Code   RO          673    .text.cmd_process_task  bt_cmd_data_uart_io_adp.o
-    0x0202a79c   0x0202a79c   0x00000014   Code   RO           25    .text.conn_timer_callback  profile.o
-    0x0202a7b0   0x0202a7b0   0x0000007a   Code   RO          146    .text.copy_security_data  eflash.o
-    0x0202a82a   0x0202a82a   0x00000002   PAD
-    0x0202a82c   0x0202a82c   0x0000000c   Code   RO          103    .text.dump_ram_data_in_char  app.o
-    0x0202a838   0x0202a838   0x00000012   Code   RO          753    .text.enter_low_power_timer_callback  low_power.o
-    0x0202a84a   0x0202a84a   0x00000002   PAD
-    0x0202a84c   0x0202a84c   0x0000001a   Code   RO          130    .text.erase_flash_sector  eflash.o
-    0x0202a866   0x0202a866   0x00000002   PAD
-    0x0202a868   0x0202a868   0x00000024   Code   RO          150    .text.flash_get_factory_calib_data  eflash.o
-    0x0202a88c   0x0202a88c   0x0000009c   Code   RO          142    .text.flash_prepare_factory_data  eflash.o
-    0x0202a928   0x0202a928   0x0000000c   Code   RO          810    .text.gatt_event_all_characteristic_descriptors_query_result_parse  throughput_service.o
-    0x0202a934   0x0202a934   0x0000000c   Code   RO          806    .text.gatt_event_characteristic_query_result_parse  throughput_service.o
-    0x0202a940   0x0202a940   0x0000001c   Code   RO          818    .text.gatt_event_notification_parse  throughput_service.o
-    0x0202a95c   0x0202a95c   0x0000000c   Code   RO          802    .text.gatt_event_query_complete_parse  throughput_service.o
-    0x0202a968   0x0202a968   0x0000000c   Code   RO          800    .text.gatt_event_service_query_result_parse  throughput_service.o
-    0x0202a974   0x0202a974   0x00000028   Code   RO          812    .text.get_sig_short_uuid  throughput_service.o
-    0x0202a99c   0x0202a99c   0x0000002c   Code   RO          663    .text.give_sem_process_cmd  bt_cmd_data_uart_io_adp.o
-    0x0202a9c8   0x0202a9c8   0x0000002c   Code   RO          661    .text.give_sem_send_data_by_ble  bt_cmd_data_uart_io_adp.o
-    0x0202a9f4   0x0202a9f4   0x0000002c   Code   RO          655    .text.give_sem_send_data_by_com  bt_cmd_data_uart_io_adp.o
-    0x0202aa20   0x0202aa20   0x0000000c   Code   RO           39    .text.hci_event_le_meta_get_subevent_code  profile.o
-    0x0202aa2c   0x0202aa2c   0x0000000c   Code   RO           33    .text.hci_event_packet_get_type  profile.o
-    0x0202aa38   0x0202aa38   0x0000000c   Code   RO           51    .text.hci_event_packet_get_user_msg  profile.o
-    0x0202aa44   0x0202aa44   0x0000003c   Code   RO           45    .text.i_am_master_connected_slave  profile.o
-    0x0202aa80   0x0202aa80   0x0000001c   Code   RO           47    .text.i_am_master_disconnected_slave  profile.o
-    0x0202aa9c   0x0202aa9c   0x00000018   Code   RO           43    .text.i_am_slave_connected_master  profile.o
-    0x0202aab4   0x0202aab4   0x0000002c   Code   RO           49    .text.i_am_slave_disconnected_master  profile.o
-    0x0202aae0   0x0202aae0   0x000000a8   Code   RO           57    .text.initiating    profile.o
-    0x0202ab88   0x0202ab88   0x00000042   Code   RO          144    .text.is_data_ready  eflash.o
-    0x0202abca   0x0202abca   0x00000002   PAD
-    0x0202abcc   0x0202abcc   0x00000074   Code   RO          751    .text.low_power_create_timer  low_power.o
-    0x0202ac40   0x0202ac40   0x00000030   Code   RO          757    .text.low_power_enter_saving  low_power.o
-    0x0202ac70   0x0202ac70   0x0000009a   Code   RO          749    .text.low_power_exit_saving  low_power.o
-    0x0202ad0a   0x0202ad0a   0x00000002   PAD
-    0x0202ad0c   0x0202ad0c   0x0000004e   Code   RO          759    .text.low_power_start_timer  low_power.o
-    0x0202ad5a   0x0202ad5a   0x00000002   PAD
-    0x0202ad5c   0x0202ad5c   0x00000044   Code   RO          755    .text.low_power_task  low_power.o
-    0x0202ada0   0x0202ada0   0x00000010   Code   RO          671    .text.main_cmd_data_timer_task  bt_cmd_data_uart_io_adp.o
-    0x0202adb0   0x0202adb0   0x0000008e   Code   RO          176    .text.map_int_mode  peripheral_gpio.o
-    0x0202ae3e   0x0202ae3e   0x00000002   PAD
-    0x0202ae40   0x0202ae40   0x0000009e   Code   RO          263    .text.pin_id_for_input_source  peripheral_pinctrl.o
-    0x0202aede   0x0202aede   0x00000002   PAD
-    0x0202aee0   0x0202aee0   0x0000004c   Code   RO          101    .text.print_addr    app.o
-    0x0202af2c   0x0202af2c   0x000000cc   Code   RO           99    .text.print_dev_info  app.o
-    0x0202aff8   0x0202aff8   0x000000b6   Code   RO           59    .text.profile_user_msg_handler  profile.o
-    0x0202b0ae   0x0202b0ae   0x00000002   PAD
-    0x0202b0b0   0x0202b0b0   0x0000001a   Code   RO          132    .text.program_flash  eflash.o
-    0x0202b0ca   0x0202b0ca   0x00000002   PAD
-    0x0202b0cc   0x0202b0cc   0x00000034   Code   RO          138    .text.read_flash_security  eflash.o
-    0x0202b100   0x0202b100   0x00000056   Code   RO          105    .text.sdk_config_uart  app.o
-    0x0202b156   0x0202b156   0x00000002   PAD
-    0x0202b158   0x0202b158   0x00000052   Code   RO           89    .text.sdk_config_uart1_com  app.o
-    0x0202b1aa   0x0202b1aa   0x00000002   PAD
-    0x0202b1ac   0x0202b1ac   0x00000104   Code   RO          737    .text.sdk_load_private_flash_data  sdk_private_flash_data.o
-    0x0202b2b0   0x0202b2b0   0x0000001c   Code   RO          733    .text.sdk_private_data_write_to_flash  sdk_private_flash_data.o
-    0x0202b2cc   0x0202b2cc   0x00000006   Code   RO          140    .text.security_page_read  eflash.o
-    0x0202b2d2   0x0202b2d2   0x00000002   PAD
-    0x0202b2d4   0x0202b2d4   0x00000032   Code   RO          345    .text.set_reg_bit   peripheral_sysctrl.o
-    0x0202b306   0x0202b306   0x00000002   PAD
-    0x0202b308   0x0202b308   0x00000044   Code   RO          251    .text.set_reg_bits  peripheral_pinctrl.o
-    0x0202b34c   0x0202b34c   0x0000003a   Code   RO          347    .text.set_reg_bits  peripheral_sysctrl.o
-    0x0202b386   0x0202b386   0x00000002   PAD
-    0x0202b388   0x0202b388   0x0000006a   Code   RO           55    .text.setup_adv     profile.o
-    0x0202b3f2   0x0202b3f2   0x00000002   PAD
-    0x0202b3f4   0x0202b3f4   0x00000040   Code   RO           97    .text.setup_pll_clk_and_sleep_para  app.o
-    0x0202b434   0x0202b434   0x00000090   Code   RO           23    .text.setup_profile  profile.o
-    0x0202b4c4   0x0202b4c4   0x000000a0   Code   RO          249    .text.source_id_on_pin  peripheral_pinctrl.o
-    0x0202b564   0x0202b564   0x0000000e   Code   RO           37    .text.stack_on_first_wake_up  profile.o
-    0x0202b572   0x0202b572   0x00000002   PAD
-    0x0202b574   0x0202b574   0x0000009a   Code   RO          780    .text.throughput_att_read_callback  throughput_service.o
-    0x0202b60e   0x0202b60e   0x00000002   PAD
-    0x0202b610   0x0202b610   0x000000a2   Code   RO          782    .text.throughput_att_write_callback  throughput_service.o
-    0x0202b6b2   0x0202b6b2   0x00000002   PAD
-    0x0202b6b4   0x0202b6b4   0x00000114   Code   RO          804    .text.throughput_characteristic_discovery_callback  throughput_service.o
-    0x0202b7c8   0x0202b7c8   0x0000002e   Code   RO          794    .text.throughput_clear_send_data  throughput_service.o
-    0x0202b7f6   0x0202b7f6   0x00000002   PAD
-    0x0202b7f8   0x0202b7f8   0x000000d4   Code   RO          808    .text.throughput_descriptor_discovery_callback  throughput_service.o
-    0x0202b8cc   0x0202b8cc   0x00000034   Code   RO          796    .text.throughput_discover_services  throughput_service.o
-    0x0202b900   0x0202b900   0x00000018   Code   RO          784    .text.throughput_event_connected  throughput_service.o
-    0x0202b918   0x0202b918   0x00000032   Code   RO          786    .text.throughput_event_disconnect  throughput_service.o
-    0x0202b94a   0x0202b94a   0x00000002   PAD
-    0x0202b94c   0x0202b94c   0x000000a8   Code   RO          790    .text.throughput_i_am_master_send_data  throughput_service.o
-    0x0202b9f4   0x0202b9f4   0x000000a0   Code   RO          788    .text.throughput_i_am_slave_send_data  throughput_service.o
-    0x0202ba94   0x0202ba94   0x00000044   Code   RO          814    .text.throughput_notification_listen_handler  throughput_service.o
-    0x0202bad8   0x0202bad8   0x000000b8   Code   RO          798    .text.throughput_service_discovery_callback  throughput_service.o
-    0x0202bb90   0x0202bb90   0x00000082   Code   RO          778    .text.throughput_service_init  throughput_service.o
-    0x0202bc12   0x0202bc12   0x00000002   PAD
-    0x0202bc14   0x0202bc14   0x00000072   Code   RO          792    .text.throughput_user_msg_handler  throughput_service.o
-    0x0202bc86   0x0202bc86   0x00000002   PAD
-    0x0202bc88   0x0202bc88   0x0000004c   Code   RO          665    .text.timer_start_main_cmd_data  bt_cmd_data_uart_io_adp.o
-    0x0202bcd4   0x0202bcd4   0x00000012   Code   RO            6    .text.trim_rf_freq  main.o
-    0x0202bce6   0x0202bce6   0x00000002   PAD
-    0x0202bce8   0x0202bce8   0x00000070   Code   RO           53    .text.user_msg_handler  profile.o
-    0x0202bd58   0x0202bd58   0x000001e4   Code   RO           31    .text.user_packet_handler  profile.o
-    0x0202bf3c   0x0202bf3c   0x0000007e   Code   RO          134    .text.write_flash   eflash.o
-    0x0202bfba   0x0202bfba   0x0000000a   Ven    RO          977    Veneer$$Code        anon$$obj.o
-    0x0202bfc4   0x0202bfc4   0x00000028   Code   RO          889    i.__0sprintf        mc_w.l(printfa.o)
-    0x0202bfec   0x0202bfec   0x0000000e   Code   RO          969    i.__scatterload_copy  mc_w.l(handlers.o)
-    0x0202bffa   0x0202bffa   0x00000002   Code   RO          970    i.__scatterload_null  mc_w.l(handlers.o)
-    0x0202bffc   0x0202bffc   0x0000000e   Code   RO          971    i.__scatterload_zeroinit  mc_w.l(handlers.o)
-    0x0202c00a   0x0202c00a   0x00000002   PAD
-    0x0202c00c   0x0202c00c   0x00000184   Code   RO          894    i._fp_digits        mc_w.l(printfa.o)
-    0x0202c190   0x0202c190   0x000006dc   Code   RO          895    i._printf_core      mc_w.l(printfa.o)
-    0x0202c86c   0x0202c86c   0x00000024   Code   RO          896    i._printf_post_padding  mc_w.l(printfa.o)
-    0x0202c890   0x0202c890   0x0000002e   Code   RO          897    i._printf_pre_padding  mc_w.l(printfa.o)
-    0x0202c8be   0x0202c8be   0x0000000a   Code   RO          899    i._sputc            mc_w.l(printfa.o)
-    0x0202c8c8   0x0202c8c8   0x0000000b   Data   RO          858    .rodata.ack_connect  bt_at_cmd_parse.o
-    0x0202c8d3   0x0202c8d3   0x0000000e   Data   RO          859    .rodata.ack_disconnect  bt_at_cmd_parse.o
-    0x0202c8e1   0x0202c8e1   0x00000006   Data   RO          863    .rodata.ack_ok      bt_at_cmd_parse.o
-    0x0202c8e7   0x0202c8e7   0x0000000b   Data   RO          856    .rodata.ack_power_on  bt_at_cmd_parse.o
-    0x0202c8f2   0x0202c8f2   0x0000000b   Data   RO           73    .rodata.adv_data    profile.o
-    0x0202c8fd   0x0202c8fd   0x00000001   PAD
-    0x0202c8fe   0x0202c8fe   0x00000006   Data   RO           78    .rodata.adv_sets_en  profile.o
-    0x0202c904   0x0202c904   0x00000008   Data   RO          860    .rodata.at_set      bt_at_cmd_parse.o
-    0x0202c90c   0x0202c90c   0x0000000c   Data   RO           70    .rodata.configs     profile.o
-    0x0202c918   0x0202c918   0x0000031e   Data   RO          265    .rodata.io_output_source_map  peripheral_pinctrl.o
-    0x0202cc36   0x0202cc36   0x00000012   Data   RO           77    .rodata.phy_configs  profile.o
-    0x0202cc48   0x0202cc48   0x00000048   Data   RO          154    .rodata.prog_security_page_read  eflash.o
-    0x0202cc90   0x0202cc90   0x00000001   Data   RO           74    .rodata.scan_data   profile.o
-    0x0202cc91   0x0202cc91   0x000000af   Data   RO           15    .rodata.str1.1      main.o
-    0x0202cd40   0x0202cd40   0x0000007e   Data   RO           66    .rodata.str1.1      profile.o
-    0x0202cdbe   0x0202cdbe   0x000000af   Data   RO          112    .rodata.str1.1      app.o
-    0x0202ce6d   0x0202ce6d   0x00000066   Data   RO          690    .rodata.str1.1      bt_cmd_data_uart_io_adp.o
-    0x0202ced3   0x0202ced3   0x0000000d   Data   RO          741    .rodata.str1.1      sdk_private_flash_data.o
-    0x0202cee0   0x0202cee0   0x00000036   Data   RO          766    .rodata.str1.1      low_power.o
-    0x0202cf16   0x0202cf16   0x000000b1   Data   RO          828    .rodata.str1.1      throughput_service.o
-    0x0202cfc7   0x0202cfc7   0x00000020   Data   RO          864    .rodata.str1.1      bt_at_cmd_parse.o
-    0x0202cfe7   0x0202cfe7   0x00000010   Data   RO          826    .rodata.throughput_char_info_uuid128  throughput_service.o
-    0x0202cff7   0x0202cff7   0x00000010   Data   RO          824    .rodata.throughput_char_io_uuid128  throughput_service.o
-    0x0202d007   0x0202d007   0x00000010   Data   RO          822    .rodata.throughput_char_write_notify_uuid128  throughput_service.o
-    0x0202d017   0x0202d017   0x00000010   Data   RO          821    .rodata.throughput_service_uuid128  throughput_service.o
-    0x0202d027   0x0202d027   0x00000001   PAD
-    0x0202d028   0x0202d028   0x00000030   Data   RO          968    Region$$Table       anon$$obj.o
+    0x02029ed4   0x02029ed4   0x000000a8   Code   RO          861    .text.bt_at_handle_role  bt_at_cmd_parse.o
+    0x02029f7c   0x02029f7c   0x000000a8   Code   RO          865    .text.bt_at_handle_slep  bt_at_cmd_parse.o
+    0x0202a024   0x0202a024   0x00000012   Code   RO          849    .text.bt_at_power_on_ack  bt_at_cmd_parse.o
+    0x0202a036   0x0202a036   0x00000002   PAD
+    0x0202a038   0x0202a038   0x000000da   Code   RO          658    .text.bt_cmd_data_ble_recv_data  bt_cmd_data_uart_io_adp.o
+    0x0202a112   0x0202a112   0x00000002   PAD
+    0x0202a114   0x0202a114   0x0000005c   Code   RO          656    .text.bt_cmd_data_com_buf_pop_data  bt_cmd_data_uart_io_adp.o
+    0x0202a170   0x0202a170   0x00000064   Code   RO          652    .text.bt_cmd_data_com_buf_pop_num  bt_cmd_data_uart_io_adp.o
+    0x0202a1d4   0x0202a1d4   0x00000010   Code   RO          654    .text.bt_cmd_data_com_buf_top_pos  bt_cmd_data_uart_io_adp.o
+    0x0202a1e4   0x0202a1e4   0x00000066   Code   RO          680    .text.bt_cmd_data_port_check_buf_into_lowpower  bt_cmd_data_uart_io_adp.o
+    0x0202a24a   0x0202a24a   0x00000002   PAD
+    0x0202a24c   0x0202a24c   0x0000004c   Code   RO          686    .text.bt_cmd_data_print_buf_state  bt_cmd_data_uart_io_adp.o
+    0x0202a298   0x0202a298   0x00000084   Code   RO          674    .text.bt_cmd_data_process_init  bt_cmd_data_uart_io_adp.o
+    0x0202a31c   0x0202a31c   0x00000046   Code   RO          112    .text.bt_cmd_data_uart1_isr  app.o
+    0x0202a362   0x0202a362   0x00000002   PAD
+    0x0202a364   0x0202a364   0x0000007a   Code   RO          682    .text.bt_cmd_data_uart_handle_task_send_data  bt_cmd_data_uart_io_adp.o
+    0x0202a3de   0x0202a3de   0x00000002   PAD
+    0x0202a3e0   0x0202a3e0   0x00000058   Code   RO          648    .text.bt_cmd_data_uart_out  bt_cmd_data_uart_io_adp.o
+    0x0202a438   0x0202a438   0x00000114   Code   RO          662    .text.bt_cmd_data_uart_recv_data  bt_cmd_data_uart_io_adp.o
+    0x0202a54c   0x0202a54c   0x000000a6   Code   RO          684    .text.bt_cmd_data_uart_rx_cmd_process  bt_cmd_data_uart_io_adp.o
+    0x0202a5f2   0x0202a5f2   0x00000002   PAD
+    0x0202a5f4   0x0202a5f4   0x0000007a   Code   RO          664    .text.bt_cmd_data_uart_rx_data_fun  bt_cmd_data_uart_io_adp.o
+    0x0202a66e   0x0202a66e   0x00000002   PAD
+    0x0202a670   0x0202a670   0x0000001a   Code   RO          650    .text.bt_cmd_data_uart_wait_all_out  bt_cmd_data_uart_io_adp.o
+    0x0202a68a   0x0202a68a   0x00000002   PAD
+    0x0202a68c   0x0202a68c   0x00000040   Code   RO          823    .text.btstack_callback  throughput_service.o
+    0x0202a6cc   0x0202a6cc   0x0000000c   Code   RO           35    .text.btstack_event_state_get_state  profile.o
+    0x0202a6d8   0x0202a6d8   0x00000056   Code   RO           67    .text.cancel_initiating  profile.o
+    0x0202a72e   0x0202a72e   0x00000002   PAD
+    0x0202a730   0x0202a730   0x0000001e   Code   RO           10    .text.cb_assertion  main.o
+    0x0202a74e   0x0202a74e   0x00000002   PAD
+    0x0202a750   0x0202a750   0x00000056   Code   RO            8    .text.cb_hard_fault  main.o
+    0x0202a7a6   0x0202a7a6   0x00000002   PAD
+    0x0202a7a8   0x0202a7a8   0x0000001a   Code   RO           12    .text.cb_heap_out_of_mem  main.o
+    0x0202a7c2   0x0202a7c2   0x00000002   PAD
+    0x0202a7c4   0x0202a7c4   0x000000c8   Code   RO          678    .text.cmd_process_task  bt_cmd_data_uart_io_adp.o
+    0x0202a88c   0x0202a88c   0x00000014   Code   RO           25    .text.conn_timer_callback  profile.o
+    0x0202a8a0   0x0202a8a0   0x0000007a   Code   RO          149    .text.copy_security_data  eflash.o
+    0x0202a91a   0x0202a91a   0x00000002   PAD
+    0x0202a91c   0x0202a91c   0x0000000c   Code   RO          106    .text.dump_ram_data_in_char  app.o
+    0x0202a928   0x0202a928   0x00000012   Code   RO          758    .text.enter_low_power_timer_callback  low_power.o
+    0x0202a93a   0x0202a93a   0x00000002   PAD
+    0x0202a93c   0x0202a93c   0x0000001a   Code   RO          133    .text.erase_flash_sector  eflash.o
+    0x0202a956   0x0202a956   0x00000002   PAD
+    0x0202a958   0x0202a958   0x00000024   Code   RO          153    .text.flash_get_factory_calib_data  eflash.o
+    0x0202a97c   0x0202a97c   0x0000009c   Code   RO          145    .text.flash_prepare_factory_data  eflash.o
+    0x0202aa18   0x0202aa18   0x0000000c   Code   RO          817    .text.gatt_event_all_characteristic_descriptors_query_result_parse  throughput_service.o
+    0x0202aa24   0x0202aa24   0x0000000c   Code   RO          813    .text.gatt_event_characteristic_query_result_parse  throughput_service.o
+    0x0202aa30   0x0202aa30   0x0000001c   Code   RO          825    .text.gatt_event_notification_parse  throughput_service.o
+    0x0202aa4c   0x0202aa4c   0x0000000c   Code   RO          809    .text.gatt_event_query_complete_parse  throughput_service.o
+    0x0202aa58   0x0202aa58   0x0000000c   Code   RO          807    .text.gatt_event_service_query_result_parse  throughput_service.o
+    0x0202aa64   0x0202aa64   0x00000028   Code   RO          819    .text.get_sig_short_uuid  throughput_service.o
+    0x0202aa8c   0x0202aa8c   0x0000002c   Code   RO          666    .text.give_sem_process_cmd  bt_cmd_data_uart_io_adp.o
+    0x0202aab8   0x0202aab8   0x00000072   Code   RO          668    .text.give_sem_send_data_by_ble  bt_cmd_data_uart_io_adp.o
+    0x0202ab2a   0x0202ab2a   0x00000002   PAD
+    0x0202ab2c   0x0202ab2c   0x0000002c   Code   RO          660    .text.give_sem_send_data_by_com  bt_cmd_data_uart_io_adp.o
+    0x0202ab58   0x0202ab58   0x0000000c   Code   RO           39    .text.hci_event_le_meta_get_subevent_code  profile.o
+    0x0202ab64   0x0202ab64   0x0000000c   Code   RO           33    .text.hci_event_packet_get_type  profile.o
+    0x0202ab70   0x0202ab70   0x0000000c   Code   RO           55    .text.hci_event_packet_get_user_msg  profile.o
+    0x0202ab7c   0x0202ab7c   0x0000003c   Code   RO           49    .text.hint_ce_len   profile.o
+    0x0202abb8   0x0202abb8   0x0000003c   Code   RO           47    .text.i_am_master_connected_slave  profile.o
+    0x0202abf4   0x0202abf4   0x0000001c   Code   RO           51    .text.i_am_master_disconnected_slave  profile.o
+    0x0202ac10   0x0202ac10   0x00000018   Code   RO           45    .text.i_am_slave_connected_master  profile.o
+    0x0202ac28   0x0202ac28   0x0000002c   Code   RO           53    .text.i_am_slave_disconnected_master  profile.o
+    0x0202ac54   0x0202ac54   0x000000a8   Code   RO           61    .text.initiating    profile.o
+    0x0202acfc   0x0202acfc   0x00000042   Code   RO          147    .text.is_data_ready  eflash.o
+    0x0202ad3e   0x0202ad3e   0x00000002   PAD
+    0x0202ad40   0x0202ad40   0x00000074   Code   RO          756    .text.low_power_create_timer  low_power.o
+    0x0202adb4   0x0202adb4   0x00000030   Code   RO          762    .text.low_power_enter_saving  low_power.o
+    0x0202ade4   0x0202ade4   0x0000009a   Code   RO          754    .text.low_power_exit_saving  low_power.o
+    0x0202ae7e   0x0202ae7e   0x00000002   PAD
+    0x0202ae80   0x0202ae80   0x0000004e   Code   RO          764    .text.low_power_start_timer  low_power.o
+    0x0202aece   0x0202aece   0x00000002   PAD
+    0x0202aed0   0x0202aed0   0x00000044   Code   RO          760    .text.low_power_task  low_power.o
+    0x0202af14   0x0202af14   0x00000010   Code   RO          676    .text.main_cmd_data_timer_task  bt_cmd_data_uart_io_adp.o
+    0x0202af24   0x0202af24   0x0000008e   Code   RO          179    .text.map_int_mode  peripheral_gpio.o
+    0x0202afb2   0x0202afb2   0x00000002   PAD
+    0x0202afb4   0x0202afb4   0x0000009e   Code   RO          266    .text.pin_id_for_input_source  peripheral_pinctrl.o
+    0x0202b052   0x0202b052   0x00000002   PAD
+    0x0202b054   0x0202b054   0x0000004c   Code   RO          104    .text.print_addr    app.o
+    0x0202b0a0   0x0202b0a0   0x00000012   Code   RO           43    .text.print_connect_para  profile.o
+    0x0202b0b2   0x0202b0b2   0x00000002   PAD
+    0x0202b0b4   0x0202b0b4   0x000000cc   Code   RO          102    .text.print_dev_info  app.o
+    0x0202b180   0x0202b180   0x000000c0   Code   RO           63    .text.profile_user_msg_handler  profile.o
+    0x0202b240   0x0202b240   0x0000001a   Code   RO          135    .text.program_flash  eflash.o
+    0x0202b25a   0x0202b25a   0x00000002   PAD
+    0x0202b25c   0x0202b25c   0x00000034   Code   RO          141    .text.read_flash_security  eflash.o
+    0x0202b290   0x0202b290   0x00000056   Code   RO          108    .text.sdk_config_uart  app.o
+    0x0202b2e6   0x0202b2e6   0x00000002   PAD
+    0x0202b2e8   0x0202b2e8   0x00000052   Code   RO           92    .text.sdk_config_uart1_com  app.o
+    0x0202b33a   0x0202b33a   0x00000002   PAD
+    0x0202b33c   0x0202b33c   0x00000104   Code   RO          742    .text.sdk_load_private_flash_data  sdk_private_flash_data.o
+    0x0202b440   0x0202b440   0x0000001c   Code   RO          738    .text.sdk_private_data_write_to_flash  sdk_private_flash_data.o
+    0x0202b45c   0x0202b45c   0x00000006   Code   RO          143    .text.security_page_read  eflash.o
+    0x0202b462   0x0202b462   0x00000002   PAD
+    0x0202b464   0x0202b464   0x00000032   Code   RO          348    .text.set_reg_bit   peripheral_sysctrl.o
+    0x0202b496   0x0202b496   0x00000002   PAD
+    0x0202b498   0x0202b498   0x00000044   Code   RO          254    .text.set_reg_bits  peripheral_pinctrl.o
+    0x0202b4dc   0x0202b4dc   0x0000003a   Code   RO          350    .text.set_reg_bits  peripheral_sysctrl.o
+    0x0202b516   0x0202b516   0x00000002   PAD
+    0x0202b518   0x0202b518   0x0000006a   Code   RO           59    .text.setup_adv     profile.o
+    0x0202b582   0x0202b582   0x00000002   PAD
+    0x0202b584   0x0202b584   0x00000040   Code   RO          100    .text.setup_pll_clk_and_sleep_para  app.o
+    0x0202b5c4   0x0202b5c4   0x00000090   Code   RO           23    .text.setup_profile  profile.o
+    0x0202b654   0x0202b654   0x000000a0   Code   RO          252    .text.source_id_on_pin  peripheral_pinctrl.o
+    0x0202b6f4   0x0202b6f4   0x0000000e   Code   RO           37    .text.stack_on_first_wake_up  profile.o
+    0x0202b702   0x0202b702   0x00000002   PAD
+    0x0202b704   0x0202b704   0x0000009a   Code   RO          785    .text.throughput_att_read_callback  throughput_service.o
+    0x0202b79e   0x0202b79e   0x00000002   PAD
+    0x0202b7a0   0x0202b7a0   0x000000a6   Code   RO          787    .text.throughput_att_write_callback  throughput_service.o
+    0x0202b846   0x0202b846   0x00000002   PAD
+    0x0202b848   0x0202b848   0x00000114   Code   RO          811    .text.throughput_characteristic_discovery_callback  throughput_service.o
+    0x0202b95c   0x0202b95c   0x00000030   Code   RO          795    .text.throughput_clear_send_data  throughput_service.o
+    0x0202b98c   0x0202b98c   0x000000d4   Code   RO          815    .text.throughput_descriptor_discovery_callback  throughput_service.o
+    0x0202ba60   0x0202ba60   0x00000034   Code   RO          803    .text.throughput_discover_services  throughput_service.o
+    0x0202ba94   0x0202ba94   0x00000018   Code   RO          789    .text.throughput_event_connected  throughput_service.o
+    0x0202baac   0x0202baac   0x00000032   Code   RO          791    .text.throughput_event_disconnect  throughput_service.o
+    0x0202bade   0x0202bade   0x00000002   PAD
+    0x0202bae0   0x0202bae0   0x000000d6   Code   RO          797    .text.throughput_i_am_master_send_data  throughput_service.o
+    0x0202bbb6   0x0202bbb6   0x00000002   PAD
+    0x0202bbb8   0x0202bbb8   0x000000d4   Code   RO          799    .text.throughput_i_am_slave_send_data  throughput_service.o
+    0x0202bc8c   0x0202bc8c   0x00000044   Code   RO          821    .text.throughput_notification_listen_handler  throughput_service.o
+    0x0202bcd0   0x0202bcd0   0x00000068   Code   RO          793    .text.throughput_send_data  throughput_service.o
+    0x0202bd38   0x0202bd38   0x000000b8   Code   RO          805    .text.throughput_service_discovery_callback  throughput_service.o
+    0x0202bdf0   0x0202bdf0   0x00000082   Code   RO          783    .text.throughput_service_init  throughput_service.o
+    0x0202be72   0x0202be72   0x00000002   PAD
+    0x0202be74   0x0202be74   0x00000078   Code   RO          801    .text.throughput_user_msg_handler  throughput_service.o
+    0x0202beec   0x0202beec   0x0000004c   Code   RO          670    .text.timer_start_main_cmd_data  bt_cmd_data_uart_io_adp.o
+    0x0202bf38   0x0202bf38   0x00000012   Code   RO            6    .text.trim_rf_freq  main.o
+    0x0202bf4a   0x0202bf4a   0x00000002   PAD
+    0x0202bf4c   0x0202bf4c   0x00000070   Code   RO           57    .text.user_msg_handler  profile.o
+    0x0202bfbc   0x0202bfbc   0x00000216   Code   RO           31    .text.user_packet_handler  profile.o
+    0x0202c1d2   0x0202c1d2   0x00000002   PAD
+    0x0202c1d4   0x0202c1d4   0x0000007e   Code   RO          137    .text.write_flash   eflash.o
+    0x0202c252   0x0202c252   0x0000000a   Ven    RO          988    Veneer$$Code        anon$$obj.o
+    0x0202c25c   0x0202c25c   0x00000028   Code   RO          900    i.__0sprintf        mc_w.l(printfa.o)
+    0x0202c284   0x0202c284   0x0000000e   Code   RO          980    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x0202c292   0x0202c292   0x00000002   Code   RO          981    i.__scatterload_null  mc_w.l(handlers.o)
+    0x0202c294   0x0202c294   0x0000000e   Code   RO          982    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x0202c2a2   0x0202c2a2   0x00000002   PAD
+    0x0202c2a4   0x0202c2a4   0x00000184   Code   RO          905    i._fp_digits        mc_w.l(printfa.o)
+    0x0202c428   0x0202c428   0x000006dc   Code   RO          906    i._printf_core      mc_w.l(printfa.o)
+    0x0202cb04   0x0202cb04   0x00000024   Code   RO          907    i._printf_post_padding  mc_w.l(printfa.o)
+    0x0202cb28   0x0202cb28   0x0000002e   Code   RO          908    i._printf_pre_padding  mc_w.l(printfa.o)
+    0x0202cb56   0x0202cb56   0x0000000a   Code   RO          910    i._sputc            mc_w.l(printfa.o)
+    0x0202cb60   0x0202cb60   0x0000000b   Data   RO          869    .rodata.ack_connect  bt_at_cmd_parse.o
+    0x0202cb6b   0x0202cb6b   0x0000000e   Data   RO          870    .rodata.ack_disconnect  bt_at_cmd_parse.o
+    0x0202cb79   0x0202cb79   0x00000006   Data   RO          874    .rodata.ack_ok      bt_at_cmd_parse.o
+    0x0202cb7f   0x0202cb7f   0x0000000b   Data   RO          867    .rodata.ack_power_on  bt_at_cmd_parse.o
+    0x0202cb8a   0x0202cb8a   0x0000000b   Data   RO           76    .rodata.adv_data    profile.o
+    0x0202cb95   0x0202cb95   0x00000001   PAD
+    0x0202cb96   0x0202cb96   0x00000006   Data   RO           81    .rodata.adv_sets_en  profile.o
+    0x0202cb9c   0x0202cb9c   0x00000008   Data   RO          871    .rodata.at_set      bt_at_cmd_parse.o
+    0x0202cba4   0x0202cba4   0x0000000c   Data   RO           73    .rodata.configs     profile.o
+    0x0202cbb0   0x0202cbb0   0x0000031e   Data   RO          268    .rodata.io_output_source_map  peripheral_pinctrl.o
+    0x0202cece   0x0202cece   0x00000012   Data   RO           80    .rodata.phy_configs  profile.o
+    0x0202cee0   0x0202cee0   0x00000048   Data   RO          157    .rodata.prog_security_page_read  eflash.o
+    0x0202cf28   0x0202cf28   0x00000001   Data   RO           77    .rodata.scan_data   profile.o
+    0x0202cf29   0x0202cf29   0x000000af   Data   RO           15    .rodata.str1.1      main.o
+    0x0202cfd8   0x0202cfd8   0x00000093   Data   RO           69    .rodata.str1.1      profile.o
+    0x0202d06b   0x0202d06b   0x000000af   Data   RO          115    .rodata.str1.1      app.o
+    0x0202d11a   0x0202d11a   0x00000079   Data   RO          689    .rodata.str1.1      bt_cmd_data_uart_io_adp.o
+    0x0202d193   0x0202d193   0x0000000d   Data   RO          746    .rodata.str1.1      sdk_private_flash_data.o
+    0x0202d1a0   0x0202d1a0   0x00000036   Data   RO          771    .rodata.str1.1      low_power.o
+    0x0202d1d6   0x0202d1d6   0x000000f5   Data   RO          835    .rodata.str1.1      throughput_service.o
+    0x0202d2cb   0x0202d2cb   0x00000039   Data   RO          875    .rodata.str1.1      bt_at_cmd_parse.o
+    0x0202d304   0x0202d304   0x00000010   Data   RO          833    .rodata.throughput_char_info_uuid128  throughput_service.o
+    0x0202d314   0x0202d314   0x00000010   Data   RO          831    .rodata.throughput_char_io_uuid128  throughput_service.o
+    0x0202d324   0x0202d324   0x00000010   Data   RO          829    .rodata.throughput_char_write_notify_uuid128  throughput_service.o
+    0x0202d334   0x0202d334   0x00000010   Data   RO          828    .rodata.throughput_service_uuid128  throughput_service.o
+    0x0202d344   0x0202d344   0x00000050   Data   RO          979    Region$$Table       anon$$obj.o
 
 
-    Execution Region RW_IRAM1 (Exec base: 0x20005438, Load base: 0x0202d058, Size: 0x00000aac, Max: 0x00001bc8, ABSOLUTE, COMPRESSED[0x000000d0])
-
-    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
-
-    0x20005438   COMPRESSED   0x00000030   Data   RW          862    .data.at_set_body   bt_at_cmd_parse.o
-    0x20005468   COMPRESSED   0x00000004   Data   RW          861    .data.at_set_num    bt_at_cmd_parse.o
-    0x2000546c   COMPRESSED   0x00000001   Data   RW          686    .data.bt_cmd_data_uart_recv_data.trig_source_last  bt_cmd_data_uart_io_adp.o
-    0x2000546d   COMPRESSED   0x00000001   PAD
-    0x2000546e   COMPRESSED   0x00000002   Data   RW          832    .data.char_config_notification  throughput_service.o
-    0x20005470   COMPRESSED   0x00000058   Data   RW           14    .data.evt_cb_table  main.o
-    0x200054c8   COMPRESSED   0x000000a8   Data   RW          739    .data.g_power_off_save_data_in_ram  sdk_private_flash_data.o
-    0x20005570   COMPRESSED   0x00000002   Data   RW           71    .data.i_am_master_conn_handle  profile.o
-    0x20005572   COMPRESSED   0x00000002   Data   RW           72    .data.i_am_slave_conn_handle  profile.o
-    0x20005574   COMPRESSED   0x00000001   Data   RW           76    .data.initiating_id  profile.o
-    0x20005575   COMPRESSED   0x00000001   Data   RW          763    .data.low_power_exit_saving.last_reason  low_power.o
-    0x20005576   COMPRESSED   0x00000002   PAD
-    0x20005578   COMPRESSED   0x00000004   Data   RW          740    .data.p_power_off_save_data_in_flash  sdk_private_flash_data.o
-    0x2000557c   COMPRESSED   0x00000064   Data   RW          820    .data.peer_slave    throughput_service.o
-    0x200055e0   COMPRESSED   0x00000002   Data   RW          825    .data.throughput_att_io_handle  throughput_service.o
-    0x200055e2   COMPRESSED   0x00000002   Data   RW          823    .data.throughput_att_write_notify_handle  throughput_service.o
-    0x200055e4   COMPRESSED   0x00000001   Data   RW          827    .data.throughput_char_info_data  throughput_service.o
-    0x200055e5   COMPRESSED   0x00000001   PAD
-    0x200055e6   COMPRESSED   0x00000002   Data   RW          830    .data.throughput_con_handle  throughput_service.o
-    0x200055e8        -       0x00000004   Zero   RW          633    .bss.att_db         att_db_util.o
-    0x200055ec        -       0x00000002   Zero   RW          634    .bss.att_db_max_size  att_db_util.o
-    0x200055ee        -       0x00000002   Zero   RW          636    .bss.att_db_next_handle  att_db_util.o
-    0x200055f0        -       0x00000002   Zero   RW          635    .bss.att_db_size    att_db_util.o
-    0x200055f2        -       0x000001f4   Zero   RW           69    .bss.att_db_storage  profile.o
-    0x200057e6   COMPRESSED   0x00000002   PAD
-    0x200057e8        -       0x00000338   Zero   RW          684    .bss.ble_buf        bt_cmd_data_uart_io_adp.o
-    0x20005b20        -       0x00000001   Zero   RW          685    .bss.bt_cmd_data_uart_recv_data.have_data_no_process  bt_cmd_data_uart_io_adp.o
-    0x20005b21   COMPRESSED   0x00000003   PAD
-    0x20005b24        -       0x00000004   Zero   RW          687    .bss.bt_cmd_data_uart_recv_data.trig_timer_cnt  bt_cmd_data_uart_io_adp.o
-    0x20005b28        -       0x00000040   Zero   RW          692    .bss.cmd_out_buf    bt_cmd_data_uart_io_adp.o
-    0x20005b68        -       0x00000338   Zero   RW          683    .bss.com_buf        bt_cmd_data_uart_io_adp.o
-    0x20005ea0        -       0x00000004   Zero   RW           67    .bss.create_conn_timer  profile.o
-    0x20005ea4        -       0x00000004   Zero   RW          767    .bss.enter_low_power_timer  low_power.o
-    0x20005ea8        -       0x00000001   Zero   RW          764    .bss.exit_saving    low_power.o
-    0x20005ea9   COMPRESSED   0x00000001   PAD
-    0x20005eaa        -       0x00000002   Zero   RW          762    .bss.g_sys_work_status_bits  low_power.o
-    0x20005eac        -       0x00000004   Zero   RW           79    .bss.gap_is_connection_cancel  profile.o
-    0x20005eb0        -       0x00000008   Zero   RW           68    .bss.hci_event_callback_registration  profile.o
-    0x20005eb8        -       0x00000004   Zero   RW          831    .bss.i_am_master_send_data_num  throughput_service.o
-    0x20005ebc        -       0x00000001   Zero   RW           75    .bss.is_scanning    profile.o
-    0x20005ebd   COMPRESSED   0x00000003   PAD
-    0x20005ec0        -       0x00000004   Zero   RW          765    .bss.low_power_task_BinarySemaphore  low_power.o
-    0x20005ec4        -       0x00000004   Zero   RW          768    .bss.low_power_task_handler  low_power.o
-    0x20005ec8        -       0x00000001   Zero   RW          769    .bss.low_power_timer_is_run  low_power.o
-    0x20005ec9   COMPRESSED   0x00000003   PAD
-    0x20005ecc        -       0x00000004   Zero   RW          689    .bss.m_main_cmd_data_timer  bt_cmd_data_uart_io_adp.o
-    0x20005ed0        -       0x00000004   Zero   RW          688    .bss.m_main_cmd_data_timer_state  bt_cmd_data_uart_io_adp.o
-    0x20005ed4        -       0x00000004   Zero   RW          691    .bss.sem_cmd_process  bt_cmd_data_uart_io_adp.o
-    0x20005ed8        -       0x00000001   Zero   RW          829    .bss.throughput_notify_enable  throughput_service.o
-    0x20005ed9   COMPRESSED   0x00000003   PAD
-    0x20005edc        -       0x00000004   Zero   RW          770    .bss.xHigherPriorityTaskWoken  low_power.o
-    0x20005ee0        -       0x00000004   Zero   RW          120    STACK               startup_ing91600.o
-
-
-    Execution Region RW_IRAM2 (Exec base: 0x20007000, Load base: 0x0202d128, Size: 0x000005f4, Max: 0x00001000, ABSOLUTE)
+    Execution Region RW_IRAM1 (Exec base: 0x20005438, Load base: 0x0202d394, Size: 0x00001468, Max: 0x00001bc8, ABSOLUTE, COMPRESSED[0x000000cc])
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20007000   0x0202d128   0x000005b6   Code   RO            2    .ramfunc            main.o
-    0x200075b6   0x0202d6de   0x0000000a   Ven    RO          978    Veneer$$Code        anon$$obj.o
-    0x200075c0   0x0202d6e8   0x0000000a   Ven    RO          979    Veneer$$Code        anon$$obj.o
-    0x200075ca   0x0202d6f2   0x0000000a   Ven    RO          980    Veneer$$Code        anon$$obj.o
-    0x200075d4   0x0202d6fc   0x0000000a   Ven    RO          981    Veneer$$Code        anon$$obj.o
-    0x200075de   0x0202d706   0x0000000a   Ven    RO          982    Veneer$$Code        anon$$obj.o
-    0x200075e8   0x0202d710   0x0000000a   Ven    RO          983    Veneer$$Code        anon$$obj.o
+    0x20005438   COMPRESSED   0x00000040   Data   RW          873    .data.at_set_body   bt_at_cmd_parse.o
+    0x20005478   COMPRESSED   0x00000004   Data   RW          872    .data.at_set_num    bt_at_cmd_parse.o
+    0x2000547c   COMPRESSED   0x00000002   Data   RW          841    .data.char_config_notification  throughput_service.o
+    0x2000547e   COMPRESSED   0x00000002   PAD
+    0x20005480   COMPRESSED   0x00000058   Data   RW           14    .data.evt_cb_table  main.o
+    0x200054d8   COMPRESSED   0x000000a8   Data   RW          744    .data.g_power_off_save_data_in_ram  sdk_private_flash_data.o
+    0x20005580   COMPRESSED   0x00000002   Data   RW           75    .data.i_am_slave_conn_handle  profile.o
+    0x20005582   COMPRESSED   0x00000001   Data   RW          768    .data.low_power_exit_saving.last_reason  low_power.o
+    0x20005583   COMPRESSED   0x00000001   PAD
+    0x20005584   COMPRESSED   0x00000002   Data   RW          832    .data.throughput_att_io_handle  throughput_service.o
+    0x20005586   COMPRESSED   0x00000002   PAD
+    0x20005588        -       0x00000002   Zero   RW          638    .bss.att_db_size    att_db_util.o
+    0x2000558a   COMPRESSED   0x00000002   PAD
+    0x2000558c        -       0x00000338   Zero   RW          690    .bss.ble_buf        bt_cmd_data_uart_io_adp.o
+    0x200058c4        -       0x00000001   Zero   RW          691    .bss.bt_cmd_data_uart_recv_data.buf_data_can_be_cmd  bt_cmd_data_uart_io_adp.o
+    0x200058c5   COMPRESSED   0x00000003   PAD
+    0x200058c8        -       0x00000fb8   Zero   RW          688    .bss.com_buf        bt_cmd_data_uart_io_adp.o
+    0x20006880        -       0x00000002   Zero   RW          767    .bss.g_sys_work_status_bits  low_power.o
+    0x20006882   COMPRESSED   0x00000002   PAD
+    0x20006884        -       0x00000004   Zero   RW          839    .bss.i_am_master_send_data_num  throughput_service.o
+    0x20006888        -       0x00000004   Zero   RW          770    .bss.low_power_task_BinarySemaphore  low_power.o
+    0x2000688c        -       0x00000004   Zero   RW          773    .bss.low_power_task_handler  low_power.o
+    0x20006890        -       0x00000001   Zero   RW          774    .bss.low_power_timer_is_run  low_power.o
+    0x20006891   COMPRESSED   0x00000003   PAD
+    0x20006894        -       0x00000004   Zero   RW          694    .bss.m_main_cmd_data_timer_state  bt_cmd_data_uart_io_adp.o
+    0x20006898        -       0x00000004   Zero   RW          696    .bss.sem_cmd_process  bt_cmd_data_uart_io_adp.o
+    0x2000689c        -       0x00000001   Zero   RW          836    .bss.throughput_notify_enable  throughput_service.o
+
+
+    Execution Region RW_IRAM2 (Exec base: 0x20007000, Load base: 0x0202d464, Size: 0x000008dc, Max: 0x00001000, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x20007000   0x0202d464   0x000005b6   Code   RO            2    .ramfunc            main.o
+    0x200075b6   0x0202da1a   0x0000000a   Ven    RO          989    Veneer$$Code        anon$$obj.o
+    0x200075c0   0x0202da24   0x0000000a   Ven    RO          990    Veneer$$Code        anon$$obj.o
+    0x200075ca   0x0202da2e   0x0000000a   Ven    RO          991    Veneer$$Code        anon$$obj.o
+    0x200075d4   0x0202da38   0x0000000a   Ven    RO          992    Veneer$$Code        anon$$obj.o
+    0x200075de   0x0202da42   0x0000000a   Ven    RO          993    Veneer$$Code        anon$$obj.o
+    0x200075e8   0x0202da4c   0x0000000a   Ven    RO          994    Veneer$$Code        anon$$obj.o
+    0x200075f2   0x0202da56   0x00000002   PAD
+    0x200075f4   0x0202da58   0x00000001   Data   RW          692    .data.bt_cmd_data_uart_recv_data.trig_source_last  bt_cmd_data_uart_io_adp.o
+    0x200075f5   0x0202da59   0x00000001   PAD
+    0x200075f6   0x0202da5a   0x00000002   Data   RW           74    .data.i_am_master_conn_handle  profile.o
+    0x200075f8   0x0202da5c   0x00000001   Data   RW           79    .data.initiating_id  profile.o
+    0x200075f9   0x0202da5d   0x00000003   PAD
+    0x200075fc   0x0202da60   0x00000004   Data   RW          745    .data.p_power_off_save_data_in_flash  sdk_private_flash_data.o
+    0x20007600   0x0202da64   0x00000064   Data   RW          827    .data.peer_slave    throughput_service.o
+    0x20007664   0x0202dac8   0x00000002   Data   RW          830    .data.throughput_att_write_notify_handle  throughput_service.o
+    0x20007666   0x0202daca   0x00000001   Data   RW          834    .data.throughput_char_info_data  throughput_service.o
+    0x20007667   0x0202dacb   0x00000001   PAD
+    0x20007668   0x0202dacc   0x00000002   Data   RW          837    .data.throughput_con_handle  throughput_service.o
+    0x2000766a   0x0202dace   0x00000006   PAD
+    0x20007670        -       0x00000004   Zero   RW          636    .bss.att_db         att_db_util.o
+    0x20007674        -       0x00000002   Zero   RW          637    .bss.att_db_max_size  att_db_util.o
+    0x20007676        -       0x00000002   Zero   RW          639    .bss.att_db_next_handle  att_db_util.o
+    0x20007678        -       0x000001f4   Zero   RW           72    .bss.att_db_storage  profile.o
+    0x2000786c        -       0x00000004   Zero   RW          693    .bss.bt_cmd_data_uart_recv_data.trig_timer_cnt  bt_cmd_data_uart_io_adp.o
+    0x20007870        -       0x00000040   Zero   RW          697    .bss.cmd_out_buf    bt_cmd_data_uart_io_adp.o
+    0x200078b0        -       0x00000004   Zero   RW           70    .bss.create_conn_timer  profile.o
+    0x200078b4        -       0x00000004   Zero   RW          772    .bss.enter_low_power_timer  low_power.o
+    0x200078b8        -       0x00000001   Zero   RW          769    .bss.exit_saving    low_power.o
+    0x200078b9        -       0x00000001   Zero   RW          838    .bss.g_throughput_is_sending_data  throughput_service.o
+    0x200078ba   0x0202dace   0x00000002   PAD
+    0x200078bc        -       0x00000004   Zero   RW           82    .bss.gap_is_connection_cancel  profile.o
+    0x200078c0        -       0x00000008   Zero   RW           71    .bss.hci_event_callback_registration  profile.o
+    0x200078c8        -       0x00000004   Zero   RW          840    .bss.i_am_slave_send_data_num  throughput_service.o
+    0x200078cc        -       0x00000001   Zero   RW           78    .bss.is_scanning    profile.o
+    0x200078cd   0x0202dace   0x00000003   PAD
+    0x200078d0        -       0x00000004   Zero   RW          695    .bss.m_main_cmd_data_timer  bt_cmd_data_uart_io_adp.o
+    0x200078d4        -       0x00000004   Zero   RW          775    .bss.xHigherPriorityTaskWoken  low_power.o
+    0x200078d8        -       0x00000004   Zero   RW          123    STACK               startup_ing91600.o
 
 
 ==============================================================================
@@ -2848,8 +2907,8 @@ Image component sizes
 
        828          0        175          0          0      13570   app.o
        808          0          0          0         10       3787   att_db_util.o
-      1140          0         82         52          0       4321   bt_at_cmd_parse.o
-      1890          0        102          1       1729       7352   bt_cmd_data_uart_io_adp.o
+      1308          0        107         68          0       4591   bt_at_cmd_parse.o
+      2030          0        121          1       4929       7773   bt_cmd_data_uart_io_adp.o
        616          0         72          0          0       4159   eflash.o
        482          0         54          1         20       3394   low_power.o
       1700          4        175         88          0       8312   main.o
@@ -2858,15 +2917,15 @@ Image component sizes
       1546         50          0          0          0      22516   peripheral_sysctrl.o
         30          0          0          0          0       4922   peripheral_timer.o
        348          0          0          0          0       5785   peripheral_uart.o
-      1870          0        174          5        517      10030   profile.o
+      2008          0        195          5        517      10518   profile.o
        288          0         13        172          0       2504   sdk_private_flash_data.o
         40         12          8          0          4        436   startup_ing91600.o
-      1980          0        241        109          5       8401   throughput_service.o
+      2194          0        309        109         10       8955   throughput_service.o
 
     ----------------------------------------------------------------------
-     16316         66       1944        432       2300     120219   Object Totals
-        70          0         48          0          0          0   (incl. Generated)
-       122          0          2          4         15          0   (incl. Padding)
+     16980         66       2108        456       5512     121952   Object Totals
+        70          0         80          0          0          0   (incl. Generated)
+       126          0          1         12         22          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -2922,15 +2981,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     20148        168       1944        432       2300     121147   Grand Totals
-     20148        168       1944        208       2300     121147   ELF Image Totals (compressed)
-     20148        168       1944        208          0          0   ROM Totals
+     20812        168       2108        456       5512     122880   Grand Totals
+     20812        168       2108        324       5512     122880   ELF Image Totals (compressed)
+     20812        168       2108        324          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                22092 (  21.57kB)
-    Total RW  Size (RW Data + ZI Data)              2732 (   2.67kB)
-    Total ROM Size (Code + RO Data + RW Data)      22300 (  21.78kB)
+    Total RO  Size (Code + RO Data)                22920 (  22.38kB)
+    Total RW  Size (RW Data + ZI Data)              5968 (   5.83kB)
+    Total ROM Size (Code + RO Data + RW Data)      23244 (  22.70kB)
 
 ==============================================================================
 
